@@ -1,0 +1,6 @@
+{
+    "python.venvPath": "~/.envs",
+    "python.pythonPath": "/home/manrajsingh/.envs/sat/bin/python",
+    "python.linting.pep8Enabled": true,
+    "python.linting.enabled": true
+}
