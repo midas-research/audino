@@ -1,13 +1,28 @@
 {% extends "base.html" %}
 
 {% block meta %}
-var audio_name = "{{ session['file'] }}"
+var audio_path = "{{ session['file'] }}"
 {% endblock %}
 
 {% block content %}
   <div class="container h-75 text-center">
     <div class="row h-100 justify-content-center align-items-center">
       <div id="waveform"></div>
+      <div class="w-100"></div>
+      <div class="col-3">
+          <button class="btn btn-primary btn-block" data-action="play">
+              <span id="play">
+                  <i class="glyphicon glyphicon-play"></i>
+                  Play
+              </span>
+
+              <span id="pause" style="display: none">
+                  <i class="glyphicon glyphicon-pause"></i>
+                  Pause
+              </span>
+          </button>
+      </div>
+      <div class="w-100"></div>
       <form class="form-transcription" action="" method="post" novalidate>
         {{ form.hidden_tag() }}
         {{ form.transcription(
@@ -23,8 +38,10 @@ var audio_name = "{{ session['file'] }}"
 
 {% block custom_styles %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/player.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block custom_scripts %}
 <script src="https://unpkg.com/wavesurfer.js"></script>
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
 {% endblock %}

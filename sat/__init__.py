@@ -29,5 +29,6 @@ from sat import models
 def load_user(id):
     return models.User.query.get(int(id))
 
+
 from .views import *
 app.register_blueprint(views)
