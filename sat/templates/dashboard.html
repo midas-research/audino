@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 
 {% block meta %}
-var audio_name = "{{ form.file_name.data }}"
+var audio_name = "{{ session['file'] }}"
 {% endblock %}
 
 {% block content %}
   <div class="container h-75 text-center">
     <div class="row h-100 justify-content-center align-items-center">
       <div id="waveform"></div>
-      <form class="form-transcription" action="" method="post">
+      <form class="form-transcription" action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        {{ form.file_name() }}
         {{ form.transcription(
           class="form-control", rows="10", cols="80", placeholder="Transcription", type="text", id="transcriptionPassword", required=True) }}
+        {% for error in form.transcription.errors %}
+          <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
         {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
       </form>
     </div>

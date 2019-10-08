@@ -11,6 +11,5 @@ class LoginForm(FlaskForm):
 
 
 class TranscriptionForm(FlaskForm):
-    file_name = HiddenField('File Name')
-    transcription = TextAreaField('Transcription')
+    transcription = TextAreaField('Transcription', validators=[DataRequired()])
     submit = SubmitField('Submit')
