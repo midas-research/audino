@@ -1,26 +1,25 @@
 import os
 
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
-from sat import routes
+from .config import Config
+from .views import *
 
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-    )
-
-    if test_config is None:
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        app.config.from_mapping(test_config)
-
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+    app.config.from_object(Config)
 
     return app
+
+
+app = create_app()
+app.register_blueprint(views)
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+from sat import models

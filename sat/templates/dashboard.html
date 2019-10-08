@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block meta %}
+{% endblock %}
+
+{% block content %}
+  <div class="container h-75 text-center">
+    <div class="row h-100 justify-content-center align-items-center">
+      <div id="waveform"></div>
+      <form class="form-signin">
+        <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
+        
+        <label for="inputEmail" class="sr-only">Email address</label>
+        <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+        
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+    
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block custom_styles %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block custom_scripts %}
+<script src="https://unpkg.com/wavesurfer.js"></script>
+{% endblock %}
