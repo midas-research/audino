@@ -1,0 +1,4 @@
+FLASK_APP=app.py
+FLASK_DEBUG=0
+DATABASE_URL=mysql+pymysql://<username>:<password>@<host>/<database>
+SECRET_KEY=randomkeygoeshere
