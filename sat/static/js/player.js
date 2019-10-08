@@ -4,6 +4,4 @@ var wavesurfer = WaveSurfer.create({
   progressColor: 'purple'
 });
 
-var file_path = '/audios/';
-
-wavesurfer.load(file_path);
+wavesurfer.load(audio_path);
