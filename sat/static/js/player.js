@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var playButton = document.querySelector('#play');
   var pauseButton = document.querySelector('#pause');
   var backwardButton = document.querySelector('#skip-backward');
-  var forwarButton = document.querySelector('#skip-forward');
+  var forwardButton = document.querySelector('#skip-forward');
 
   playButton.addEventListener('click', function() {
     wavesurfer.play();
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
   backwardButton.addEventListener('click', function() {
     wavesurfer.skipBackward(5);
   });
-  forwarButton.addEventListener('click', function() {
+  forwardButton.addEventListener('click', function() {
     wavesurfer.skipForward(5);
   });
 
