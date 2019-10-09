@@ -34,7 +34,7 @@ session = Session()
 
 data_dir = args.datadir
 
-audios = { os.path.basename(p): p for p in Path(data_dir).glob("**/*.mp3")}
+audios = { os.path.basename(p): p.resolve() for p in Path(data_dir).glob("**/*.mp3")}
 audios = audios.values()
 
 print(f"Adding data")
