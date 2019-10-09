@@ -7,6 +7,9 @@ var audio_path = "{{ session['file'] }}"
 {% block content %}
   <div class="container h-75 text-center">
     <div class="row h-100 justify-content-center align-items-center">
+      {% if message %}
+      <h1>{{ message }}</h1>
+      {% else %}
       <div id="waveform"></div>
       <div class="w-100"></div>
       <div class="col-3">
@@ -32,6 +35,7 @@ var audio_path = "{{ session['file'] }}"
         {% endfor %}
         {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
       </form>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

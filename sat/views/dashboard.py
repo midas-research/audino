@@ -14,21 +14,27 @@ def dashboard():
     form = TranscriptionForm()
 
     if form.validate_on_submit():
-        file = session['file']
+        file = session["file"]
         transcription = form.transcription.data
-        
+
         data = Data.query.filter_by(file=file, user_id=current_user.id).first()
         data.update_transcript(transcription)
         db.session.commit()
 
-        return redirect(url_for('routes.dashboard'))
+        return redirect(url_for("routes.dashboard"))
 
     data = Data.query.filter_by(user_id=current_user.id, transcription=None).first()
-    print(data)
 
-    if 'file' in session and (session['file'] != data.file):
-        session['file'] = data.file
-    if 'file' not in session:
-        session['file'] = data.file
-    print(session['file'])
-    return render_template("dashboard.html", title='Dashboard', form=form)
+    if not data:
+        return render_template(
+            "dashboard.html",
+            title="Dashboard",
+            message="No audios currently assigned to you",
+        )
+
+    if "file" in session and (session["file"] != data.file):
+        session["file"] = data.file
+    if "file" not in session:
+        session["file"] = data.file
+    print(session["file"])
+    return render_template("dashboard.html", title="Dashboard", form=form)
