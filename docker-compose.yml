@@ -1,0 +1,14 @@
+version: '3.4'
+services:
+  sat:
+    build:
+      context: .
+      network: host
+    image: sat:latest
+    ports:
+      - "5000:80"
+      - "3306:3306"
+    env_file:
+        - .env
+    volumes:
+        - "${audios_dir}:/audios"
