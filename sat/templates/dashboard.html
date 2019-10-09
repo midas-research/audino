@@ -14,14 +14,37 @@ var audio_path = "{{ session['file'] }}"
       <div class="w-100"></div>
       <div class="col-3">
           <button class="btn btn-primary btn-block" data-action="play">
+              <span id="skip-backward">
+                  <i class="oi oi-media-skip-backward"></i>
+                  Backward
+              </span>
+          </button>
+          <button class="btn btn-primary btn-block" data-action="play">
+              <span id="skip-forward">
+                  <i class="oi oi-media-skip-forward"></i>
+                  Forward
+              </span>
+          </button>
+      </div>
+      <div class="col-3">
+          <button class="btn btn-primary btn-block" data-action="play">
               <span id="play">
-                  <i class="glyphicon glyphicon-play"></i>
+                  <i class="oi oi-media-play"></i>
                   Play
               </span>
 
               <span id="pause" style="display: none">
-                  <i class="glyphicon glyphicon-pause"></i>
+                  <i class="oi oi-media-pause"></i>
                   Pause
+              </span>
+              
+          </button>
+      </div>
+      <div class="col-3">
+          <button class="btn btn-primary btn-block" data-action="play">
+              <span id="skip-forward">
+                  <i class="oi oi-media-skip-forward"></i>
+                  Forward
               </span>
           </button>
       </div>
