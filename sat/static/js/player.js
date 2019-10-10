@@ -10,21 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   wavesurfer.load('/audio' + audio_path);
 
-  var playButton = document.querySelector('#play');
-  var pauseButton = document.querySelector('#pause');
+  var playpauseButton = document.querySelector('#playpause');
   var backwardButton = document.querySelector('#skip-backward');
   var forwardButton = document.querySelector('#skip-forward');
 
-  playButton.style.display = 'none';
-  pauseButton.style.display = 'none';
+  playpauseButton.style.display = 'none';
   backwardButton.style.display = 'none';
   forwardButton.style.display = 'none';
 
-  playButton.addEventListener('click', function() {
-    wavesurfer.play();
-  });
-  pauseButton.addEventListener('click', function() {
-    wavesurfer.pause();
+  playpauseButton.addEventListener('click', function() {
+    wavesurfer.playPause();
   });
 
   backwardButton.addEventListener('click', function() {
@@ -35,18 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   wavesurfer.on('ready', function() {
-    playButton.style.display = '';
+    playpauseButton.style.display = '';
     backwardButton.style.display = '';
     forwardButton.style.display = '';
-  });
-
-  wavesurfer.on('play', function() {
-    playButton.style.display = 'none';
-    pauseButton.style.display = '';
-  });
-  wavesurfer.on('pause', function() {
-    playButton.style.display = '';
-    pauseButton.style.display = 'none';
   });
 
 });

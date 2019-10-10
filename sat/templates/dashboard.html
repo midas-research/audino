@@ -13,30 +13,26 @@ var audio_path = "{{ session['file'] }}"
       <div id="waveform"></div>
       <div class="w-100"></div>
       <div class="col-3">
-          <button class="btn btn-primary btn-block" data-action="play">
-              <span id="skip-backward">
+          <button class="btn btn-primary btn-block" id="skip-backward">
+              <span>
                   <i class="oi oi-media-skip-backward"></i>
                   Backward
               </span>
           </button>
       </div>
       <div class="col-3">
-          <button class="btn btn-primary btn-block" data-action="play">
-              <span id="play">
+          <button class="btn btn-primary btn-block" id="playpause">
+              <span>
                   <i class="oi oi-media-play"></i>
-                  Play
-              </span>
-
-              <span id="pause" style="display: none">
+                  Play/
                   <i class="oi oi-media-pause"></i>
                   Pause
               </span>
-              
           </button>
       </div>
       <div class="col-3">
-          <button class="btn btn-primary btn-block" data-action="play">
-              <span id="skip-forward">
+          <button class="btn btn-primary btn-block" id="skip-forward">
+              <span>
                   <i class="oi oi-media-skip-forward"></i>
                   Forward
               </span>
