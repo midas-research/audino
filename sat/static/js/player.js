@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     barWidth: 2,
     barHeight: 1,
     barGap: null,
-    backend: 'MediaElement',
     mediaControls: false
   });
 
@@ -15,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
   var pauseButton = document.querySelector('#pause');
   var backwardButton = document.querySelector('#skip-backward');
   var forwardButton = document.querySelector('#skip-forward');
+
+  playButton.style.display = 'none';
+  pauseButton.style.display = 'none';
+  backwardButton.style.display = 'none';
+  forwardButton.style.display = 'none';
 
   playButton.addEventListener('click', function() {
     wavesurfer.play();
@@ -28,6 +32,12 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   forwardButton.addEventListener('click', function() {
     wavesurfer.skipForward(5);
+  });
+
+  wavesurfer.on('ready', function() {
+    playButton.style.display = '';
+    backwardButton.style.display = '';
+    forwardButton.style.display = '';
   });
 
   wavesurfer.on('play', function() {
