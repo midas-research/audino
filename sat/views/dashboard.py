@@ -17,20 +17,26 @@ def dashboard():
     page = request.args.get("page", 1, type=int)
     active = request.args.get("active", "pending", type=str)
 
-    if active == "pending":
-        data = Data.query.filter_by(
-            user_id=current_user.id, transcription=None
-        ).order_by(Data.last_modified.desc())
-    elif active == "completed":
-        data = Data.query.filter(
-            Data.user_id == current_user.id, Data.transcription.isnot(None)
-        ).order_by(Data.last_modified.desc())
-    elif active == "all":
-        data = Data.query.filter(Data.user_id == current_user.id).order_by(
-            Data.last_modified.desc()
-        )
+    data = {}
 
-    paginated_data = data.paginate(page, 10, False)
+    data['pending'] = Data.query.filter_by(
+        user_id=current_user.id, transcription=None
+    ).order_by(Data.last_modified.desc())
+
+    data['completed'] = Data.query.filter(
+        Data.user_id == current_user.id, Data.transcription.isnot(None)
+    ).order_by(Data.last_modified.desc())
+
+    data['all'] = Data.query.filter(Data.user_id == current_user.id).order_by(
+        Data.last_modified.desc()
+    )
+
+    data['marked_review'] = Data.query.filter(
+        Data.user_id == current_user.id, Data.marked_review == True
+    ).order_by(Data.last_modified.desc())
+
+    paginated_data = data[active].paginate(page, 10, False)
+
     next_url = (
         url_for("routes.dashboard", page=paginated_data.next_num, active=active)
         if paginated_data.has_next
@@ -51,11 +57,16 @@ def dashboard():
         for audio in paginated_data.items
     ]
 
+    count_data = { key: value.count() for key, value in data.items() }
+
+    print(count_data)
+
     return render_template(
         "dashboard.html",
         message=message if len(audio_data) == 0 else None,
         title="Dashboard",
         audio_data=audio_data,
+        count_data=count_data,
         next_url=next_url,
         prev_url=prev_url,
         page=page,
