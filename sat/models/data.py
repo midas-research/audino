@@ -23,7 +23,12 @@ class Data(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
+    marked_review = db.Column("marked_review", db.Boolean, nullable=False, default=False)
+
     __table_args__ = (db.UniqueConstraint('file', 'user_id', name='_file_user_id_uc'),)
 
     def update_transcript(self, transcription):
         self.transcription = transcription
+
+    def update_marked_review(self, marked_review):
+        self.marked_review = marked_review

@@ -1,64 +1,82 @@
-{% extends "base.html" %}
-
-{% block meta %}
-var audio_path = "{{ session['file'] }}"
-{% endblock %}
-
-{% block content %}
-  <div class="container h-75 text-center">
-    <div class="row h-100 justify-content-center align-items-center">
-      {% if message %}
-      <h1>{{ message }}</h1>
-      {% else %}
-      <div id="waveform"></div>
-      <div class="w-100"></div>
-      <div class="col-3">
-          <button class="btn btn-primary btn-block" id="skip-backward">
-              <span>
-                  <i class="oi oi-media-skip-backward"></i>
-                  Backward
-              </span>
-          </button>
-      </div>
-      <div class="col-3">
-          <button class="btn btn-primary btn-block" id="playpause">
-              <span>
-                  <i class="oi oi-media-play"></i>
-                  Play/
-                  <i class="oi oi-media-pause"></i>
-                  Pause
-              </span>
-          </button>
-      </div>
-      <div class="col-3">
-          <button class="btn btn-primary btn-block" id="skip-forward">
-              <span>
-                  <i class="oi oi-media-skip-forward"></i>
-                  Forward
-              </span>
-          </button>
-      </div>
-      <div class="w-100"></div>
-      <form class="form-transcription" action="" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        {{ form.transcription(
-          class="form-control", rows="10", cols="80", placeholder="Transcription", type="text", id="transcriptionPassword", required=True) }}
-        {% for error in form.transcription.errors %}
-          <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-        {{ form.submit(class="btn btn-lg btn-primary btn-block") }}
-      </form>
+{% extends "base.html" %} {% block content %}
+<div class="container h-75 text-center">
+  <div class="row h-100 justify-content-center align-items-center">
+    <div class="col-12 justify-content-left">
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a
+            class="nav-link {% if active == 'pending' %} active {% endif %}"
+            href="{{ url_for('routes.dashboard', active='pending') }}"
+          >
+            Pending
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link {% if active == 'completed' %} active {% endif %}"
+            href="{{ url_for('routes.dashboard', active='completed') }}"
+          >
+            Completed
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link {% if active == 'all' %} active {% endif %}"
+            href="{{ url_for('routes.dashboard', active='all') }}"
+          >
+            All
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="w-100"></div>
+    {% if message %}
+    <h1>{{ message }}</h1>
+    {% else %}
+    <div class="col-12">
+      <table class="table margin-25">
+        <thead>
+          <tr>
+            <th scope="col">File</th>
+            <th scope="col">Marked for review</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for audio in audio_data %}
+          <tr>
+            <td>
+              <a href="{{ url_for('routes.annotation', file=audio.id) }}">
+                {{ audio.file_name }}
+              </a>
+            </td>
+            <td>
+              {{ 'Yes' if audio.marked_review else 'No' }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="w-100"></div>
+    <div class="col-12">
+      {% if prev_url %}
+      <a class="col" href="{{ prev_url }}">
+        Previous
+      </a>
+      {% endif %}
+      <span class="col">{{ page }}</span>
+      {% if next_url %}
+      <a class="col" href="{{ next_url }}">
+        Next
+      </a>
       {% endif %}
     </div>
+    {% endif %}
   </div>
-{% endblock %}
-
-{% block custom_styles %}
-<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/player.css') }}" rel="stylesheet">
-{% endblock %}
-
-{% block custom_scripts %}
-<script src="https://unpkg.com/wavesurfer.js"></script>
-<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+</div>
+{% endblock %} {% block custom_styles %}
+<link
+  href="{{ url_for('static', filename='css/dashboard.css') }}"
+  rel="stylesheet"
+/>
 {% endblock %}

@@ -57,6 +57,7 @@ user1 = (
 )
 user2 = session.query(User).filter(User.email == "sakshi.labhane@midas.center").first()
 
+
 for audio in user1_audios:
     audio_file = audio.as_posix()
 
@@ -69,6 +70,7 @@ for audio in user1_audios:
         session.rollback()
         print("Error")
 print("Adding data completed for user 1")
+
 
 for audio in user2_audios:
     audio_file = audio.as_posix()

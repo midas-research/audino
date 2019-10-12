@@ -1,0 +1,15 @@
+.margin-25 {
+  margin: 25px;
+}
+
+.content-left {
+  text-align: left;
+}
+
+th:first-child, td:first-child {
+    text-align: left;
+}
+
+th:first-child + th, td:first-child + td {
+  text-align: center;
+}

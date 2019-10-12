@@ -12,4 +12,5 @@ class LoginForm(FlaskForm):
 
 class TranscriptionForm(FlaskForm):
     transcription = TextAreaField('Transcription', validators=[DataRequired()])
+    marked_review = BooleanField('Mark for review')
     submit = SubmitField('Submit')

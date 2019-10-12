@@ -7,3 +7,4 @@ from .base import *
 from .errors import *
 from .login import *
 from .dashboard import *
+from .annotation import *

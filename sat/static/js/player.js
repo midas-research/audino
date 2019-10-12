@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     mediaControls: false
   });
 
-  wavesurfer.load('/audio' + audio_path);
+  wavesurfer.load('/audio/' + audio_id);
 
   var playpauseButton = document.querySelector('#playpause');
   var backwardButton = document.querySelector('#skip-backward');
