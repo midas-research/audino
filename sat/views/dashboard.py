@@ -2,12 +2,13 @@ import os
 
 from flask import render_template, redirect, url_for, request
 from flask_login import login_required, current_user
+from sqlalchemy import or_
 
 from . import views
 
 from sat import db
 from sat.forms import TranscriptionForm
-from sat.models import Data, User
+from sat.models import Data, User, Transcription
 
 
 @views.route("/dashboard", methods=["GET"])
@@ -19,19 +20,33 @@ def dashboard():
 
     data = {}
 
-    data['pending'] = Data.query.filter_by(
-        user_id=current_user.id, transcription=None
-    ).order_by(Data.last_modified.desc())
+    transcriptions = (
+        db.session.query(Transcription.file_id)
+        .filter(Transcription.is_deleted == False)
+        .subquery()
+    )
 
-    data['completed'] = Data.query.filter(
-        Data.user_id == current_user.id, Data.transcription.isnot(None)
-    ).order_by(Data.last_modified.desc())
+    data["pending"] = (
+        db.session.query(Data)
+        .filter(Data.user_id == current_user.id)
+        .filter(Data.id.notin_(transcriptions))
+        .distinct()
+        .order_by(Data.last_modified.desc())
+    )
 
-    data['all'] = Data.query.filter(Data.user_id == current_user.id).order_by(
+    data["completed"] = (
+        db.session.query(Data)
+        .filter(Data.user_id == current_user.id)
+        .filter(Data.id.in_(transcriptions))
+        .distinct()
+        .order_by(Data.last_modified.desc())
+    )
+
+    data["all"] = Data.query.filter(Data.user_id == current_user.id).order_by(
         Data.last_modified.desc()
     )
 
-    data['marked_review'] = Data.query.filter(
+    data["marked_review"] = Data.query.filter(
         Data.user_id == current_user.id, Data.marked_review == True
     ).order_by(Data.last_modified.desc())
 
@@ -57,9 +72,7 @@ def dashboard():
         for audio in paginated_data.items
     ]
 
-    count_data = { key: value.count() for key, value in data.items() }
-
-    print(count_data)
+    count_data = {key: value.count() for key, value in data.items()}
 
     return render_template(
         "dashboard.html",

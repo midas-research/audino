@@ -10,7 +10,6 @@ from sat.models import Data
 
 @app.route('/audio/<path:file_id>')  
 def send_audio_file(file_id):
-    print(file_id)
     data = Data.query.filter_by(user_id=current_user.id, id=file_id).first()
 
     file_name = os.path.basename(data.file)

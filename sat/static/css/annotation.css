@@ -1,0 +1,16 @@
+.margin-top-bottom-5 {
+  margin: 5px 0px;
+}
+
+.height-200 {
+  height: 200px;
+  width: 800px;
+}
+
+.show {
+  display: block;
+}
+
+.hide {
+  display: none;
+}
