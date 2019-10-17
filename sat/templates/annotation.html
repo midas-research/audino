@@ -38,8 +38,10 @@ endblock %} {% block content %}
         </span>
       </button>
     </div>
-    <div class="w-100"></div>
-    <div class="col-1"><span><i class="oi oi-zoom-out"></i></span></div>
+    <div class="w-100 margin-top-bottom-5"></div>
+    <div class="col-1">
+      <span><i class="oi oi-zoom-out"></i></span>
+    </div>
     <div class="col-3">
       <input
         id="zoomSlider"
@@ -50,12 +52,17 @@ endblock %} {% block content %}
         style="width: 100%"
       />
     </div>
-    <div class="col-1"><span><i class="oi oi-zoom-in"></i></span></div>
+    <div class="col-1">
+      <span><i class="oi oi-zoom-in"></i></span>
+    </div>
     <div class="col-12">
-      {% if data.transcription is not none %}
       <h3>Paragraph transcription</h3>
-      <div>{{ data.transcription }}</div>
-      {% endif %}
+      <textarea
+        rows="10"
+        cols="50"
+        placeholder="Transcription area; Please segment it before submitting"
+        >{{ data.transcription }}</textarea
+      >
     </div>
     <div class="w-100"></div>
     <form
