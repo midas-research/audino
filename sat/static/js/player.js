@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     showArea(transcriptionArea);
 
-    (form.elements.start_time.value = Math.round(r.start * 10) / 10),
-        (form.elements.end_time.value = Math.round(r.end * 10) / 10);
+    (form.elements.start_time.value = r.start),
+        (form.elements.end_time.value = r.end);
 
     form.elements.transcription.value = r.data.transcription || '';
 
