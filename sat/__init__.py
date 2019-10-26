@@ -32,3 +32,4 @@ def load_user(id):
 
 from .views import *
 app.register_blueprint(views)
+app.add_template_global(name='version', f='1.0')

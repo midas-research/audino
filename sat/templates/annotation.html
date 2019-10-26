@@ -123,11 +123,11 @@ endblock %} {% block content %}
 </div>
 {% endblock %} {% block custom_styles %}
 <link
-  href="{{ url_for('static', filename='css/player.css') }}"
+  href="{{ url_for('static', filename='css/player.css') }}?v={{ version }}"
   rel="stylesheet"
 />
 <link
-  href="{{ url_for('static', filename='css/annotation.css') }}"
+  href="{{ url_for('static', filename='css/annotation.css') }}?v={{ version }}"
   rel="stylesheet"
 />
 {% endblock %} {% block custom_libs %}
@@ -135,5 +135,5 @@ endblock %} {% block content %}
 <script src="https://unpkg.com/wavesurfer.js@3.1.0/dist/plugin/wavesurfer.regions.js"></script>
 <script src="https://unpkg.com/wavesurfer.js@3.1.0/dist/plugin/wavesurfer.minimap.js"></script>
 {% endblock %} {% block custom_scripts %}
-<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+<script src="{{ url_for('static', filename='js/player.js') }}?v={{ version }}"></script>
 {% endblock %}

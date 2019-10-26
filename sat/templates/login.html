@@ -27,6 +27,6 @@
 {% endblock %}
 
 {% block custom_styles %}
-<link href="{{ url_for('static', filename='css/login.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/login.css') }}?v={{ version }}" rel="stylesheet">
 {% endblock %}
 

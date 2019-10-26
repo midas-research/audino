@@ -84,7 +84,7 @@
 </div>
 {% endblock %} {% block custom_styles %}
 <link
-  href="{{ url_for('static', filename='css/dashboard.css') }}"
+  href="{{ url_for('static', filename='css/dashboard.css') }}?v={{ version }}"
   rel="stylesheet"
 />
 {% endblock %}
