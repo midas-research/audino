@@ -67,7 +67,12 @@ print(all_data.shape)
 
 print(f"Adding data")
 
-audios = list([audio_mapping[filename] for filename in set(all_data.filename.values)])
+audios = []
+for filename in set(all_data.filename.values):
+    try:
+        audios.append(audio_mapping[filename])
+    except:
+        pass
 
 print(len(audios))
 
