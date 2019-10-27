@@ -71,10 +71,12 @@ audios = []
 for filename in set(all_data.filename.values):
     try:
         audios.append(audio_mapping[filename])
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 print(len(audios))
+
+audios = audios[:950]
 
 common_audios = audios[: int((1 * len(audios)) / 19)]
 user1_audios = audios[int((1 * len(audios)) / 19) : int((10 * len(audios)) / 19)]
@@ -83,6 +85,7 @@ user2_audios = audios[int((10 * len(audios)) / 19) :]
 user1_audios.extend(common_audios)
 user2_audios.extend(common_audios)
 
+print(len(common_audios))
 print(len(user1_audios))
 print(len(user2_audios))
 
@@ -98,26 +101,26 @@ user2 = session.query(User).filter(User.email == "sakshi.labhane@midas.center").
 for audio in user1_audios:
     audio_file = audio.as_posix()
     print(audio_file)
-    # datapoint = Data(file=audio_file, user_id=user1.id)
+    datapoint = Data(file=audio_file, user_id=user1.id)
 
-    # try:
-    #     session.add(datapoint)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     print("Error")
+    try:
+        session.add(datapoint)
+        session.commit()
+    except:
+        session.rollback()
+        print("Error")
 print("Adding data completed for user 1")
 
 
 for audio in user2_audios:
     audio_file = audio.as_posix()
     print(audio_file)
-    # datapoint = Data(file=audio_file, user_id=user2.id)
+    datapoint = Data(file=audio_file, user_id=user2.id)
 
-    # try:
-    #     session.add(datapoint)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     print("Error")
+    try:
+        session.add(datapoint)
+        session.commit()
+    except:
+        session.rollback()
+        print("Error")
 print("Adding data completed for user 2")
