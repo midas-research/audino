@@ -7,7 +7,7 @@ from . import views
 
 from sat import db
 from sat.forms import TranscriptionForm
-from sat.models import Data, User, Transcription
+from sat.models import Data, User, Transcription, Topic
 
 
 @views.route("/annotation", methods=["GET", "POST"])
@@ -70,16 +70,24 @@ def annotation():
         return redirect(url_for("routes.dashboard"))
 
     segmented_transcription = Transcription.query.filter_by(file_id=data.id).all()
+    topics = Topic.query.all()
 
     form.segmented_transcription.data = [
         {
             "start": st.start_time,
             "end": st.end_time,
-            "data": {"transcription": st.transcription},
+            "data": {
+                "transcription": st.transcription,
+                "critical": st.critical,
+                "relevance": st.relevance,
+                "speaker": st.speaker,
+                "topic": st.topic,
+            },
         }
         for st in segmented_transcription
     ]
     form.marked_review.data = data.marked_review
+    form.topic.choices = [(topic.id, topic.topic) for topic in topics]
 
     return render_template(
         "annotation.html", title="Annotation", form=form, data=data, file_id=file_id

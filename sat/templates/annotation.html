@@ -72,7 +72,7 @@ endblock %} {% block content %}
       method="post"
       novalidate
     >
-      <div class="height-200">
+      <div class="height-auto">
         <div class="hide" id="transcription-area">
           <h3>Segmented transcription</h3>
           {{ form.hidden_tag() }}
@@ -111,6 +111,22 @@ endblock %} {% block content %}
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+          <div class="form-row margin-top-bottom-5">
+            <div class="col">
+              {{ form.speaker.label }}: {{ form.speaker() }}
+            </div>
+            <div class="col">
+              {{ form.critical.label }}: {{ form.critical() }}
+            </div>
+            <div class="col">
+              {{ form.relevance.label }}: {{ form.relevance() }}
+            </div>
+          </div>
+          <div class="form-row margin-top-bottom-5">
+            <div class="col">
+              {{ form.topic.label }}: {{ form.topic() }}
             </div>
           </div>
         </div>
