@@ -127,6 +127,7 @@ endblock %} {% block content %}
           <div class="form-row margin-top-bottom-5">
             <div class="col">
               {{ form.topic.label }}: {{ form.topic() }}
+              {{ form.other_topic(placeholder="Other topic") }}
             </div>
           </div>
         </div>
@@ -151,5 +152,5 @@ endblock %} {% block content %}
 <script src="https://unpkg.com/wavesurfer.js@3.1.0/dist/plugin/wavesurfer.regions.js"></script>
 <script src="https://unpkg.com/wavesurfer.js@3.1.0/dist/plugin/wavesurfer.minimap.js"></script>
 {% endblock %} {% block custom_scripts %}
-<script src="{{ url_for('static', filename='js/player.js') }}?v={{ version }}"></script>
+<script src="{{ url_for('static', filename='js/annotation.js') }}?v={{ version }}"></script>
 {% endblock %}

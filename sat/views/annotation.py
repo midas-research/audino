@@ -23,6 +23,17 @@ def annotation():
     form = TranscriptionForm()
 
     data = Data.query.filter_by(id=file_id, user_id=current_user.id).first()
+    topics = Topic.query.all()
+
+    topic_choices = list()
+    other_topic = tuple()
+
+    for topic in topics:
+        topic_choices.append((str(topic.id), topic.topic))
+        if topic.topic == 'Other':
+            other_topic = (str(topic.id), topic.topic)
+
+    form.topic.choices = topic_choices
 
     if not data:
         return render_template(
@@ -35,19 +46,38 @@ def annotation():
         segmented_transcription = ast.literal_eval(form.segmented_transcription.data)
         marked_review = form.marked_review.data
 
-        transcriptions = list(
-            [
-                Transcription(
-                    start_time=st["start"],
-                    end_time=st["end"],
-                    file_id=data.id,
-                    transcription=st["data"]["transcription"]
-                    if "transcription" in st["data"]
-                    else "",
-                )
-                for st in segmented_transcription
-            ]
-        )
+        transcriptions = list()
+        
+        for st in segmented_transcription:
+            segmented_data = st['data']
+            if (segmented_data['topic'] == other_topic[0]):
+                new_topic_val = str(segmented_data['other_topic']).strip().capitalize()
+                if new_topic_val != '':
+                    try:
+                        new_topic = Topic(topic=new_topic_val)
+                        db.session.add(new_topic)
+                        db.session.commit()
+                        db.session.refresh(new_topic)
+                        segmented_data['topic'] = new_topic.id
+                    except Exception as e:
+                        print(e)
+                        db.session.rollback()
+
+        for st in segmented_transcription:
+            transcript = Transcription(
+                start_time=st["start"],
+                end_time=st["end"],
+                file_id=data.id,
+                transcription=st["data"]["transcription"]
+                if "transcription" in st["data"]
+                else "",
+                speaker=st['data']['speaker'],
+                critical=st['data']['critical'],
+                relevance=st['data']['relevance'],
+                topic=st['data']['topic']
+            )
+
+            transcriptions.append(transcript)
 
         try:
             current_transcriptions = Transcription.query.filter_by(file_id=data.id)
@@ -60,8 +90,8 @@ def annotation():
                 db.session.add(st)
 
             data.update_marked_review(marked_review)
-
             db.session.commit()
+
         except Exception as e:
             print(e)
             db.session.rollback()
@@ -70,8 +100,7 @@ def annotation():
         return redirect(url_for("routes.dashboard"))
 
     segmented_transcription = Transcription.query.filter_by(file_id=data.id).all()
-    topics = Topic.query.all()
-
+    
     form.segmented_transcription.data = [
         {
             "start": st.start_time,
@@ -87,7 +116,6 @@ def annotation():
         for st in segmented_transcription
     ]
     form.marked_review.data = data.marked_review
-    form.topic.choices = [(topic.id, topic.topic) for topic in topics]
 
     return render_template(
         "annotation.html", title="Annotation", form=form, data=data, file_id=file_id

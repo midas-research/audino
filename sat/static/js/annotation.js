@@ -56,6 +56,36 @@ document.addEventListener('DOMContentLoaded', function() {
     (form.elements.start_time.value = r.start),
         (form.elements.end_time.value = r.end);
 
+    $('#speaker option').map(function() {
+      if ($(this).text() == r.data.speaker) {
+        return this;
+      }
+    }).prop('selected', true)
+
+    $('#critical option').map(function() {
+      if ($(this).text() == r.data.critical) return this;
+    }).prop('selected', true)
+
+    $('#relevance option').map(function() {
+      if ($(this).text() == r.data.relevance) return this;
+    }).prop('selected', true)
+
+    var otherVal = null;
+
+    $('#topic option').each(function() {
+      if ($(this).text() === 'Other') {
+        otherVal = $(this).val();
+      }
+    });
+
+    if (r.data.topic === otherVal) {
+      $('#other_topic').show();
+    } else {
+      $('#other_topic').hide();
+    }
+
+    form.elements.topic.value = r.data.topic || '1';
+    form.elements.other_topic.value = r.data.other_topic || null;
     form.elements.transcription.value = r.data.transcription || '';
 
     document.getElementById('saveSegment').onclick = function(e) {
@@ -63,7 +93,14 @@ document.addEventListener('DOMContentLoaded', function() {
       r.update({
         start: form.elements.start_time.value,
         end: form.elements.end_time.value,
-        data: {transcription: form.elements.transcription.value}
+        data: {
+          transcription: form.elements.transcription.value,
+          critical: $('#critical').children(':selected').text(),
+          relevance: $('#relevance').children(':selected').text(),
+          speaker: $('#speaker').children(':selected').text(),
+          topic: form.elements.topic.value,
+          other_topic: form.elements.other_topic.value
+        }
       });
       hideArea(transcriptionArea);
     };
@@ -115,6 +152,19 @@ document.addEventListener('DOMContentLoaded', function() {
       form.reset();
     }
   });
+
+  $('#other_topic').hide();
+
+  $('#topic').on('change', function (e) {
+    var optionSelected = $(this).find("option:selected");
+    var textSelected   = optionSelected.text();
+
+    if (textSelected === 'Other') {
+      $('#other_topic').show();
+    } else {
+      $('#other_topic').hide();
+    }
+  });
 });
 
 function saveRegions(wavesurfer) {
@@ -144,9 +194,6 @@ function hideArea(transcriptionArea) {
   transcriptionArea.classList.remove('show');
 }
 
-/**
- * Display annotation.
- */
 function showNote(region) {
   if (!showNote.el) {
     showNote.el = document.querySelector('#subtitle');
