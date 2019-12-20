@@ -73,9 +73,6 @@ def annotation():
                     transcription=st["data"]["transcription"]
                     if "transcription" in st["data"]
                     else "",
-                    speaker=st['data']['speaker'],
-                    critical=st['data']['critical'],
-                    relevance=st['data']['relevance'],
                     topic=st['data']['topic']
                 )
 

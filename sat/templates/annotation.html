@@ -115,17 +115,6 @@ endblock %} {% block content %}
           </div>
           <div class="form-row margin-top-bottom-5">
             <div class="col">
-              {{ form.speaker.label }}: {{ form.speaker() }}
-            </div>
-            <div class="col">
-              {{ form.critical.label }}: {{ form.critical() }}
-            </div>
-            <div class="col">
-              {{ form.relevance.label }}: {{ form.relevance() }}
-            </div>
-          </div>
-          <div class="form-row margin-top-bottom-5">
-            <div class="col">
               {{ form.topic.label }}: {{ form.topic() }}
               {{ form.other_topic(placeholder="Other topic") }}
             </div>

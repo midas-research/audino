@@ -41,9 +41,6 @@ class Transcription(db.Model):
     start_time = db.Column("start_time", db.Float, nullable=False)
     end_time = db.Column("end_time", db.Float, nullable=False)
 
-    speaker = db.Column("speaker", db.String(200), nullable=False)
-    critical = db.Column("critical", db.String(200), nullable=False)
-    relevance = db.Column("relevance", db.String(200), nullable=False)
     topic = db.Column("topic", db.Integer, db.ForeignKey("topic.id"), nullable=False)
 
     is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
@@ -60,3 +57,4 @@ class Transcription(db.Model):
     )
 
     query_class = QueryWithSoftDelete
+
