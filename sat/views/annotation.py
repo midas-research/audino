@@ -50,34 +50,36 @@ def annotation():
         
         for st in segmented_transcription:
             segmented_data = st['data']
-            if (segmented_data['topic'] == other_topic[0]):
-                new_topic_val = str(segmented_data['other_topic']).strip().capitalize()
-                if new_topic_val != '':
-                    try:
-                        new_topic = Topic(topic=new_topic_val)
-                        db.session.add(new_topic)
-                        db.session.commit()
-                        db.session.refresh(new_topic)
-                        segmented_data['topic'] = new_topic.id
-                    except Exception as e:
-                        print(e)
-                        db.session.rollback()
+            if segmented_data:
+                if ('topic' in segmented_data and segmented_data['topic'] == other_topic[0]):
+                    new_topic_val = str(segmented_data['other_topic']).strip().capitalize()
+                    if new_topic_val != '':
+                        try:
+                            new_topic = Topic(topic=new_topic_val)
+                            db.session.add(new_topic)
+                            db.session.commit()
+                            db.session.refresh(new_topic)
+                            segmented_data['topic'] = new_topic.id
+                        except Exception as e:
+                            print(e)
+                            db.session.rollback()
 
         for st in segmented_transcription:
-            transcript = Transcription(
-                start_time=st["start"],
-                end_time=st["end"],
-                file_id=data.id,
-                transcription=st["data"]["transcription"]
-                if "transcription" in st["data"]
-                else "",
-                speaker=st['data']['speaker'],
-                critical=st['data']['critical'],
-                relevance=st['data']['relevance'],
-                topic=st['data']['topic']
-            )
+            if st['data']:
+                transcript = Transcription(
+                    start_time=st["start"],
+                    end_time=st["end"],
+                    file_id=data.id,
+                    transcription=st["data"]["transcription"]
+                    if "transcription" in st["data"]
+                    else "",
+                    speaker=st['data']['speaker'],
+                    critical=st['data']['critical'],
+                    relevance=st['data']['relevance'],
+                    topic=st['data']['topic']
+                )
 
-            transcriptions.append(transcript)
+                transcriptions.append(transcript)
 
         try:
             current_transcriptions = Transcription.query.filter_by(file_id=data.id)
