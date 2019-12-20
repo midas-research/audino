@@ -56,20 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
     (form.elements.start_time.value = r.start),
         (form.elements.end_time.value = r.end);
 
-    $('#speaker option').map(function() {
-      if ($(this).text() == r.data.speaker) {
-        return this;
-      }
-    }).prop('selected', true)
-
-    $('#critical option').map(function() {
-      if ($(this).text() == r.data.critical) return this;
-    }).prop('selected', true)
-
-    $('#relevance option').map(function() {
-      if ($(this).text() == r.data.relevance) return this;
-    }).prop('selected', true)
-
     var otherVal = null;
 
     $('#topic option').each(function() {
@@ -95,9 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
         end: form.elements.end_time.value,
         data: {
           transcription: form.elements.transcription.value,
-          critical: $('#critical').children(':selected').text(),
-          relevance: $('#relevance').children(':selected').text(),
-          speaker: $('#speaker').children(':selected').text(),
           topic: form.elements.topic.value,
           other_topic: form.elements.other_topic.value
         }

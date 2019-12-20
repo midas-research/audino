@@ -106,9 +106,6 @@ def annotation():
             "end": st.end_time,
             "data": {
                 "transcription": st.transcription,
-                "critical": st.critical,
-                "relevance": st.relevance,
-                "speaker": st.speaker,
                 "topic": st.topic,
             },
         }
