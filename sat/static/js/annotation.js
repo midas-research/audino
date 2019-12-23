@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     form.elements.topic.value = r.data.topic || '1';
     form.elements.other_topic.value = r.data.other_topic || null;
     form.elements.transcription.value = r.data.transcription || '';
+    form.elements.hinglish_transcription.value = r.data.hinglish_transcription || '';
 
     document.getElementById('saveSegment').onclick = function(e) {
       e.preventDefault();
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         end: form.elements.end_time.value,
         data: {
           transcription: form.elements.transcription.value,
+          hinglish_transcription: form.elements.hinglish_transcription.value,
           critical: $('#critical').children(':selected').text(),
           relevance: $('#relevance').children(':selected').text(),
           speaker: $('#speaker').children(':selected').text(),

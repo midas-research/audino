@@ -37,6 +37,7 @@ class Transcription(db.Model):
 
     file_id = db.Column("file_id", db.Integer, db.ForeignKey("data.id"), nullable=False)
     transcription = db.Column("transcription", db.Text(), nullable=False)
+    hinglish_transcription = db.Column("hinglish_transcription", db.Text(), nullable=False)
 
     start_time = db.Column("start_time", db.Float, nullable=False)
     end_time = db.Column("end_time", db.Float, nullable=False)

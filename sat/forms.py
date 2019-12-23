@@ -23,6 +23,7 @@ class TranscriptionForm(FlaskForm):
     start_time = StringField("Start Time")
     end_time = StringField("End Time")
     transcription = TextAreaField("Transcription")
+    hinglish_transcription = TextAreaField("Hinglish Transcription")
     speaker = SelectField(
         "Speaker",
         choices=[("1", "Asha Worker"), ("2", "Doctor"), ("3", "Moderator")],

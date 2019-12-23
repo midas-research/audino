@@ -73,6 +73,9 @@ def annotation():
                     transcription=st["data"]["transcription"]
                     if "transcription" in st["data"]
                     else "",
+                    hinglish_transcription=st["data"]["hinglish_transcription"]
+                    if "hinglish_transcription" in st["data"]
+                    else "",
                     speaker=st['data']['speaker'],
                     critical=st['data']['critical'],
                     relevance=st['data']['relevance'],
@@ -109,6 +112,7 @@ def annotation():
             "end": st.end_time,
             "data": {
                 "transcription": st.transcription,
+                "hinglish_transcription": st.hinglish_transcription,
                 "critical": st.critical,
                 "relevance": st.relevance,
                 "speaker": st.speaker,

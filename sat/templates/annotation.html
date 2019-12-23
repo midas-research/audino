@@ -101,6 +101,15 @@ endblock %} {% block content %}
               {% endfor %}
             </div>
             <div class="col">
+              {{ form.hinglish_transcription(
+                    class="form-control", rows="5", cols="50", placeholder="Hinglish Transcription", type="text", required=True
+                    )
+              }}
+              {% for error in form.hinglish_transcription.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+            </div>
+            <div class="col">
               <div class="form-row margin-top-bottom-5">
                 <button type="button" class="btn btn-primary" id="saveSegment">
                   Save
