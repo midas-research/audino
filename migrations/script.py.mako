@@ -22,9 +22,9 @@ def upgrade():
         data_upgrades()
 
 def downgrade():
+    schema_downgrades()
     if context.get_x_argument(as_dictionary=True).get('data', None):
         data_downgrades()
-    schema_downgrades()
 
 def schema_upgrades():
     """schema upgrade migrations go here."""

@@ -24,9 +24,9 @@ def upgrade():
 
 
 def downgrade():
+    schema_downgrades()
     if context.get_x_argument(as_dictionary=True).get("data", None):
         data_downgrades()
-    schema_downgrades()
 
 
 def schema_upgrades():

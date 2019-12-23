@@ -79,3 +79,4 @@ def data_upgrades():
 def data_downgrades():
     """Add any optional data downgrade migrations here!"""
     op.execute("DELETE FROM topic")
+

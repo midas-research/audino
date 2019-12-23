@@ -70,7 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
       $('#other_topic').hide();
     }
 
-    form.elements.topic.value = r.data.topic || '1';
+    if (r.data.topic === undefined) {
+      $("#topic").val($("#topic option:first").val());
+    }
+
+    form.elements.topic.value = r.data.topic || form.elements.topic.value;
     form.elements.other_topic.value = r.data.other_topic || null;
     form.elements.transcription.value = r.data.transcription || '';
 
