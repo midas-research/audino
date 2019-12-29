@@ -1,0 +1,13 @@
+[Unit]
+Description=SAT service
+After=network.target
+
+[Service]
+User=sat
+WorkingDirectory=<project_directory>
+Environment="PATH=<conda absolute path>"
+ExecStart=<uwsgi command with absolute path>
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
