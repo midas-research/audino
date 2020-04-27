@@ -8,10 +8,10 @@ services:
     environment:
       ADMIN_PASSWORD: "password"
       ADMIN_USERNAME: "admin"
-      DATABASE_URL: "mysql+pymysql://sat@sat@localhost/sat"
+      DATABASE_URL: "mysql+pymysql://sat@sat@localhost/sat?charset=utf8mb4"
       DEBUG: "False"
       FLASK_APP: "app.py"
-      FLASK_DEBUG: 0
+      FLASK_ENV: "production"
       SECRET_KEY: "randomkeygoeshere"
     depends_on:
       - mysql
@@ -45,6 +45,8 @@ services:
       MYSQL_USER: "sat"
       MYSQL_PASSWORD: "sat"
       MYSQL_DATABASE: "sat"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
     networks:
       - backend-network
 
