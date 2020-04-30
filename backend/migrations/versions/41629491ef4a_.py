@@ -36,12 +36,7 @@ def upgrade():
     )
     op.create_index(op.f("ix_label_type_type"), "label_type", ["type"], unique=True)
     op.bulk_insert(
-        label_type,
-        [
-            {"id": 1, "type": "text"},
-            {"id": 2, "type": "select"},
-            {"id": 3, "type": "multiselect"},
-        ],
+        label_type, [{"id": 1, "type": "select"}, {"id": 2, "type": "multiselect"}]
     )
     role = op.create_table(
         "role",
@@ -109,8 +104,8 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("project_id", sa.Integer(), nullable=False),
         sa.Column("assigned_user_id", sa.Integer(), nullable=False),
-        sa.Column("filename", sa.String(length=32), nullable=False),
-        sa.Column("original_filename", sa.String(length=32), nullable=False),
+        sa.Column("filename", sa.String(length=100), nullable=False),
+        sa.Column("original_filename", sa.String(length=100), nullable=False),
         sa.Column("reference_transcription", sa.Text(), nullable=True),
         sa.Column("is_marked_for_review", sa.Boolean(), nullable=False),
         sa.Column("is_deleted", sa.Boolean(), nullable=False),
@@ -150,6 +145,7 @@ def upgrade():
         sa.ForeignKeyConstraint(["type_id"], ["label_type.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_unique_constraint("_name_project_id_uc", "label", ["name", "project_id"])
     op.create_table(
         "user_project",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -174,7 +170,7 @@ def upgrade():
         "label_value",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("label_id", sa.Integer(), nullable=False),
-        sa.Column("type", sa.Text(), nullable=False),
+        sa.Column("value", sa.String(length=200), nullable=False),
         sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()
@@ -188,6 +184,9 @@ def upgrade():
         ),
         sa.ForeignKeyConstraint(["label_id"], ["label.id"]),
         sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_unique_constraint(
+        "_label_id_value_uc", "label_value", ["label_id", "value"]
     )
     op.create_table(
         "segmentation",

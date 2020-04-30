@@ -1,88 +1,20 @@
-// import React from "react";
-// import { Button } from "../components/button";
-
-// class FormModal extends React.Component {
-//   constructor(props) {
-//     super(props);
-//     console.log("HELLO");
-//     const { title, formType, innerRef } = this.props;
-//     console.log(innerRef);
-//     this.state = {
-//       title,
-//       formType,
-//       isSubmitting: false,
-//     };
-//   }
-
-//   handleFormSubmission() {
-//     const { onFormSubmission } = this.props;
-//     onFormSubmission();
-//   }
-
-//   render() {
-//     const { innerRef } = this.props;
-//     console.log(innerRef);
-//     const { title, formType, isSubmitting } = this.state;
-//     if (!formType) {
-//       return null;
-//     }
-
-//     return (
-//       <div className="modal" tabIndex="-1" role="dialog" ref={innerRef}>
-//         <div className="modal-dialog" role="document">
-//           <div className="modal-content">
-//             <div className="modal-header">
-//               <h5 className="modal-title">{title}</h5>
-//               <button
-//                 type="button"
-//                 className="close"
-//                 data-dismiss="modal"
-//                 aria-label="Close"
-//               >
-//                 <span aria-hidden="true">&times;</span>
-//               </button>
-//             </div>
-//             <div className="modal-body"></div>
-//             <div className="modal-footer">
-//               <Button
-//                 size="lg"
-//                 type="danger"
-//                 data-dismiss="modal"
-//                 disabled={isSubmitting ? true : false}
-//                 onClick={(e) => this.handleCancel(e)}
-//                 text="Cancel"
-//               />
-//               <Button
-//                 size="lg"
-//                 type="primary"
-//                 disabled={isSubmitting ? true : false}
-//                 onClick={(e) => this.handleFormSubmission(e)}
-//                 isSubmitting={isSubmitting}
-//                 text="Save"
-//               />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-// }
-
-// export default React.forwardRef((props, ref) => {
-//   console.log(ref);
-//   return <FormModal innerRef={ref} {...props} />;
-// });
-
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 
 import CreateUserForm from "./forms/createUserForm";
-import CreateProjectForm from "../containers/forms/createProjectForm";
+import EditUserForm from "./forms/editUserForm";
+import CreateProjectForm from "./forms/createProjectForm";
+import CreateLabelForm from "./forms/createLabelForm";
+import EditLabelForm from "./forms/editLabelForm";
+import ManageUsersProjectForm from "./forms/manageUsersProjectForm";
+import CreateLabelValueForm from "./forms/createLabelValuelForm";
+import EditLabelValueForm from "./forms/editLabelValueForm";
 
 const FormModal = (props) => {
   return (
     <Modal
       show={props.show}
+      onExited={props.onExited}
       onHide={props.onHide}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
@@ -94,8 +26,29 @@ const FormModal = (props) => {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {props.formType == "NEW_USER" ? <CreateUserForm /> : null}
-        {props.formType == "NEW_PROJECT" ? <CreateProjectForm /> : null}
+        {props.formType === "NEW_USER" ? <CreateUserForm /> : null}
+        {props.formType === "NEW_PROJECT" ? <CreateProjectForm /> : null}
+        {props.formType === "EDIT_USER" ? (
+          <EditUserForm userId={props.userId} />
+        ) : null}
+        {props.formType === "MANAGE_PROJECT_USERS" ? (
+          <ManageUsersProjectForm projectId={props.projectId} />
+        ) : null}
+        {props.formType === "NEW_LABEL" ? (
+          <CreateLabelForm projectId={props.projectId} />
+        ) : null}
+        {props.formType === "EDIT_LABEL" ? (
+          <EditLabelForm projectId={props.projectId} labelId={props.labelId} />
+        ) : null}
+        {props.formType === "NEW_LABEL_VALUE" ? (
+          <CreateLabelValueForm labelId={props.labelId} />
+        ) : null}
+        {props.formType === "EDIT_LABEL_VALUE" ? (
+          <EditLabelValueForm
+            labelId={props.labelId}
+            labelValueId={props.labelValueId}
+          />
+        ) : null}
       </Modal.Body>
     </Modal>
   );

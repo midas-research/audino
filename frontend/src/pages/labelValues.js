@@ -3,83 +3,75 @@ import React from "react";
 import { withRouter } from "react-router-dom";
 import { Helmet } from "react-helmet";
 
-import {
-  faPlusSquare,
-  faEdit,
-  faList,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPlusSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
 
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
 import FormModal from "../containers/modal";
 
-class Labels extends React.Component {
+class LabelValues extends React.Component {
   constructor(props) {
     super(props);
 
-    const projectId = Number(this.props.match.params.id);
+    const labelId = Number(this.props.match.params.id);
 
     this.state = {
-      projectId,
-      labels: [],
+      labelId,
+      labelValues: [],
       formType: null,
       modalShow: false,
-      isLabelsLoading: false,
-      labelsUrl: `/projects/${projectId}/labels`,
-      getLabelsUrl: `/api/projects/${projectId}`,
+      isLabelValuesLoading: false,
+      labelValuesUrl: `/labels/${labelId}/values`,
+      getLabelValuesUrl: `/api/labels/${labelId}/values`,
     };
   }
 
   componentDidMount() {
-    const { getLabelsUrl } = this.state;
-    this.setState({ isLabelsLoading: true });
+    const { getLabelValuesUrl } = this.state;
+    this.setState({ isLabelValuesLoading: true });
 
     axios({
       method: "get",
-      url: getLabelsUrl,
+      url: getLabelValuesUrl,
     })
       .then((response) => {
         this.setState({
-          labels: response.data.labels,
-          isLabelsLoading: false,
+          labelValues: response.data.values,
+          isLabelValuesLoading: false,
         });
       })
       .catch((error) => {
         this.setState({
           errorMessage: error.response.data.message,
-          isLabelsLoading: false,
+          isLabelValuesLoading: false,
         });
       });
   }
 
-  handleNewLabel() {
+  handleNewLabelValues() {
     this.setModalShow(true);
     this.setState({
-      formType: "NEW_LABEL",
-      title: "Create New Label",
+      formType: "NEW_LABEL_VALUE",
+      title: "Create New Label Value",
     });
   }
 
-  handleEditLabel(e, labelId) {
+  handleEditLabelValue(e, labelId, labelValueId) {
     this.setModalShow(true);
     this.setState({
-      formType: "EDIT_LABEL",
-      title: "Edit Label",
+      formType: "EDIT_LABEL_VALUE",
+      title: "Edit Label Value",
       labelId,
+      labelValueId,
     });
-  }
-
-  handleManageLabelValues(e, labelId) {
-    const { history } = this.props;
-    history.push(`/labels/${labelId}/values`);
   }
 
   refreshPage() {
     const { history } = this.props;
-    const { labelsUrl } = this.state;
+    const { labelValuesUrl } = this.state;
     history.replace({ pathname: "/empty" });
     setTimeout(() => {
-      history.replace({ pathname: labelsUrl });
+      history.replace({ pathname: labelValuesUrl });
     });
   }
 
@@ -89,18 +81,18 @@ class Labels extends React.Component {
 
   render() {
     const {
-      labels,
-      projectId,
+      labelValues,
       labelId,
+      labelValueId,
       formType,
       title,
       modalShow,
-      isLabelsLoading,
+      isLabelValuesLoading,
     } = this.state;
     return (
       <div>
         <Helmet>
-          <title>Manage Labels</title>
+          <title>Manage Label Values</title>
         </Helmet>
         <div className="container h-100">
           <FormModal
@@ -108,14 +100,14 @@ class Labels extends React.Component {
             formType={formType}
             title={title}
             show={modalShow}
-            projectId={projectId}
             labelId={labelId}
+            labelValueId={labelValueId}
             onHide={() => this.setModalShow(false)}
           />
           <div className="h-100 mt-5">
             <div className="row border-bottom my-3">
               <div className="col float-left">
-                <h1>Labels</h1>
+                <h1>Label Values</h1>
               </div>
               <hr />
               <div className="col float-right">
@@ -124,50 +116,43 @@ class Labels extends React.Component {
                     icon={faPlusSquare}
                     size="lg"
                     title="Create new label"
-                    onClick={(e) => this.handleNewLabel(e)}
+                    onClick={(e) => this.handleNewLabelValues(e)}
                   />
                 </h1>
               </div>
-              {!isLabelsLoading && labels.length > 0 ? (
+              {!isLabelValuesLoading && labelValues.length > 0 ? (
                 <table className="table table-striped">
                   <thead>
                     <tr>
                       <th scope="col">#</th>
-                      <th scope="col">Name</th>
-                      <th scope="col">Type</th>
+                      <th scope="col">Value</th>
                       <th scope="col">Created On</th>
                       <th scope="col">Options</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {labels.map((label, index) => {
+                    {labelValues.map((labelValue, index) => {
                       return (
                         <tr key={index}>
                           <th scope="row" className="align-middle">
                             {index + 1}
                           </th>
-                          <td className="align-middle">{label["name"]}</td>
-                          <td className="align-middle">{label["type"]}</td>
                           <td className="align-middle">
-                            {label["created_on"]}
+                            {labelValue["value"]}
+                          </td>
+                          <td className="align-middle">
+                            {labelValue["created_on"]}
                           </td>
                           <td className="align-middle">
                             <IconButton
                               icon={faEdit}
                               size="sm"
-                              title={"Edit label"}
+                              title={"Edit label value"}
                               onClick={(e) =>
-                                this.handleEditLabel(e, label["label_id"])
-                              }
-                            />
-                            <IconButton
-                              icon={faList}
-                              size="sm"
-                              title={"Manage label values"}
-                              onClick={(e) =>
-                                this.handleManageLabelValues(
+                                this.handleEditLabelValue(
                                   e,
-                                  label["label_id"]
+                                  labelId,
+                                  labelValue["value_id"]
                                 )
                               }
                             />
@@ -180,9 +165,9 @@ class Labels extends React.Component {
               ) : null}
             </div>
             <div className="row my-4 justify-content-center align-items-center">
-              {isLabelsLoading ? <Loader /> : null}
-              {!isLabelsLoading && labels.length === 0 ? (
-                <div className="font-weight-bold">No labels exists!</div>
+              {isLabelValuesLoading ? <Loader /> : null}
+              {!isLabelValuesLoading && labelValues.length === 0 ? (
+                <div className="font-weight-bold">No label values exists!</div>
               ) : null}
             </div>
           </div>
@@ -192,4 +177,4 @@ class Labels extends React.Component {
   }
 }
 
-export default withRouter(Labels);
+export default withRouter(LabelValues);

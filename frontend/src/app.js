@@ -15,11 +15,10 @@ import {
   Home,
   Dashboard,
   Error,
-  NewUser,
-  EditUser,
-  NewProject,
-  ManageUsers,
   Labels,
+  LabelValues,
+  Data,
+  Annotate,
 } from "./pages";
 import NavBar from "./containers/navbar";
 
@@ -34,12 +33,25 @@ const initialState = {
 
 const PrivateRoute = withStore(({ component: Component, ...rest }) => {
   const isUserLoggedIn = rest.store.get("isUserLoggedIn");
+  const isAdmin = rest.store.get("isAdmin");
   return (
     <Route
       {...rest}
-      render={(props) =>
-        isUserLoggedIn === true ? <Component {...props} /> : <Redirect to="/" />
-      }
+      render={(props) => {
+        if (isUserLoggedIn === true) {
+          if (rest.location.pathname === "/admin") {
+            if (isAdmin) {
+              return <Component {...props} />;
+            } else {
+              return <Redirect to="/dashboard" />;
+            }
+          } else {
+            return <Component {...props} />;
+          }
+        } else {
+          return <Redirect to="/" />;
+        }
+      }}
     />
   );
 });
@@ -108,33 +120,25 @@ class App extends React.Component {
                 }
               }}
             />
+            <Route path="/empty" component={null} key="empty" />
             <PrivateRoute exact path="/admin" component={Admin} />
             <PrivateRoute exact path="/dashboard" component={Dashboard} />
-            {/* <PrivateRoute exact path="/users/new" component={NewUser} /> */}
-            {/* <PrivateRoute exact path="/projects/new" component={NewProject} /> */}
-            <PrivateRoute exact path="/users/:id/edit" component={EditUser} />
-            <PrivateRoute
-              exact
-              path="/projects/:id/users"
-              component={ManageUsers}
-            />
             <PrivateRoute
               exact
               path="/projects/:id/labels"
               component={Labels}
             />
-            {/* <PrivateRoute
+            <PrivateRoute exact path="/projects/:id/data" component={Data} />
+            <PrivateRoute
               exact
-              path="/projects/:id/labels/new"
-              component={NewLabel}
-            /> */}
-            {/* <PrivateRoute
+              path="/projects/:projectid/data/:dataid/annotate"
+              component={Annotate}
+            />
+            <PrivateRoute
               exact
-              path="/users/:id/edit"
-              component={EditUserForm}
-            /> */}
-            {/* <PrivateRoute exact path="/project/:id" component={ProjectForm} /> */}
-            {/* <PrivateRoute exact path="/user/:id" component={UserForm} /> */}
+              path="/labels/:id/values"
+              component={LabelValues}
+            />
             <Route exact path="*">
               <Error message="Page not found!" />
             </Route>

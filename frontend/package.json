@@ -22,7 +22,8 @@
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.4.1",
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "wavesurfer.js": "^3.3.3"
   },
   "proxy": "http://backend:5000",
   "scripts": {

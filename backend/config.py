@@ -20,3 +20,4 @@ class Config(object):
     JWT_BLACKLIST_ENABLED = True
     JWT_HEADER_TYPE = None
     JWT_BLACKLIST_TOKEN_CHECKS = ["access"]
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "./sat_audios")

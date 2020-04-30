@@ -33,7 +33,6 @@ class NavBar extends React.Component {
   render() {
     const isUserLoggedIn = this.props.store.get("isUserLoggedIn");
     const isAdmin = this.props.store.get("isAdmin");
-    const { location } = this.props;
 
     return (
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -44,21 +43,13 @@ class NavBar extends React.Component {
           <div>
             <div className="collapse navbar-collapse">
               <ul className="navbar-nav mr-auto">
-                <li
-                  className={`nav-item ${
-                    location.pathname === "/dashboard" ? "active" : null
-                  }`}
-                >
+                <li className={`nav-item`}>
                   <Link className="nav-link" to="/dashboard">
                     Dashboard
                   </Link>
                 </li>
                 {isAdmin && (
-                  <li
-                    className={`nav-item ${
-                      location.pathname === "/admin" ? "active" : null
-                    }`}
-                  >
+                  <li className={`nav-item`}>
                     <Link className="nav-link" to="/admin">
                       Admin Panel
                     </Link>

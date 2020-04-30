@@ -1,19 +1,10 @@
 import Admin from "./admin";
+import Annotate from "./annotate";
+import Data from "./data";
 import Dashboard from "./dashboard";
 import Error from "./error";
 import Home from "./home";
-import { EditUser, NewUser } from "./user";
-import { NewProject, ManageUsers } from "./project";
 import Labels from "./labels";
+import LabelValues from "./labelValues";
 
-export {
-  Admin,
-  Dashboard,
-  Error,
-  Home,
-  Labels,
-  EditUser,
-  NewUser,
-  NewProject,
-  ManageUsers,
-};
+export { Admin, Dashboard, Error, Home, Labels, LabelValues, Data, Annotate };

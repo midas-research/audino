@@ -1,22 +1,26 @@
-import React from "react";
 import axios from "axios";
+import React from "react";
+
 import { withRouter } from "react-router";
 import { withStore } from "@spyna/react-store";
 
 import Alert from "../../components/alert";
 import { Button } from "../../components/button";
 
-class CreateUserForm extends React.Component {
+class CreateLabelForm extends React.Component {
   constructor(props) {
     super(props);
 
+    const projectId = this.props.projectId;
+
     this.initialState = {
-      username: "",
-      password: "",
-      role: "user",
+      projectId,
+      name: null,
+      type: null,
       errorMessage: "",
       successMessage: "",
       isSubmitting: false,
+      createLabelUrl: `/api/projects/${projectId}/labels`,
     };
 
     this.state = Object.assign({}, this.initialState);
@@ -26,47 +30,34 @@ class CreateUserForm extends React.Component {
     this.setState(this.initialState);
   }
 
-  handleUsernameChange(e) {
-    this.setState({ username: e.target.value });
+  handleLabelNameChange(e) {
+    this.setState({ name: e.target.value });
   }
 
-  handlePasswordChange(e) {
-    this.setState({ password: e.target.value });
+  handleLabelTypeChange(e) {
+    this.setState({ type: e.target.value });
   }
 
-  handleRoleChange(e) {
-    this.setState({ role: e.target.value });
-  }
-
-  handleUserCreation(e) {
+  handleLabelCreation(e) {
     e.preventDefault();
 
     this.setState({ isSubmitting: true });
 
-    const { username, password, role } = this.state;
+    const { name, type, createLabelUrl } = this.state;
 
-    if (!username || username === "") {
+    if (!name || name === "") {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please enter a valid username!",
+        errorMessage: "Please enter a valid label name!",
         successMessage: "",
       });
       return;
     }
 
-    if (!password || password === "") {
+    if (!type || !["1", "2"].includes(type)) {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please enter a valid password!",
-        successMessage: "",
-      });
-      return;
-    }
-
-    if (!role || !["1", "2"].includes(role)) {
-      this.setState({
-        isSubmitting: false,
-        errorMessage: "Please select a valid role!",
+        errorMessage: "Please select a valid label type!",
         successMessage: "",
       });
       return;
@@ -74,11 +65,10 @@ class CreateUserForm extends React.Component {
 
     axios({
       method: "post",
-      url: "/api/users",
+      url: createLabelUrl,
       data: {
-        username,
-        password,
-        role,
+        name,
+        type,
       },
     })
       .then((response) => {
@@ -86,7 +76,9 @@ class CreateUserForm extends React.Component {
           this.resetState();
           this.form.reset();
 
-          this.setState({ successMessage: response.data.message });
+          this.setState({
+            successMessage: response.data.message,
+          });
         }
       })
       .catch((error) => {
@@ -134,32 +126,22 @@ class CreateUserForm extends React.Component {
               <input
                 type="text"
                 className="form-control"
-                id="username"
-                placeholder="Username"
+                id="label_name"
+                placeholder="Label Name"
                 autoFocus={true}
                 required={true}
-                onChange={(e) => this.handleUsernameChange(e)}
-              />
-            </div>
-            <div className="form-group">
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                placeholder="Password"
-                required={true}
-                onChange={(e) => this.handlePasswordChange(e)}
+                onChange={(e) => this.handleLabelNameChange(e)}
               />
             </div>
             <div className="form-group">
               <select
                 className="form-control"
-                name="role"
-                onChange={(e) => this.handleRoleChange(e)}
+                name="label_type"
+                onChange={(e) => this.handleLabelTypeChange(e)}
               >
-                <option value="-1">Choose role</option>
-                <option value="1">Admin</option>
-                <option value="2">User</option>
+                <option value="-1">Choose Label Type</option>
+                <option value="1">Select</option>
+                <option value="2">Multi-Select</option>
               </select>
             </div>
             <div className="form-row">
@@ -168,7 +150,7 @@ class CreateUserForm extends React.Component {
                   size="lg"
                   type="primary"
                   disabled={isSubmitting ? true : false}
-                  onClick={(e) => this.handleUserCreation(e)}
+                  onClick={(e) => this.handleLabelCreation(e)}
                   isSubmitting={isSubmitting}
                   text="Save"
                 />
@@ -181,4 +163,4 @@ class CreateUserForm extends React.Component {
   }
 }
 
-export default withStore(withRouter(CreateUserForm));
+export default withStore(withRouter(CreateLabelForm));

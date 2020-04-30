@@ -19,7 +19,7 @@ const IconButton = ({ icon, size = "lg", title = "", onClick = noop }) => {
 
 IconButton.propTypes = {
   icon: PropTypes.object.isRequired,
-  size: PropTypes.oneOf(["lg", "sm"]),
+  size: PropTypes.oneOf(["lg", "sm", "2x"]),
 };
 
 const Button = ({

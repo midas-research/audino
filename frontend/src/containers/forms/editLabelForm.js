@@ -7,34 +7,42 @@ import Alert from "../../components/alert";
 import { Button } from "../../components/button";
 import Loader from "../../components/loader";
 
-class EditUserForm extends React.Component {
+class EditLabelForm extends React.Component {
   constructor(props) {
     super(props);
 
+    const projectId = this.props.projectId;
+    const labelId = this.props.labelId;
+
     this.initialState = {
-      userId: Number(this.props.userId),
-      username: "",
-      role: "-1",
+      projectId,
+      labelId,
+      name: "",
+      type: "-1",
       errorMessage: null,
       successMessage: null,
       isLoading: false,
-      url: `/api/users/${this.props.userId}`,
+      labelUrl: `/api/projects/${projectId}/labels/${labelId}`,
     };
 
     this.state = Object.assign({}, this.initialState);
   }
 
   componentDidMount() {
-    const { url } = this.state;
+    const { labelUrl } = this.state;
     this.setState({ isLoading: true });
     axios({
       method: "get",
-      url,
+      url: labelUrl,
     })
       .then((response) => {
         if (response.status === 200) {
-          const { username, role_id } = response.data;
-          this.setState({ username, role: String(role_id), isLoading: false });
+          const { label_name, label_type_id } = response.data;
+          this.setState({
+            name: label_name,
+            type: String(label_type_id),
+            isLoading: false,
+          });
         }
       })
       .catch((error) => {
@@ -50,26 +58,26 @@ class EditUserForm extends React.Component {
     this.setState(this.initialState);
   }
 
-  handleRoleChange(e) {
-    this.setState({ role: e.target.value });
+  handleLabelTypeChange(e) {
+    this.setState({ type: e.target.value });
   }
 
   clearForm() {
     this.form.reset();
   }
 
-  handleUserUpdation(e) {
+  handleLabelUpdation(e) {
     e.preventDefault();
 
     this.setState({ isSubmitting: true });
 
-    const { url, role } = this.state;
+    const { labelUrl, type } = this.state;
 
     // TODO: Get these values from api
-    if (!role || !["1", "2"].includes(role)) {
+    if (!type || !["1", "2"].includes(type)) {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please select a valid role!",
+        errorMessage: "Please select a valid label type id!",
         successMessage: null,
       });
       return;
@@ -77,20 +85,21 @@ class EditUserForm extends React.Component {
 
     axios({
       method: "patch",
-      url,
+      url: labelUrl,
       data: {
-        role,
+        type,
       },
     })
       .then((response) => {
         if (response.status === 200) {
-          const { username, role_id } = response.data;
+          const { label_name, label_type_id } = response.data;
+          console.log(label_name, label_type_id);
           this.setState({
-            username,
-            role: String(role_id),
+            name: label_name,
+            type: label_type_id,
             isLoading: false,
             isSubmitting: false,
-            successMessage: "User has been updated",
+            successMessage: "Label has been updated",
             errorMessage: null,
           });
         }
@@ -114,19 +123,21 @@ class EditUserForm extends React.Component {
 
   render() {
     const {
-      username,
+      name,
+      type,
       isSubmitting,
       errorMessage,
       successMessage,
       isLoading,
-      role,
     } = this.state;
+
+    console.log(name, type);
     return (
       <div className="container h-75 text-center">
         <div className="row h-100 justify-content-center align-items-center">
           <form
             className="col-6"
-            name="edit_user"
+            name="edit_label"
             ref={(el) => (this.form = el)}
           >
             {isLoading ? <Loader /> : null}
@@ -146,14 +157,13 @@ class EditUserForm extends React.Component {
             ) : null}
             {!isLoading ? (
               <div>
-                <h1 className="h3 mb-3 font-weight-normal">Edit User</h1>
                 <div className="form-group">
                   <input
                     type="text"
                     className="form-control"
-                    id="username"
-                    placeholder="Username"
-                    value={username}
+                    id="name"
+                    placeholder="Name"
+                    value={name}
                     autoFocus={true}
                     required={true}
                     disabled={true}
@@ -162,13 +172,13 @@ class EditUserForm extends React.Component {
                 <div className="form-group">
                   <select
                     className="form-control"
-                    name="role"
-                    value={role}
-                    onChange={(e) => this.handleRoleChange(e)}
+                    name="type"
+                    value={type}
+                    onChange={(e) => this.handleLabelTypeChange(e)}
                   >
-                    <option value="-1">Choose role</option>
-                    <option value="1">Admin</option>
-                    <option value="2">User</option>
+                    <option value="-1">Choose Label Type</option>
+                    <option value="1">Select</option>
+                    <option value="2">Multi-Select</option>
                   </select>
                 </div>
                 <div className="form-row">
@@ -177,7 +187,7 @@ class EditUserForm extends React.Component {
                       size="lg"
                       type="primary"
                       disabled={isSubmitting ? true : false}
-                      onClick={(e) => this.handleUserUpdation(e)}
+                      onClick={(e) => this.handleLabelUpdation(e)}
                       isSubmitting={isSubmitting}
                       text="Update"
                     />
@@ -192,4 +202,4 @@ class EditUserForm extends React.Component {
   }
 }
 
-export default withStore(withRouter(EditUserForm));
+export default withStore(withRouter(EditLabelForm));

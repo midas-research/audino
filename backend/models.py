@@ -56,9 +56,9 @@ class Data(db.Model):
         "assigned_user_id", db.Integer(), db.ForeignKey("user.id"), nullable=False
     )
 
-    filename = db.Column("filename", db.String(32), nullable=False, unique=True)
+    filename = db.Column("filename", db.String(100), nullable=False, unique=True)
 
-    original_filename = db.Column("original_filename", db.String(32), nullable=False)
+    original_filename = db.Column("original_filename", db.String(100), nullable=False)
 
     reference_transcription = db.Column(
         "reference_transcription", db.Text(), nullable=True
@@ -87,6 +87,7 @@ class Data(db.Model):
 
     project = db.relationship("Project")
     assigned_user = db.relationship("User")
+    segmentations = db.relationship("Segmentation", backref="Data")
 
 
 class Label(db.Model):
@@ -118,7 +119,15 @@ class Label(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
-    label_type = db.relationship("LabelValue")
+    label_type = db.relationship("LabelType", backref="Label")
+    label_values = db.relationship("LabelValue", backref="Label")
+
+    __table_args__ = (
+        db.UniqueConstraint("name", "project_id", name="_name_project_id_uc"),
+    )
+
+    def set_label_type(self, label_type_id):
+        self.type_id = label_type_id
 
 
 class LabelType(db.Model):
@@ -126,7 +135,7 @@ class LabelType(db.Model):
 
     id = db.Column("id", db.Integer(), primary_key=True)
 
-    type = db.Column("type", db.String(32), nullable=False)
+    type = db.Column("type", db.String(32), nullable=False, unique=True)
 
     created_at = db.Column(
         "created_at", db.DateTime(), nullable=False, default=db.func.now()
@@ -150,7 +159,7 @@ class LabelValue(db.Model):
         "label_id", db.Integer(), db.ForeignKey("label.id"), nullable=False
     )
 
-    value = db.Column("type", db.Text(), nullable=False)
+    value = db.Column("value", db.String(200), nullable=False)
 
     is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
 
@@ -166,7 +175,17 @@ class LabelValue(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
-    label = db.relationship("Label")
+    __table_args__ = (
+        db.UniqueConstraint("label_id", "value", name="_label_id_value_uc"),
+    )
+
+    label = db.relationship("Label", backref="LabelValue")
+    segmentations = db.relationship(
+        "Segmentation", secondary=annotation_table, back_populates="values"
+    )
+
+    def set_label_value(self, value):
+        self.value = value
 
 
 class Project(db.Model):
@@ -210,11 +229,14 @@ class Role(db.Model):
 
     role = db.Column("role", db.String(30), index=True, unique=True, nullable=False)
 
-    created_at = db.Column("created_at", db.DateTime(), default=db.func.now())
+    created_at = db.Column(
+        "created_at", db.DateTime(), nullable=False, default=db.func.now()
+    )
 
     last_modified = db.Column(
         "last_modified",
         db.DateTime(),
+        nullable=False,
         default=db.func.now(),
         onupdate=db.func.utc_timestamp(),
     )
@@ -249,7 +271,9 @@ class Segmentation(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
-    data = db.relationship("Data")
+    values = db.relationship(
+        "LabelValue", secondary=annotation_table, back_populates="segmentations"
+    )
 
 
 class User(db.Model):
@@ -269,11 +293,14 @@ class User(db.Model):
 
     is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
 
-    created_at = db.Column("created_at", db.DateTime(), default=db.func.now())
+    created_at = db.Column(
+        "created_at", db.DateTime(), nullable=False, default=db.func.now()
+    )
 
     last_modified = db.Column(
         "last_modified",
         db.DateTime(),
+        nullable=False,
         default=db.func.now(),
         onupdate=db.func.utc_timestamp(),
     )

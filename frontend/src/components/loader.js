@@ -1,6 +1,6 @@
 import React from "react";
 
-const Loader = ({ size }) => {
+const Loader = () => {
   return <div className="spinner-border" role="status"></div>;
 };
 

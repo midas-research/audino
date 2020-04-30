@@ -104,7 +104,7 @@ def is_logged_in():
     )
 
 
-@auth.route("/auth/logout", methods=["DELETE"])
+@auth.route("/logout", methods=["DELETE"])
 @jwt_required
 def logout():
     jti = get_raw_jwt()["jti"]

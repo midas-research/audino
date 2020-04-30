@@ -1,14 +1,11 @@
 import axios from "axios";
-import $ from "jquery";
 import React from "react";
 import { withRouter } from "react-router-dom";
 import { Helmet } from "react-helmet";
 
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlusSquare,
   faEdit,
-  faTrashAlt,
   faUserPlus,
   faTags,
 } from "@fortawesome/free-solid-svg-icons";
@@ -32,6 +29,7 @@ class Admin extends React.Component {
   componentDidMount() {
     this.setState({ isUserLoading: true, isProjectLoading: true });
 
+    // TODO: Combine these two api calls
     axios({
       method: "get",
       url: "/api/projects",
@@ -64,20 +62,18 @@ class Admin extends React.Component {
       });
   }
 
-  // handleNewProject() {
-  //   const { history } = this.props;
-  //   history.push("/projects/new");
-  // }
+  refreshPage() {
+    const { history } = this.props;
+    history.replace({ pathname: "/empty" });
+    setTimeout(() => {
+      history.replace({ pathname: "/admin" });
+    });
+  }
 
   handleNewProject() {
     this.setModalShow(true);
     this.setState({ formType: "NEW_PROJECT", title: "Create New Project" });
   }
-
-  // handleNewUser() {
-  //   const { history } = this.props;
-  //   history.push("/users/new");
-  // }
 
   handleNewUser() {
     this.setModalShow(true);
@@ -85,23 +81,22 @@ class Admin extends React.Component {
   }
 
   handleEditUser(e, userId) {
-    const { history } = this.props;
-    history.push(`/users/${userId}/edit`);
+    this.setModalShow(true);
+    this.setState({ formType: "EDIT_USER", title: "Edit User", userId });
   }
-
-  // handleDeleteUser(e, userId) {
-  //   const { history } = this.props;
-  //   history.push(`/users/${userId}/`);
-  // }
 
   handleAddLabelsToProject(e, projectId) {
     const { history } = this.props;
     history.push(`/projects/${projectId}/labels`);
   }
 
-  handleAddUsersToProject(e, projectId) {
-    const { history } = this.props;
-    history.push(`/projects/${projectId}/users`);
+  handleAddUsersToProject(e, projectId, projectName) {
+    this.setModalShow(true);
+    this.setState({
+      formType: "MANAGE_PROJECT_USERS",
+      title: `Project ${projectName}: Manage User Access`,
+      projectId,
+    });
   }
 
   setModalShow(modalShow) {
@@ -117,6 +112,8 @@ class Admin extends React.Component {
       isUserLoading,
       modalShow,
       formType,
+      userId,
+      projectId,
     } = this.state;
 
     return (
@@ -126,9 +123,12 @@ class Admin extends React.Component {
         </Helmet>
         <div className="container h-100">
           <FormModal
+            onExited={() => this.refreshPage()}
             formType={formType}
             title={title}
             show={modalShow}
+            userId={userId}
+            projectId={projectId}
             onHide={() => this.setModalShow(false)}
           />
           <div className="h-100 mt-5">
@@ -178,7 +178,8 @@ class Admin extends React.Component {
                               onClick={(e) =>
                                 this.handleAddUsersToProject(
                                   e,
-                                  project["project_id"]
+                                  project["project_id"],
+                                  project["name"]
                                 )
                               }
                             />

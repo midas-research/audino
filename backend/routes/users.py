@@ -16,7 +16,7 @@ def create_user():
     # TODO: Make jwt user id based to expire user session if permissions are changed
     identity = get_jwt_identity()
     request_user = User.query.filter_by(username=identity["username"]).first()
-    is_admin = request_user.username
+    is_admin = True if request_user.role.role == "admin" else False
 
     if is_admin == False:
         return jsonify(message="Unauthorized access!"), 401
@@ -123,6 +123,11 @@ def update_user(user_id):
         )
 
     try:
+        users = db.session.query(User).filter_by(role_id=1).all()
+
+        if len(users) == 1 and users[0].id == user_id and role_id == 2:
+            return jsonify(message="Atleast one admin should exist"), 400
+
         user = User.query.get(user_id)
         user.set_role(role_id)
         db.session.commit()

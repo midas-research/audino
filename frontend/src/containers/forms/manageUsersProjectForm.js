@@ -11,11 +11,13 @@ class ManageUsersProjectForm extends React.Component {
   constructor(props) {
     super(props);
 
-    const projectId = Number(this.props.match.params.id);
+    const projectId = Number(this.props.projectId);
+
+    console.log(projectId);
 
     this.initialState = {
       projectId,
-      projectName: "",
+      projectName: this.props.projectName,
       users: [],
       selectedUsers: [],
       errorMessage: "",
@@ -38,12 +40,10 @@ class ManageUsersProjectForm extends React.Component {
     axios
       .all([axios.get(projectUrl), axios.get(getUsersUrl)])
       .then((response) => {
-        const selectedUsers = response[0].data.users.map((user, index) =>
+        const selectedUsers = response[0].data.users.map((user) =>
           Number(user["user_id"])
         );
-        console.log(selectedUsers);
         this.setState({
-          projectName: response[0].data.name,
           selectedUsers,
           users: response[1].data.users,
           isLoading: false,
@@ -51,20 +51,14 @@ class ManageUsersProjectForm extends React.Component {
       });
   }
 
-  handleCancel() {
-    const { history } = this.props;
-    history.push("/admin");
-  }
-
   resetState() {
     this.setState(this.initialState);
   }
 
   handleUsersChange(e) {
-    let users = Array.from(e.target.selectedOptions, (option) =>
+    const users = Array.from(e.target.selectedOptions, (option) =>
       Number(option.value)
     );
-    console.log(users);
     this.setState({ selectedUsers: users });
   }
 
@@ -79,6 +73,7 @@ class ManageUsersProjectForm extends React.Component {
       this.setState({
         isSubmitting: false,
         errorMessage: "Please select users!",
+        successMessage: "",
       });
       return;
     }
@@ -123,78 +118,71 @@ class ManageUsersProjectForm extends React.Component {
       successMessage,
       users,
       selectedUsers,
-      projectName,
       isLoading,
     } = this.state;
     return (
-      <form className="col-5" name="new_project" ref={(el) => (this.form = el)}>
-        {isLoading ? <Loader /> : null}
-        {errorMessage ? (
-          <Alert
-            type="danger"
-            message={errorMessage}
-            onClose={(e) => this.handleAlertDismiss(e)}
-          />
-        ) : null}
-        {successMessage ? (
-          <Alert
-            type="success"
-            message={successMessage}
-            onClose={(e) => this.handleAlertDismiss(e)}
-          />
-        ) : null}
-        {!isLoading ? (
-          <div>
-            <h1 className="h3 mb-3 font-weight-normal">
-              Project <span className="font-weight-bold">{projectName}</span>:
-              Manage User Access
-            </h1>
-            <div className="form-group text-left font-weight-bold">
-              <label htmlFor="users">Users</label>
-              <select
-                className="form-control"
-                name="users"
-                id="users"
-                multiple
-                size="10"
-                value={selectedUsers}
-                onChange={(e) => this.handleUsersChange(e)}
-              >
-                {users.map((user, index) => {
-                  return (
-                    <option value={user["user_id"]} key={index}>
-                      {user["username"]}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="form-row">
-              <div className="form-group col">
-                <Button
-                  size="lg"
-                  type="danger"
-                  disabled={isSubmitting ? true : false}
-                  onClick={(e) => this.handleCancel(e)}
-                  alt={"Cancel"}
-                  text="Cancel"
-                />
+      <div className="container h-75 text-center">
+        <div className="row h-100 justify-content-center align-items-center">
+          <form
+            className="col-6"
+            name="manage_users"
+            ref={(el) => (this.form = el)}
+          >
+            {isLoading ? <Loader /> : null}
+            {errorMessage ? (
+              <Alert
+                type="danger"
+                message={errorMessage}
+                onClose={(e) => this.handleAlertDismiss(e)}
+              />
+            ) : null}
+            {successMessage ? (
+              <Alert
+                type="success"
+                message={successMessage}
+                onClose={(e) => this.handleAlertDismiss(e)}
+              />
+            ) : null}
+            {!isLoading ? (
+              <div>
+                <div className="form-group text-left font-weight-bold">
+                  <label htmlFor="users">Users</label>
+                  <select
+                    className="form-control"
+                    name="users"
+                    id="users"
+                    multiple
+                    size="10"
+                    value={selectedUsers}
+                    onChange={(e) => this.handleUsersChange(e)}
+                  >
+                    {users.map((user, index) => {
+                      return (
+                        <option value={user["user_id"]} key={index}>
+                          {user["username"]}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div className="form-row">
+                  <div className="form-group col">
+                    <Button
+                      size="lg"
+                      type="primary"
+                      disabled={isSubmitting ? true : false}
+                      onClick={(e) => this.handleManageUsersProject(e)}
+                      isSubmitting={isSubmitting}
+                      alt={"Save"}
+                      text="Save"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="form-group col">
-                <Button
-                  size="lg"
-                  type="primary"
-                  disabled={isSubmitting ? true : false}
-                  onClick={(e) => this.handleManageUsersProject(e)}
-                  isSubmitting={isSubmitting}
-                  alt={"Save"}
-                  text="Save"
-                />
-              </div>
-            </div>
-          </div>
-        ) : null}
-      </form>
+            ) : null}
+          </form>
+        </div>
+      </div>
     );
   }
 }
