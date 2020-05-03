@@ -17,7 +17,10 @@ body,
 }
 
 #waveform {
-  width: 800px;
-  height: 50px;
-  margin-bottom: 100px;
+  width: 100%;
+  height: 130px;
+}
+
+#timeline {
+  width: 100%;
 }

@@ -98,7 +98,7 @@ def fetch_data_for_project(project_id):
                     "created_on": data_point.created_at.strftime("%B %d, %Y"),
                     "reference_transcription": data_point.reference_transcription,
                     "is_marked_for_review": data_point.is_marked_for_review,
-                    "number_of_segmentations": len(data_point.segmentation),
+                    "number_of_segmentations": len(data_point.segmentations),
                 }
                 for data_point in paginated_data.items
             ]
