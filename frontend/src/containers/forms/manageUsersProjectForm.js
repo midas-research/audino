@@ -84,16 +84,15 @@ class ManageUsersProjectForm extends React.Component {
       },
     })
       .then((response) => {
-        if (response.status === 201) {
-          this.setState({
-            isSubmitting: false,
-            successMessage: response.data.message,
-            errorMessage: null,
-          });
-        }
+        this.setState({
+          isSubmitting: false,
+          successMessage: response.data.message,
+          errorMessage: null,
+        });
       })
       .catch((error) => {
         this.setState({
+          isSubmitting: false,
           errorMessage: error.response.data.message,
           successMessage: "",
         });
@@ -167,7 +166,7 @@ class ManageUsersProjectForm extends React.Component {
                     <Button
                       size="lg"
                       type="primary"
-                      disabled={isSubmitting ? true : false}
+                      disabled={isSubmitting}
                       onClick={(e) => this.handleManageUsersProject(e)}
                       isSubmitting={isSubmitting}
                       alt={"Save"}

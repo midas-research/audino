@@ -15,6 +15,7 @@ import {
   faPlayCircle,
   faPauseCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import Alert from "../components/alert";
 import { IconButton, Button } from "../components/button";
 import Loader from "../components/loader";
 
@@ -40,6 +41,8 @@ class Annotate extends React.Component {
       isMarkedForReview: false,
       selectedSegment: null,
       isSegmentDeleting: false,
+      errorMessage: null,
+      successMessage: null,
     };
 
     this.labelRef = {};
@@ -319,6 +322,14 @@ class Annotate extends React.Component {
     this.setState({ selectedSegment });
   }
 
+  handleAlertDismiss(e) {
+    e.preventDefault();
+    this.setState({
+      successMessage: "",
+      errorMessage: "",
+    });
+  }
+
   render() {
     const {
       zoom,
@@ -330,6 +341,8 @@ class Annotate extends React.Component {
       selectedSegment,
       isSegmentDeleting,
       isSegmentSaving,
+      errorMessage,
+      successMessage,
     } = this.state;
     return (
       <div>
@@ -338,6 +351,20 @@ class Annotate extends React.Component {
         </Helmet>
         <div className="container h-100">
           <div className="h-100 mt-5 text-center">
+            {errorMessage ? (
+              <Alert
+                type="danger"
+                message={errorMessage}
+                onClose={(e) => this.handleAlertDismiss(e)}
+              />
+            ) : null}
+            {successMessage ? (
+              <Alert
+                type="success"
+                message={successMessage}
+                onClose={(e) => this.handleAlertDismiss(e)}
+              />
+            ) : null}
             {isDataLoading ? <Loader /> : null}
             <div className="row justify-content-md-center my-4">
               <div ref={(el) => (this.segmentTranscription = el)}></div>
@@ -446,6 +473,9 @@ class Annotate extends React.Component {
                     </div>
                     <div className="row justify-content-center my-4">
                       {Object.entries(labels).map(([key, value], index) => {
+                        if (!value["values"].length) {
+                          return null;
+                        }
                         return (
                           <div className="col-3 text-left" key={index}>
                             <label htmlFor={key} className="font-weight-bold">

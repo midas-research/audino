@@ -40,6 +40,7 @@ def add_value_to_label(label_id):
     except Exception as e:
         if type(e) == sa.exc.IntegrityError:
             app.logger.info(f"Label Value: {value} already exists!")
+            app.logger.info(e)
             return (
                 jsonify(
                     message=f"Label Value: {value} already exists!",

@@ -152,26 +152,31 @@ def update_project_users(project_id):
     if not request.is_json:
         return jsonify(message="Missing JSON in request"), 400
 
-    users = request.json.get("users", None)
+    users = request.json.get("users", [])
 
-    if not users or type(users) != list:
+    if type(users) != list:
         return (
-            jsonify(message="Params `user` missing in request", type="USERS_MISSING"),
+            jsonify(message="Params `user` should be a list", type="INVALID_USERS"),
             400,
         )
+
+    app.logger.info(users)
 
     try:
         project = Project.query.get(project_id)
         # TODO: Decide whether to give creator of project access
         # project.users.append(request_user)
+        final_users = [user for user in project.users]
         for user in project.users:
             if user.id not in users:
-                project.users.remove(user)
+                final_users.remove(user)
 
         for user_id in users:
             user = User.query.get(user_id)
             if user not in project.users:
-                project.users.append(user)
+                final_users.append(user)
+
+        project.users = final_users
 
         db.session.add(project)
         db.session.commit()

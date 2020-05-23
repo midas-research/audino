@@ -51,7 +51,7 @@ services:
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_USER: "sat"
       MYSQL_PASSWORD: "sat"
-    command: --init-file=/tmp/create_database.sql --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --init-file=/tmp/create_database.sql --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     networks:
       - backend-network
 
