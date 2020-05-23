@@ -93,8 +93,6 @@ class Data extends React.Component {
     const nextPageUrl = this.prepareUrl(projectId, nextPage, active);
     const prevPageUrl = this.prepareUrl(projectId, prevPage, active);
 
-    console.log(prevPage);
-
     return (
       <div>
         <Helmet>

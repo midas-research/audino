@@ -39,7 +39,6 @@ user_project_table = db.Table(
         default=db.func.now(),
         onupdate=db.func.utc_timestamp(),
     ),
-    db.Column("is_deleted", db.Boolean(), nullable=False, default=False),
 )
 
 
@@ -67,8 +66,6 @@ class Data(db.Model):
     is_marked_for_review = db.Column(
         "is_marked_for_review", db.Boolean(), nullable=False, default=False
     )
-
-    is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
 
     created_at = db.Column(
         "created_at", db.DateTime(), nullable=False, default=db.func.now()
@@ -104,8 +101,6 @@ class Label(db.Model):
     type_id = db.Column(
         "type_id", db.Integer(), db.ForeignKey("label_type.id"), nullable=False
     )
-
-    is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
 
     created_at = db.Column(
         "created_at", db.DateTime(), nullable=False, default=db.func.now()
@@ -161,8 +156,6 @@ class LabelValue(db.Model):
 
     value = db.Column("value", db.String(200), nullable=False)
 
-    is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
-
     created_at = db.Column(
         "created_at", db.DateTime(), nullable=False, default=db.func.now()
     )
@@ -213,8 +206,6 @@ class Project(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
-    is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
-
     users = db.relationship(
         "User", secondary=user_project_table, back_populates="projects"
     )
@@ -255,9 +246,7 @@ class Segmentation(db.Model):
 
     end_time = db.Column("end_time", db.Float(), nullable=False)
 
-    transcription = db.Column("transcription", db.Text(), nullable=False)
-
-    is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
+    transcription = db.Column("transcription", db.Text(), nullable=True)
 
     created_at = db.Column(
         "created_at", db.DateTime(), nullable=False, default=db.func.now()
@@ -272,8 +261,14 @@ class Segmentation(db.Model):
     )
 
     values = db.relationship(
-        "LabelValue", secondary=annotation_table, back_populates="segmentations"
+        "LabelValue",
+        secondary=annotation_table,
+        back_populates="segmentations",
+        single_parent=True,
     )
+
+    def set_transcription(self, transcription):
+        self.transcription = transcription
 
 
 class User(db.Model):
@@ -290,8 +285,6 @@ class User(db.Model):
     role_id = db.Column(
         "role_id", db.Integer(), db.ForeignKey("role.id"), nullable=False
     )
-
-    is_deleted = db.Column("is_deleted", db.Boolean(), nullable=False, default=False)
 
     created_at = db.Column(
         "created_at", db.DateTime(), nullable=False, default=db.func.now()

@@ -25,26 +25,29 @@ class Annotate extends React.Component {
     const projectId = Number(this.props.match.params.projectid);
     const dataId = Number(this.props.match.params.dataid);
 
-    const { location } = this.props;
     this.state = {
       isPlaying: false,
       projectId,
       dataId,
-      segmentations: [],
       labels: {},
-      getLabelsUrl: `/api/projects/${projectId}/labels`,
-      getDataUrl: `/api/projects/${projectId}/data/${dataId}`,
+      labelsUrl: `/api/projects/${projectId}/labels`,
+      dataUrl: `/api/projects/${projectId}/data/${dataId}`,
+      segmentationUrl: `/api/projects/${projectId}/data/${dataId}/segmentations`,
       isDataLoading: false,
       wavesurfer: null,
       zoom: 100,
       referenceTranscription: null,
-      isMarkedForReview: true,
-      isSegmentSaving: false,
+      isMarkedForReview: false,
+      selectedSegment: null,
+      isSegmentDeleting: false,
     };
+
+    this.labelRef = {};
+    this.transcription = null;
   }
 
   componentDidMount() {
-    const { getLabelsUrl, getDataUrl } = this.state;
+    const { labelsUrl, dataUrl } = this.state;
     this.setState({ isDataLoading: true });
     const wavesurfer = WaveSurfer.create({
       container: "#waveform",
@@ -58,11 +61,11 @@ class Annotate extends React.Component {
       ],
     });
     this.showSegmentTranscription(null);
-    wavesurfer.on("ready", () => {
-      wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });
-    });
     this.props.history.listen((location, action) => {
       wavesurfer.stop();
+    });
+    wavesurfer.on("ready", () => {
+      wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });
     });
     wavesurfer.on("region-in", (region) => {
       this.showSegmentTranscription(region);
@@ -71,52 +74,65 @@ class Annotate extends React.Component {
       this.showSegmentTranscription(null);
     });
     wavesurfer.on("region-play", (r) => {
-      r.once("out", function () {
+      r.once("out", () => {
         wavesurfer.play(r.start);
         wavesurfer.pause();
       });
     });
+
     wavesurfer.on("region-click", (r, e) => {
       e.stopPropagation();
-      this.setState({ isSegmentSelected: true, isPlaying: true });
+      this.setState({
+        isPlaying: true,
+        selectedSegment: r,
+      });
       r.play();
     });
     wavesurfer.on("pause", (r, e) => {
       this.setState({ isPlaying: false });
     });
 
-    axios({
-      method: "get",
-      url: getLabelsUrl,
-    })
+    axios
+      .all([axios.get(labelsUrl), axios.get(dataUrl)])
       .then((response) => {
         this.setState({
           isDataLoading: false,
-          labels: response.data,
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        this.setState({
-          isDataLoading: false,
-        });
-      });
-
-    axios({
-      method: "get",
-      url: getDataUrl,
-    })
-      .then((response) => {
-        this.setState({
-          isDataLoading: false,
-          data: response.data,
+          labels: response[0].data,
         });
 
-        wavesurfer.load(`/audios/${response.data.filename}`);
+        const {
+          reference_transcription,
+          is_marked_for_review,
+          segmentations,
+          filename,
+        } = response[1].data;
+
+        const regions = segmentations.map((segmentation) => {
+          return {
+            start: segmentation.start_time,
+            end: segmentation.end_time,
+            data: {
+              segmentation_id: segmentation.segmentation_id,
+              transcription: segmentation.transcription,
+              annotations: segmentation.annotations,
+            },
+          };
+        });
+
+        this.setState({
+          isDataLoading: false,
+          referenceTranscription: reference_transcription,
+          isMarkedForReview: is_marked_for_review,
+          filename,
+        });
+
+        wavesurfer.load(`/audios/${filename}`);
         wavesurfer.drawBuffer();
-        this.setState({ wavesurfer });
         const { zoom } = this.state;
         wavesurfer.zoom(zoom);
+
+        this.setState({ wavesurfer });
+        this.loadRegions(regions);
       })
       .catch((error) => {
         console.log(error);
@@ -124,6 +140,18 @@ class Annotate extends React.Component {
           isDataLoading: false,
         });
       });
+  }
+
+  loadRegions(regions) {
+    const { wavesurfer } = this.state;
+    regions.forEach((region) => {
+      wavesurfer.addRegion(region);
+    });
+  }
+
+  showSegmentTranscription(region) {
+    this.segmentTranscription.textContent =
+      (region && region.data.transcription) || "–";
   }
 
   handlePlay() {
@@ -156,36 +184,139 @@ class Annotate extends React.Component {
   }
 
   handleIsMarkedForReview(e) {
+    const { dataUrl } = this.state;
     const isMarkedForReview = e.target.checked;
-    this.setState({ isMarkedForReview });
+    this.setState({ isDataLoading: true });
 
-    // axios({
-    //   method: "patch",
-    //   url: updateDatapoint,
-    // })
-    //   .then((response) => {
-    //     this.setState({
-    //       isDataLoading: false,
-    //       data: response.data,
-    //     });
-
-    //     wavesurfer.load(`/audios/${response.data.filename}`);
-    //     wavesurfer.drawBuffer();
-    //     this.setState({ wavesurfer });
-    //     const { zoom } = this.state;
-    //     wavesurfer.zoom(zoom);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     this.setState({
-    //       isDataLoading: false,
-    //     });
-    //   });
+    axios({
+      method: "patch",
+      url: dataUrl,
+      data: {
+        is_marked_for_review: isMarkedForReview,
+      },
+    })
+      .then((response) => {
+        this.setState({
+          isDataLoading: false,
+          isMarkedForReview: response.data.is_marked_for_review,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        this.setState({
+          isDataLoading: false,
+        });
+      });
   }
 
-  showSegmentTranscription(region) {
-    this.segmentTranscription.textContent =
-      (region && region.data.transcription) || "–";
+  handleSegmentDelete() {
+    const { wavesurfer, selectedSegment, segmentationUrl } = this.state;
+    this.setState({ isSegmentDeleting: true });
+    if (selectedSegment.data.segmentation_id) {
+      axios({
+        method: "delete",
+        url: `${segmentationUrl}/${selectedSegment.data.segmentation_id}`,
+      })
+        .then((response) => {
+          wavesurfer.regions.list[selectedSegment.id].remove();
+          this.setState({
+            selectedSegment: null,
+            isSegmentDeleting: false,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+          this.setState({
+            isSegmentDeleting: false,
+          });
+        });
+    } else {
+      wavesurfer.regions.list[selectedSegment.id].remove();
+      this.setState({
+        selectedSegment: null,
+        isSegmentDeleting: false,
+      });
+    }
+  }
+
+  handleSegmentSave(e) {
+    const { selectedSegment, segmentationUrl } = this.state;
+    const { start, end } = selectedSegment;
+
+    const {
+      transcription,
+      annotations,
+      segmentation_id = null,
+    } = selectedSegment.data;
+
+    this.setState({ isSegmentSaving: true });
+
+    if (segmentation_id === null) {
+      axios({
+        method: "post",
+        url: segmentationUrl,
+        data: {
+          start,
+          end,
+          transcription,
+          annotations,
+        },
+      })
+        .then((response) => {
+          const { segmentation_id } = response.data;
+          selectedSegment.data.segmentation_id = segmentation_id;
+          this.setState({ isSegmentSaving: false, selectedSegment });
+        })
+        .catch((error) => {
+          console.log(error);
+          this.setState({
+            isSegmentSaving: false,
+          });
+        });
+    } else {
+      axios({
+        method: "put",
+        url: `${segmentationUrl}/${segmentation_id}`,
+        data: {
+          start,
+          end,
+          transcription,
+          annotations,
+        },
+      })
+        .then((response) => {
+          this.setState({ isSegmentSaving: false });
+        })
+        .catch((error) => {
+          console.log(error);
+          this.setState({
+            isSegmentSaving: false,
+          });
+        });
+    }
+  }
+
+  handleTranscriptionChange(e) {
+    const { selectedSegment } = this.state;
+    selectedSegment.data.transcription = e.target.value;
+    this.setState({ selectedSegment });
+  }
+
+  handleLabelChange(key, e) {
+    const { selectedSegment, labels } = this.state;
+    selectedSegment.data.annotations = selectedSegment.data.annotations || {};
+    if (labels[key]["type"] === "multiselect") {
+      selectedSegment.data.annotations[key] = {
+        label_id: labels[key]["label_id"],
+        values: Array.from(e.target.selectedOptions, (option) => option.value),
+      };
+    } else {
+      selectedSegment.data.annotations[key] = {
+        label_id: labels[key]["label_id"],
+        values: e.target.value,
+      };
+    }
+    this.setState({ selectedSegment });
   }
 
   render() {
@@ -196,8 +327,9 @@ class Annotate extends React.Component {
       isDataLoading,
       isMarkedForReview,
       referenceTranscription,
-      isSegmentSelected,
-      isSegmentSubmitting,
+      selectedSegment,
+      isSegmentDeleting,
+      isSegmentSaving,
     } = this.state;
     return (
       <div>
@@ -286,11 +418,12 @@ class Annotate extends React.Component {
                         rows="3"
                         cols="50"
                         disabled={true}
+                        value={referenceTranscription}
                       ></textarea>
                     </div>
                   ) : null}
                 </div>
-                {isSegmentSelected ? (
+                {selectedSegment ? (
                   <div>
                     <div className="row justify-content-center my-4">
                       <div className="form-group">
@@ -301,6 +434,13 @@ class Annotate extends React.Component {
                           className="form-control"
                           rows="3"
                           cols="50"
+                          value={
+                            (selectedSegment &&
+                              selectedSegment.data.transcription) ||
+                            ""
+                          }
+                          onChange={(e) => this.handleTranscriptionChange(e)}
+                          ref={(el) => (this.transcription = el)}
                         ></textarea>
                       </div>
                     </div>
@@ -308,10 +448,7 @@ class Annotate extends React.Component {
                       {Object.entries(labels).map(([key, value], index) => {
                         return (
                           <div className="col-3 text-left" key={index}>
-                            <label
-                              htmlFor={labels[key]}
-                              className="font-weight-bold"
-                            >
+                            <label htmlFor={key} className="font-weight-bold">
                               {key}
                             </label>
 
@@ -321,29 +458,56 @@ class Annotate extends React.Component {
                               multiple={
                                 value["type"] === "multiselect" ? true : false
                               }
+                              value={
+                                (selectedSegment &&
+                                  selectedSegment.data.annotations &&
+                                  selectedSegment.data.annotations[key] &&
+                                  selectedSegment.data.annotations[key][
+                                    "values"
+                                  ]) ||
+                                (value["type"] === "multiselect" ? [] : "")
+                              }
+                              onChange={(e) => this.handleLabelChange(key, e)}
+                              ref={(el) => (this.labelRef[key] = el)}
                             >
                               {value["type"] !== "multiselect" ? (
                                 <option value="-1">Choose Label Type</option>
                               ) : null}
-                              <option value="1">Select</option>
-                              <option value="2">Multi-Select</option>
+                              {value["values"].map((val) => {
+                                return (
+                                  <option
+                                    key={val["value_id"]}
+                                    value={`${val["value_id"]}`}
+                                  >
+                                    {val["value"]}
+                                  </option>
+                                );
+                              })}
                             </select>
                           </div>
                         );
                       })}
                     </div>
                     <div className="row justify-content-center my-4">
-                      <div className="form-row">
-                        <div className="form-group col">
-                          <Button
-                            size="lg"
-                            type="primary"
-                            disabled={isSegmentSubmitting}
-                            onClick={(e) => this.handleSegmentSave(e)}
-                            isSubmitting={isSegmentSubmitting}
-                            text="Save"
-                          />
-                        </div>
+                      <div className="col-2">
+                        <Button
+                          size="lg"
+                          type="danger"
+                          disabled={isSegmentDeleting}
+                          isSubmitting={isSegmentDeleting}
+                          onClick={(e) => this.handleSegmentDelete(e)}
+                          text="Delete"
+                        />
+                      </div>
+                      <div className="col-2">
+                        <Button
+                          size="lg"
+                          type="primary"
+                          disabled={isSegmentSaving}
+                          onClick={(e) => this.handleSegmentSave(e)}
+                          isSubmitting={isSegmentSaving}
+                          text="Save"
+                        />
                       </div>
                     </div>
                   </div>

@@ -93,7 +93,6 @@ class EditLabelForm extends React.Component {
       .then((response) => {
         if (response.status === 200) {
           const { label_name, label_type_id } = response.data;
-          console.log(label_name, label_type_id);
           this.setState({
             name: label_name,
             type: label_type_id,
@@ -131,7 +130,6 @@ class EditLabelForm extends React.Component {
       isLoading,
     } = this.state;
 
-    console.log(name, type);
     return (
       <div className="container h-75 text-center">
         <div className="row h-100 justify-content-center align-items-center">

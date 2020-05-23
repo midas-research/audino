@@ -13,8 +13,6 @@ class ManageUsersProjectForm extends React.Component {
 
     const projectId = Number(this.props.projectId);
 
-    console.log(projectId);
-
     this.initialState = {
       projectId,
       projectName: this.props.projectName,
@@ -86,7 +84,6 @@ class ManageUsersProjectForm extends React.Component {
       },
     })
       .then((response) => {
-        console.log(response.data);
         if (response.status === 201) {
           this.setState({
             isSubmitting: false,

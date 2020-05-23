@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.urls import url_parse
 
 from backend import app, db
-from backend.models import Project, User, Label, Data
+from backend.models import Project, User, Label, Data, Segmentation, LabelValue
 
 from . import api
 
@@ -192,7 +192,7 @@ def update_project_users(project_id):
             message=f"Users assigned to project: {project.name}",
             type="USERS_ASSIGNED_TO_PROJECT",
         ),
-        201,
+        200,
     )
 
 
@@ -424,20 +424,26 @@ def get_segmentations_for_data(project_id, data_id):
         segmentations = []
         for segment in data.segmentations:
             resp = {
+                "segmentation_id": segment.id,
                 "start_time": segment.start_time,
                 "end_time": segment.end_time,
                 "transcription": segment.transcription,
             }
 
-            values = dict(
-                {
-                    value.label.name: {
-                        "label_value_id": value.id,
-                        "label_value": value.value,
+            values = dict()
+            for value in segment.values:
+                if value.label.name not in values:
+                    values[value.label.name] = {
+                        "label_id": value.label.id,
+                        "values": []
+                        if value.label.label_type.type == "multiselect"
+                        else None,
                     }
-                    for value in segment.values
-                }
-            )
+
+                if value.label.label_type.type == "multiselect":
+                    values[value.label.name]["values"].append(value.id)
+                else:
+                    values[value.label.name]["values"] = value.id
 
             resp["annotations"] = values
 
@@ -457,3 +463,199 @@ def get_segmentations_for_data(project_id, data_id):
         return (jsonify(message="Error fetching datapoint with given id"), 404)
 
     return (jsonify(response), 200)
+
+
+@api.route("/projects/<int:project_id>/data/<int:data_id>", methods=["PATCH"])
+@jwt_required
+def update_data(project_id, data_id):
+    identity = get_jwt_identity()
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    is_marked_for_review = bool(request.json.get("is_marked_for_review", False))
+
+    try:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        project = Project.query.get(project_id)
+
+        if request_user not in project.users:
+            return jsonify(message="Unauthorized access!"), 401
+
+        data = Data.query.filter_by(id=data_id, project_id=project_id).first()
+
+        if request_user != data.assigned_user:
+            return jsonify(message="Unauthorized access!"), 401
+
+        data.update_marked_review(is_marked_for_review)
+
+        db.session.add(data)
+        db.session.commit()
+        db.session.refresh(data)
+    except Exception as e:
+        app.logger.error(f"Error updating data")
+        app.logger.error(e)
+        return (
+            jsonify(message=f"Error updating data", type="DATA_UPDATION_FAILED"),
+            500,
+        )
+
+    return (
+        jsonify(
+            data_id=data.id,
+            is_marked_for_review=data.is_marked_for_review,
+            message=f"Data updated",
+            type="DATA_UPDATED",
+        ),
+        200,
+    )
+
+
+@api.route(
+    "/projects/<int:project_id>/data/<int:data_id>/segmentations", methods=["POST"]
+)
+@api.route(
+    "/projects/<int:project_id>/data/<int:data_id>/segmentations/<int:segmentation_id>",
+    methods=["PUT"],
+)
+@jwt_required
+def add_segmentations(project_id, data_id, segmentation_id=None):
+    identity = get_jwt_identity()
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    start_time = request.json.get("start", None)
+    end_time = request.json.get("end", None)
+
+    if start_time is None or end_time is None:
+        return jsonify(message="Params `start_time` or `end_time` missing"), 400
+
+    if type(start_time) is not float or type(end_time) is not float:
+        return (
+            jsonify(
+                message="Params `start_time` and `end_time` need to be float values"
+            ),
+            400,
+        )
+
+    transcription = request.json.get("transcription", None)
+    annotations = request.json.get("annotations", dict())
+
+    start_time = round(start_time, 4)
+    end_time = round(end_time, 4)
+
+    app.logger.info(annotations)
+
+    try:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        project = Project.query.get(project_id)
+
+        if request_user not in project.users:
+            return jsonify(message="Unauthorized access!"), 401
+
+        data = Data.query.filter_by(id=data_id, project_id=project_id).first()
+
+        if request_user != data.assigned_user:
+            return jsonify(message="Unauthorized access!"), 401
+
+        if request.method == "POST" and segmentation_id == None:
+            segmentation = Segmentation(
+                data_id=data_id, start_time=start_time, end_time=end_time
+            )
+        else:
+            segmentation = Segmentation.query.filter_by(
+                data_id=data_id, id=segmentation_id
+            ).first()
+        segmentation.set_transcription(transcription)
+        values = []
+        for label_name, label_value in annotations.items():
+            app.logger.info(label_name)
+            app.logger.info(label_value)
+            if type(label_value["values"]) is list:
+                for val_id in label_value["values"]:
+                    value = LabelValue.query.filter_by(
+                        id=int(val_id), label_id=label_value["label_id"]
+                    ).first()
+                    values.append(value)
+            else:
+                value = LabelValue.query.filter_by(
+                    id=int(label_value["values"]), label_id=label_value["label_id"]
+                ).first()
+                values.append(value)
+        segmentation.values = values
+
+        db.session.add(segmentation)
+        db.session.commit()
+        db.session.refresh(segmentation)
+    except Exception as e:
+        app.logger.error(f"Could not create segmentation")
+        app.logger.error(e)
+        return (
+            jsonify(
+                message=f"Could not create segmentation",
+                type="SEGMENTATION_CREATION_FAILED",
+            ),
+            500,
+        )
+
+    if request.method == "POST":
+        message = "Segmentation created"
+        operation_type = "SEGMENTATION_CREATED"
+        status = 201
+    else:
+        message = "Segmentation updated"
+        operation_type = "SEGMENTATION_UPDATED"
+        status = 204
+
+    return (
+        jsonify(segmentation_id=segmentation.id, message=message, type=operation_type),
+        status,
+    )
+
+
+@api.route(
+    "/projects/<int:project_id>/data/<int:data_id>/segmentations/<int:segmentation_id>",
+    methods=["DELETE"],
+)
+@jwt_required
+def delete_segmentations(project_id, data_id, segmentation_id):
+    identity = get_jwt_identity()
+
+    try:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        project = Project.query.get(project_id)
+
+        if request_user not in project.users:
+            return jsonify(message="Unauthorized access!"), 401
+
+        data = Data.query.filter_by(id=data_id, project_id=project_id).first()
+
+        if request_user != data.assigned_user:
+            return jsonify(message="Unauthorized access!"), 401
+
+        segmentation = Segmentation.query.filter_by(
+            data_id=data_id, id=segmentation_id
+        ).first()
+
+        db.session.delete(segmentation)
+        db.session.commit()
+    except Exception as e:
+        app.logger.error(f"Could not delete segmentation")
+        app.logger.error(e)
+        return (
+            jsonify(
+                message=f"Could not delete segmentation",
+                type="SEGMENTATION_DELETION_FAILED",
+            ),
+            500,
+        )
+
+    return (
+        jsonify(
+            segmentation_id=segmentation_id,
+            message="Segmentation deleted",
+            type="SEGMENTATION_DELETED",
+        ),
+        204,
+    )

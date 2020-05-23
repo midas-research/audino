@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 
 from flask import jsonify, flash, redirect, url_for, request, send_from_directory
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 

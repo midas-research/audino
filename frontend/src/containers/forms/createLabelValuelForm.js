@@ -39,7 +39,6 @@ class CreateLabelValueForm extends React.Component {
     this.setState({ isSubmitting: true });
 
     const { value, createLabelValueUrl } = this.state;
-    console.log(value);
 
     if (!value || value === "") {
       this.setState({
