@@ -32,6 +32,7 @@ parser.add_argument(
     help="Whether datapoint should be marked for review",
     default=False,
 )
+parser.add_argument("--port", type=int, help="Port to make request to", default=80)
 
 args = parser.parse_args()
 
@@ -60,7 +61,7 @@ values = {
 
 print("Creating datapoint")
 response = requests.post(
-    "http://localhost:5000/api/data", files=file, data=values, headers=headers
+    f"http://localhost:{args.port}/api/data", files=file, data=values, headers=headers
 )
 if response.status_code == 200:
     print("Datapoint created!")
