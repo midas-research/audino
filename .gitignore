@@ -128,7 +128,9 @@ dmypy.json
 *.db
 
 # vscode settings
-*.json
+./settings/*.json
+
+# Sample files
 !*.sample.json
 
 # Flask
