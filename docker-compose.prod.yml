@@ -1,58 +1,71 @@
-version: "3"
+version: "3.7"
 services:
   backend:
     build: ./backend
-    command: ["/app/backend/scripts/run.sh"]
+    command: ["/app/backend/scripts/run-prod.sh"]
     volumes:
-      - static_volume:/app/backend
+      - backend_data:/root/uploads
     environment:
-      ADMIN_PASSWORD: "password"
       ADMIN_USERNAME: "admin"
-      DATABASE_URL: "mysql+pymysql://sat@sat@localhost/sat?charset=utf8mb4"
-      DEBUG: "False"
+      ADMIN_PASSWORD: "password"
+      DATABASE_URL: "mysql+pymysql://sat:sat@mysql/sat?charset=utf8mb4"
+      UPLOAD_FOLDER: "/root/uploads"
       FLASK_APP: "app.py"
-      FLASK_ENV: "production"
+      FLASK_DEBUG: 1
+      FLASK_ENV: "development"
       SECRET_KEY: "randomkeygoeshere"
+      JWT_SECRET_KEY: "secretkey"
+      JWT_REDIS_STORE_URL: "redis://:sat@redis:6379/0"
     depends_on:
       - mysql
+      - redis
     networks:
       - backend-network
       - frontend-network
 
-  # frontend:
-  #   build: ./frontend
-  #   volumes:
-  #     - www:/app/dist
+  frontend:
+    build: ./frontend
+    volumes:
+      - www:/app/frontend/build
 
-  # nginx:
-  #   build: ./nginx
-  #   volumes:
-  #     - www:/var/www/html:ro
-  #     - static_volume:/static
-  #   ports:
-  #     - 80:80
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - network-frontend
+  nginx:
+    build: ./nginx
+    volumes:
+      - www:/var/www/html:ro
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+    networks:
+      - frontend-network
 
   mysql:
-    image: mysql:5.7.29
+    image: mysql:5.7
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./mysql:/tmp
+      - mysql_prod_data:/var/lib/mysql
     environment:
+      MYSQL_DATABASE: "sat"
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_USER: "sat"
       MYSQL_PASSWORD: "sat"
-      MYSQL_DATABASE: "sat"
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
-    restart: always
+    command: --init-file=/tmp/create_database.sql --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+    networks:
+      - backend-network
+
+  redis:
+    build: ./redis
+    volumes:
+      - redis_data:/data
+    environment:
+      REDIS_PASSWORD: "sat"
     networks:
       - backend-network
 
 volumes:
-  mysql_data:
-  static_volume:
+  mysql_prod_data:
+  redis_data:
+  backend_data:
   www:
 
 networks:

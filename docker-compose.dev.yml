@@ -36,8 +36,8 @@ services:
     stdin_open: true
     ports:
       - 3000:3000
-    # depends_on:
-    #   - backend
+    depends_on:
+      - backend
     networks:
       - frontend-network
 
