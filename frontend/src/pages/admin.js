@@ -8,6 +8,7 @@ import {
   faEdit,
   faUserPlus,
   faTags,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
@@ -97,6 +98,71 @@ class Admin extends React.Component {
       title: `Project ${projectName}: Manage User Access`,
       projectId,
     });
+  }
+
+  _fake_click(obj) {
+    let ev = document.createEvent("MouseEvents");
+    ev.initMouseEvent(
+      "click",
+      true,
+      false,
+      window,
+      0,
+      0,
+      0,
+      0,
+      0,
+      false,
+      false,
+      false,
+      false,
+      0,
+      null
+    );
+    obj.dispatchEvent(ev);
+  }
+
+  _export_raw(name, data) {
+    let urlObject = window.URL || window.webkitURL || window;
+    let export_blob = new Blob([data]);
+
+    if ("msSaveBlob" in navigator) {
+      navigator.msSaveBlob(export_blob, name);
+    } else if ("download" in HTMLAnchorElement.prototype) {
+      let save_link = document.createElementNS(
+        "http://www.w3.org/1999/xhtml",
+        "a"
+      );
+      save_link.href = urlObject.createObjectURL(export_blob);
+      save_link.download = name;
+      this._fake_click(save_link);
+    } else {
+      throw new Error("Neither a[download] nor msSaveBlob is available");
+    }
+  }
+
+  handleDownloadAnnotations(e, projectName, projectId) {
+    axios({
+      method: "get",
+      url: `/api/projects/${projectId}/annotations`,
+    })
+      .then((response) => {
+        const { annotations } = response.data;
+        if (annotations) {
+          this._export_raw(
+            `${projectName}.json`,
+            JSON.stringify(annotations, null, 2)
+          );
+        } else {
+          console.log("No annotations found");
+        }
+      })
+      .catch((error) => {
+        this.setState({
+          errorMessage: error.response.data.message,
+          isUserLoading: false,
+        });
+      });
   }
 
   setModalShow(modalShow) {
@@ -190,6 +256,18 @@ class Admin extends React.Component {
                               onClick={(e) =>
                                 this.handleAddLabelsToProject(
                                   e,
+                                  project["project_id"]
+                                )
+                              }
+                            />
+                            <IconButton
+                              icon={faDownload}
+                              size="sm"
+                              title={"Download Annotations"}
+                              onClick={(e) =>
+                                this.handleDownloadAnnotations(
+                                  e,
+                                  project["name"],
                                   project["project_id"]
                                 )
                               }
