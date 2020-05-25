@@ -664,3 +664,66 @@ def delete_segmentations(project_id, data_id, segmentation_id):
         ),
         204,
     )
+
+
+@api.route("/projects/<int:project_id>/annotations", methods=["GET"])
+@jwt_required
+def get_project_annotations(project_id):
+    identity = get_jwt_identity()
+
+    try:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        project = Project.query.get(project_id)
+
+        if request_user not in project.users:
+            return jsonify(message="Unauthorized access!"), 401
+
+        annotations = []
+
+        for data in project.data:
+            data_dict = data.to_dict()
+            data_dict["segmentations"] = []
+
+            for segmentation in data.segmentations:
+                segmentation_dict = segmentation.to_dict()
+
+                values = dict()
+                for value in segmentation.values:
+                    if value.label.name not in values:
+                        values[value.label.name] = {
+                            "id": value.label.id,
+                            "values": []
+                            if value.label.label_type.type == "multiselect"
+                            else None,
+                        }
+
+                    if value.label.label_type.type == "multiselect":
+                        values[value.label.name]["values"].append(
+                            {"id": value.id, "value": value.value}
+                        )
+                    else:
+                        values[value.label.name]["values"] = {
+                            "id": value.id,
+                            "value": value.value,
+                        }
+
+                segmentation_dict["annotations"] = values
+
+                data_dict["segmentations"].append(segmentation_dict)
+
+            annotations.append(data_dict)
+
+    except Exception as e:
+        message = "Error fetching annotations for project"
+        app.logger.error(message)
+        app.logger.error(e)
+        return jsonify(message=message, type="FETCH_ANNOTATIONS_FAILED"), 500
+
+    return (
+        jsonify(
+            message="Annotations fetched successfully",
+            annotations=annotations,
+            type="FETCH_ANNOTATION_SUCCESS",
+        ),
+        200,
+    )

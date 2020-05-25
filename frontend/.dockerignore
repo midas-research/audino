@@ -13,8 +13,6 @@ coverage
 
 .lock-wscript
 
-build/Release
-
 node_modules
 
 server/*.spec.js

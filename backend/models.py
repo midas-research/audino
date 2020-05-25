@@ -79,12 +79,28 @@ class Data(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
-    def update_marked_review(self, marked_review):
-        self.is_marked_for_review = marked_review
-
     project = db.relationship("Project")
     assigned_user = db.relationship("User")
     segmentations = db.relationship("Segmentation", backref="Data")
+
+    def update_marked_review(self, marked_review):
+        self.is_marked_for_review = marked_review
+
+    def to_dict(self):
+        return {
+            "original_filename": self.original_filename,
+            "filename": self.filename,
+            "url": f"/audios/{self.filename}",
+            "reference_transcription": self.reference_transcription,
+            "is_marked_for_review": self.is_marked_for_review,
+            "created_at": self.created_at,
+            "last_modified": self.last_modified,
+            "assigned_user": {
+                "id": self.assigned_user_id,
+                "username": self.assigned_user.username,
+                "role": self.assigned_user.role.role,
+            },
+        }
 
 
 class Label(db.Model):
@@ -209,6 +225,7 @@ class Project(db.Model):
     users = db.relationship(
         "User", secondary=user_project_table, back_populates="projects"
     )
+    data = db.relationship("Data", backref="Project")
     labels = db.relationship("Label", backref="Project")
     creator_user = db.relationship("User")
 
@@ -269,6 +286,15 @@ class Segmentation(db.Model):
 
     def set_transcription(self, transcription):
         self.transcription = transcription
+
+    def to_dict(self):
+        return {
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "transcription": self.transcription,
+            "created_at": self.created_at,
+            "last_modified": self.last_modified,
+        }
 
 
 class User(db.Model):
