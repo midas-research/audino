@@ -42,14 +42,14 @@ services:
   mysql:
     image: mysql:5.7
     volumes:
-      - ./mysql:/tmp
+      - ./mysql:/mysql
       - mysql_prod_data:/var/lib/mysql
     environment:
       MYSQL_DATABASE: "sat"
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_USER: "sat"
       MYSQL_PASSWORD: "sat"
-    command: --init-file=/tmp/create_database.sql --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+    command: --init-file=/mysql/create_database.sql --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     networks:
       - backend-network
 
