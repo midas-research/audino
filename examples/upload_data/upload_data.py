@@ -26,6 +26,7 @@ parser.add_argument(
     help="Reference transcription associated with the data",
     default=None,
 )
+parser.add_argument("--host", type=str, help="Host of service", default=None)
 parser.add_argument(
     "--marked_review",
     type=bool,
@@ -61,7 +62,7 @@ values = {
 
 print("Creating datapoint")
 response = requests.post(
-    f"http://localhost:{args.port}/api/data", files=file, data=values, headers=headers
+    f"http://{args.host}:{args.port}/api/data", files=file, data=values, headers=headers
 )
 if response.status_code == 200:
     print("Datapoint created!")
