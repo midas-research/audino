@@ -202,12 +202,16 @@ class Annotate extends React.Component {
         this.setState({
           isDataLoading: false,
           isMarkedForReview: response.data.is_marked_for_review,
+          errorMessage: null,
+          successMessage: "Marked for review status changed",
         });
       })
       .catch((error) => {
         console.log(error);
         this.setState({
           isDataLoading: false,
+          errorMessage: "Error changing review status",
+          successMessage: null,
         });
       });
   }
@@ -268,12 +272,19 @@ class Annotate extends React.Component {
         .then((response) => {
           const { segmentation_id } = response.data;
           selectedSegment.data.segmentation_id = segmentation_id;
-          this.setState({ isSegmentSaving: false, selectedSegment });
+          this.setState({
+            isSegmentSaving: false,
+            selectedSegment,
+            successMessage: "Segment saved",
+            errorMessage: null,
+          });
         })
         .catch((error) => {
           console.log(error);
           this.setState({
             isSegmentSaving: false,
+            errorMessage: "Error saving segment",
+            successMessage: null,
           });
         });
     } else {
@@ -288,12 +299,18 @@ class Annotate extends React.Component {
         },
       })
         .then((response) => {
-          this.setState({ isSegmentSaving: false });
+          this.setState({
+            isSegmentSaving: false,
+            successMessage: "Segment saved",
+            errorMessage: null,
+          });
         })
         .catch((error) => {
           console.log(error);
           this.setState({
             isSegmentSaving: false,
+            errorMessage: "Error saving segment",
+            successMessage: null,
           });
         });
     }
