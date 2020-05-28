@@ -8,6 +8,7 @@ services:
     environment:
       ADMIN_USERNAME: "admin"
       ADMIN_PASSWORD: "password"
+      MYSQL_DATABASE: "audino"
       DATABASE_URL: "mysql+pymysql://audino:audino@mysql/audino?charset=utf8mb4"
       UPLOAD_FOLDER: "/root/uploads"
       FLASK_APP: "app.py"
