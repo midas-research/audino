@@ -5,6 +5,9 @@ set -o errexit
 uwsgi="/app/"
 app="/app/backend"
 
+echo "Connecting to database"
+python3 "${app}/scripts/wait_for_database.py"
+
 echo "Applying new migrations"
 cd "${app}" && flask db migrate || true
 cd "${app}" && flask db upgrade || true
