@@ -10,14 +10,14 @@ services:
     environment:
       ADMIN_USERNAME: "admin"
       ADMIN_PASSWORD: "password"
-      DATABASE_URL: "mysql+pymysql://sat:sat@mysql/sat?charset=utf8mb4"
+      DATABASE_URL: "mysql+pymysql://audino:audino@mysql/audino?charset=utf8mb4"
       UPLOAD_FOLDER: "/root/uploads"
       FLASK_APP: "app.py"
       FLASK_DEBUG: 1
       FLASK_ENV: "development"
       SECRET_KEY: "randomkeygoeshere"
       JWT_SECRET_KEY: "secretkey"
-      JWT_REDIS_STORE_URL: "redis://:sat@redis:6379/0"
+      JWT_REDIS_STORE_URL: "redis://:audino@redis:6379/0"
     ports:
       - 5000:5000
     depends_on:
@@ -47,10 +47,10 @@ services:
       - ./mysql:/mysql
       - mysql_data:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: "sat"
+      MYSQL_DATABASE: "audino"
       MYSQL_ROOT_PASSWORD: "root"
-      MYSQL_USER: "sat"
-      MYSQL_PASSWORD: "sat"
+      MYSQL_USER: "audino"
+      MYSQL_PASSWORD: "audino"
     command: --init-file=/mysql/create_database.sql --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     networks:
       - backend-network
@@ -60,7 +60,7 @@ services:
     volumes:
       - redis_data:/data
     environment:
-      REDIS_PASSWORD: "sat"
+      REDIS_PASSWORD: "audino"
     ports:
       - 6379:6379
     networks:

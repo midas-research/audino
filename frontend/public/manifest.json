@@ -1,6 +1,6 @@
 {
-  "short_name": "sat",
-  "name": "Speech Annotation Tool",
+  "short_name": "audino",
+  "name": "Audino",
   "icons": [
     {
       "src": "favicon.ico",
