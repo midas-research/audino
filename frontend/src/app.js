@@ -103,10 +103,7 @@ class App extends React.Component {
     return (
       <Router>
         <div className="app">
-          <Helmet
-            titleTemplate="%s | Speech Annotation Tool"
-            defaultTitle="Speech Annotation Tool"
-          ></Helmet>
+          <Helmet titleTemplate="%s | Audino" defaultTitle="Audino"></Helmet>
           <NavBar />
           <Switch>
             <Route
