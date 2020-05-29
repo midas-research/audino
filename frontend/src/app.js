@@ -103,7 +103,7 @@ class App extends React.Component {
     return (
       <Router>
         <div className="app">
-          <Helmet titleTemplate="%s | Audino" defaultTitle="Audino"></Helmet>
+          <Helmet titleTemplate="%s | audino" defaultTitle="audino"></Helmet>
           <NavBar />
           <Switch>
             <Route
