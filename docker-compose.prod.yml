@@ -10,9 +10,6 @@ services:
       ADMIN_PASSWORD: "password"
       DATABASE_URL: "mysql+pymysql://audino:audino@mysql/audino?charset=utf8mb4"
       UPLOAD_FOLDER: "/root/uploads"
-      FLASK_APP: "app.py"
-      FLASK_DEBUG: 1
-      FLASK_ENV: "development"
       SECRET_KEY: "randomkeygoeshere"
       JWT_SECRET_KEY: "secretkey"
       JWT_REDIS_STORE_URL: "redis://:audino@redis:6379/0"
