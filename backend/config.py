@@ -6,7 +6,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(object):
-    SECRET_KEY = os.environ.get("SECRET_KEY", None)
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL"
     ) or "sqlite:///" + os.path.join(basedir, "app.db")
@@ -20,4 +19,4 @@ class Config(object):
     JWT_BLACKLIST_ENABLED = True
     JWT_HEADER_TYPE = None
     JWT_BLACKLIST_TOKEN_CHECKS = ["access"]
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "./audino_audios")
+    UPLOAD_FOLDER = '/root/uploads'

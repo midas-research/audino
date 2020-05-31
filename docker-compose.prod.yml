@@ -9,8 +9,6 @@ services:
       ADMIN_USERNAME: "admin"
       ADMIN_PASSWORD: "password"
       DATABASE_URL: "mysql+pymysql://audino:audino@mysql/audino?charset=utf8mb4"
-      UPLOAD_FOLDER: "/root/uploads"
-      SECRET_KEY: "randomkeygoeshere"
       JWT_SECRET_KEY: "secretkey"
       JWT_REDIS_STORE_URL: "redis://:audino@redis:6379/0"
     depends_on:

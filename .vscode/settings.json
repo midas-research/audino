@@ -1,8 +1,0 @@
-{
-  "python.venvPath": "~/.virtualenvs",
-  "python.pythonPath": "/Users/manrajsingh/.virtualenvs/sat/bin/python",
-  "python.formatting.provider": "black",
-  "editor.formatOnSave": true,
-  "python.linting.enabled": true,
-  "eslint.autoFixOnSave": true
-}
