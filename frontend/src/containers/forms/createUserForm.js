@@ -1,25 +1,25 @@
-import React from "react";
-import axios from "axios";
-import { withRouter } from "react-router";
-import { withStore } from "@spyna/react-store";
+import React from 'react';
+import axios from 'axios';
+import { withRouter } from 'react-router-dom';
+import { withStore } from '@spyna/react-store';
 
-import Alert from "../../components/alert";
-import { Button } from "../../components/button";
+import Alert from '../../components/alert';
+import { Button } from '../../components/button';
 
 class CreateUserForm extends React.Component {
   constructor(props) {
     super(props);
 
     this.initialState = {
-      username: "",
-      password: "",
-      role: "user",
-      errorMessage: "",
-      successMessage: "",
-      isSubmitting: false,
+      username: '',
+      password: '',
+      role: 'user',
+      errorMessage: '',
+      successMessage: '',
+      isSubmitting: false
     };
 
-    this.state = Object.assign({}, this.initialState);
+    this.state = { ...this.initialState };
   }
 
   resetState() {
@@ -45,43 +45,43 @@ class CreateUserForm extends React.Component {
 
     const { username, password, role } = this.state;
 
-    if (!username || username === "") {
+    if (!username || username === '') {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please enter a valid username!",
-        successMessage: "",
+        errorMessage: 'Please enter a valid username!',
+        successMessage: ''
       });
       return;
     }
 
-    if (!password || password === "") {
+    if (!password || password === '') {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please enter a valid password!",
-        successMessage: "",
+        errorMessage: 'Please enter a valid password!',
+        successMessage: ''
       });
       return;
     }
 
-    if (!role || !["1", "2"].includes(role)) {
+    if (!role || !['1', '2'].includes(role)) {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please select a valid role!",
-        successMessage: "",
+        errorMessage: 'Please select a valid role!',
+        successMessage: ''
       });
       return;
     }
 
     axios({
-      method: "post",
-      url: "/api/users",
+      method: 'post',
+      url: '/api/users',
       data: {
         username,
         password,
-        role,
-      },
+        role
+      }
     })
-      .then((response) => {
+      .then(response => {
         if (response.status === 201) {
           this.resetState();
           this.form.reset();
@@ -89,11 +89,11 @@ class CreateUserForm extends React.Component {
           this.setState({ successMessage: response.data.message });
         }
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
-          successMessage: "",
-          isSubmitting: false,
+          successMessage: '',
+          isSubmitting: false
         });
       });
   }
@@ -101,8 +101,8 @@ class CreateUserForm extends React.Component {
   handleAlertDismiss(e) {
     e.preventDefault();
     this.setState({
-      successMessage: "",
-      errorMessage: "",
+      successMessage: '',
+      errorMessage: ''
     });
   }
 
@@ -111,23 +111,19 @@ class CreateUserForm extends React.Component {
     return (
       <div className="container h-75 text-center">
         <div className="row h-100 justify-content-center align-items-center">
-          <form
-            className="col-6"
-            name="new_user"
-            ref={(el) => (this.form = el)}
-          >
+          <form className="col-6" name="new_user" ref={el => (this.form = el)}>
             {errorMessage ? (
               <Alert
                 type="danger"
                 message={errorMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             {successMessage ? (
               <Alert
                 type="success"
                 message={successMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             <div className="form-group">
@@ -136,9 +132,9 @@ class CreateUserForm extends React.Component {
                 className="form-control"
                 id="username"
                 placeholder="Username"
-                autoFocus={true}
-                required={true}
-                onChange={(e) => this.handleUsernameChange(e)}
+                autoFocus
+                required
+                onChange={e => this.handleUsernameChange(e)}
               />
             </div>
             <div className="form-group">
@@ -147,16 +143,12 @@ class CreateUserForm extends React.Component {
                 className="form-control"
                 id="password"
                 placeholder="Password"
-                required={true}
-                onChange={(e) => this.handlePasswordChange(e)}
+                required
+                onChange={e => this.handlePasswordChange(e)}
               />
             </div>
             <div className="form-group">
-              <select
-                className="form-control"
-                name="role"
-                onChange={(e) => this.handleRoleChange(e)}
-              >
+              <select className="form-control" name="role" onChange={e => this.handleRoleChange(e)}>
                 <option value="-1">Choose role</option>
                 <option value="1">Admin</option>
                 <option value="2">User</option>
@@ -167,8 +159,8 @@ class CreateUserForm extends React.Component {
                 <Button
                   size="lg"
                   type="primary"
-                  disabled={isSubmitting ? true : false}
-                  onClick={(e) => this.handleUserCreation(e)}
+                  disabled={!!isSubmitting}
+                  onClick={e => this.handleUserCreation(e)}
                   isSubmitting={isSubmitting}
                   text="Save"
                 />

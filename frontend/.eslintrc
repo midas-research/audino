@@ -1,6 +1,15 @@
 {
-  "extends": ["airbnb", "prettier"],
-  "plugins": ["prettier"],
+  "extends": [
+    "airbnb",
+    "prettier"
+  ],
+  "plugins": [
+    "prettier"
+  ],
+  "globals": {
+    "localStorage": true,
+    "document": true
+  },
   "rules": {
     "prettier/prettier": [
       "error",
@@ -15,6 +24,10 @@
         "singleQuote": true
       }
     ],
+    "camelcase": "off",
+    "react/no-array-index-key": "off",
+    "react/jsx-filename-extension": "off",
+    "react/jsx-props-no-spreading": "off",
     "no-console": "off"
   }
 }

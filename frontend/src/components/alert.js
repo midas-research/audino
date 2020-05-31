@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const Alert = ({ type, message, onClose = () => { } }) => {
+const Alert = ({ type, message, onClose = () => {} }) => {
   return (
     <div className={`alert alert-${type} alert-dismissible fade show`} role="alert">
       {message}

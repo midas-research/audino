@@ -1,38 +1,38 @@
-import axios from "axios";
-import React from "react";
-import { Link } from "react-router-dom";
-import { withRouter } from "react-router";
-import { withStore } from "@spyna/react-store";
+import axios from 'axios';
+import React from 'react';
+import { Link, withRouter } from 'react-router-dom';
 
-import { setAuthorizationToken } from "../utils";
+import { withStore } from '@spyna/react-store';
+
+import { setAuthorizationToken } from '../utils';
 
 class NavBar extends React.Component {
   handleLogout(e) {
     const { history } = this.props;
 
     axios({
-      method: "delete",
-      url: "/auth/logout",
+      method: 'delete',
+      url: '/auth/logout'
     })
       .then(() => {
-        localStorage.removeItem("access_token");
-        this.props.store.set("isUserLoggedIn", false);
-        this.props.store.set("isAdmin", false);
-        this.props.store.set("isLoading", false);
+        localStorage.removeItem('access_token');
+        this.props.store.set('isUserLoggedIn', false);
+        this.props.store.set('isAdmin', false);
+        this.props.store.set('isLoading', false);
 
         setAuthorizationToken(null);
 
-        history.push("/");
+        history.push('/');
       })
-      .catch((error) => {
+      .catch(error => {
         // TODO: Show error logging out
         console.log(error);
       });
   }
 
   render() {
-    const isUserLoggedIn = this.props.store.get("isUserLoggedIn");
-    const isAdmin = this.props.store.get("isAdmin");
+    const isUserLoggedIn = this.props.store.get('isUserLoggedIn');
+    const isAdmin = this.props.store.get('isAdmin');
 
     return (
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -43,13 +43,13 @@ class NavBar extends React.Component {
           <div>
             <div className="collapse navbar-collapse">
               <ul className="navbar-nav mr-auto">
-                <li className={`nav-item`}>
+                <li className="nav-item">
                   <Link className="nav-link" to="/dashboard">
                     Dashboard
                   </Link>
                 </li>
                 {isAdmin && (
-                  <li className={`nav-item`}>
+                  <li className="nav-item">
                     <Link className="nav-link" to="/admin">
                       Admin Panel
                     </Link>
@@ -61,7 +61,7 @@ class NavBar extends React.Component {
                   <button
                     type="button"
                     className="nav-link btn btn-link text-decoration-none"
-                    onClick={(e) => this.handleLogout(e)}
+                    onClick={e => this.handleLogout(e)}
                   >
                     Logout
                   </button>

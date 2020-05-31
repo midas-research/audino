@@ -1,13 +1,13 @@
-import axios from "axios";
-import React from "react";
-import { withRouter } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import axios from 'axios';
+import React from 'react';
+import { withRouter } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 
-import { faPlusSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { faPlusSquare, faEdit } from '@fortawesome/free-solid-svg-icons';
 
-import { IconButton } from "../components/button";
-import Loader from "../components/loader";
-import FormModal from "../containers/modal";
+import { IconButton } from '../components/button';
+import Loader from '../components/loader';
+import FormModal from '../containers/modal';
 
 class LabelValues extends React.Component {
   constructor(props) {
@@ -22,7 +22,7 @@ class LabelValues extends React.Component {
       modalShow: false,
       isLabelValuesLoading: false,
       labelValuesUrl: `/labels/${labelId}/values`,
-      getLabelValuesUrl: `/api/labels/${labelId}/values`,
+      getLabelValuesUrl: `/api/labels/${labelId}/values`
     };
   }
 
@@ -31,19 +31,19 @@ class LabelValues extends React.Component {
     this.setState({ isLabelValuesLoading: true });
 
     axios({
-      method: "get",
-      url: getLabelValuesUrl,
+      method: 'get',
+      url: getLabelValuesUrl
     })
-      .then((response) => {
+      .then(response => {
         this.setState({
           labelValues: response.data.values,
-          isLabelValuesLoading: false,
+          isLabelValuesLoading: false
         });
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
-          isLabelValuesLoading: false,
+          isLabelValuesLoading: false
         });
       });
   }
@@ -51,25 +51,25 @@ class LabelValues extends React.Component {
   handleNewLabelValues() {
     this.setModalShow(true);
     this.setState({
-      formType: "NEW_LABEL_VALUE",
-      title: "Create New Label Value",
+      formType: 'NEW_LABEL_VALUE',
+      title: 'Create New Label Value'
     });
   }
 
   handleEditLabelValue(e, labelId, labelValueId) {
     this.setModalShow(true);
     this.setState({
-      formType: "EDIT_LABEL_VALUE",
-      title: "Edit Label Value",
+      formType: 'EDIT_LABEL_VALUE',
+      title: 'Edit Label Value',
       labelId,
-      labelValueId,
+      labelValueId
     });
   }
 
   refreshPage() {
     const { history } = this.props;
     const { labelValuesUrl } = this.state;
-    history.replace({ pathname: "/empty" });
+    history.replace({ pathname: '/empty' });
     setTimeout(() => {
       history.replace({ pathname: labelValuesUrl });
     });
@@ -87,7 +87,7 @@ class LabelValues extends React.Component {
       formType,
       title,
       modalShow,
-      isLabelValuesLoading,
+      isLabelValuesLoading
     } = this.state;
     return (
       <div>
@@ -116,7 +116,7 @@ class LabelValues extends React.Component {
                     icon={faPlusSquare}
                     size="lg"
                     title="Create new label"
-                    onClick={(e) => this.handleNewLabelValues(e)}
+                    onClick={e => this.handleNewLabelValues(e)}
                   />
                 </h1>
               </div>
@@ -137,24 +137,15 @@ class LabelValues extends React.Component {
                           <th scope="row" className="align-middle">
                             {index + 1}
                           </th>
-                          <td className="align-middle">
-                            {labelValue["value"]}
-                          </td>
-                          <td className="align-middle">
-                            {labelValue["created_on"]}
-                          </td>
+                          <td className="align-middle">{labelValue.value}</td>
+                          <td className="align-middle">{labelValue.created_on}</td>
                           <td className="align-middle">
                             <IconButton
                               icon={faEdit}
                               size="sm"
-                              title={"Edit label value"}
-                              onClick={(e) =>
-                                this.handleEditLabelValue(
-                                  e,
-                                  labelId,
-                                  labelValue["value_id"]
-                                )
-                              }
+                              title="Edit label value"
+                              onClick={e =>
+                                this.handleEditLabelValue(e, labelId, labelValue.value_id)}
                             />
                           </td>
                         </tr>

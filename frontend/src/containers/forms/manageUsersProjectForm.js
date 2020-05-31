@@ -1,33 +1,33 @@
-import React from "react";
-import axios from "axios";
-import { withRouter } from "react-router";
-import { withStore } from "@spyna/react-store";
+import React from 'react';
+import axios from 'axios';
+import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
+import { withStore } from '@spyna/react-store';
 
-import Alert from "../../components/alert";
-import { Button } from "../../components/button";
-import Loader from "../../components/loader";
+import Alert from '../../components/alert';
+import { Button } from '../../components/button';
+import Loader from '../../components/loader';
 
 class ManageUsersProjectForm extends React.Component {
   constructor(props) {
     super(props);
-
-    const projectId = Number(this.props.projectId);
+    const { projectName, projectId } = this.props;
 
     this.initialState = {
-      projectId,
-      projectName: this.props.projectName,
+      projectId: Number(projectId),
+      projectName,
       users: [],
       selectedUsers: [],
-      errorMessage: "",
-      successMessage: "",
+      errorMessage: '',
+      successMessage: '',
       isLoading: false,
       isSubmitting: false,
       projectUrl: `/api/projects/${projectId}`,
-      getUsersUrl: "/api/users",
-      updateUsersProject: `/api/projects/${projectId}/users`,
+      getUsersUrl: '/api/users',
+      updateUsersProject: `/api/projects/${projectId}/users`
     };
 
-    this.state = Object.assign({}, this.initialState);
+    this.state = { ...this.initialState };
   }
 
   componentDidMount() {
@@ -35,18 +35,14 @@ class ManageUsersProjectForm extends React.Component {
 
     this.setState({ isLoading: true });
 
-    axios
-      .all([axios.get(projectUrl), axios.get(getUsersUrl)])
-      .then((response) => {
-        const selectedUsers = response[0].data.users.map((user) =>
-          Number(user["user_id"])
-        );
-        this.setState({
-          selectedUsers,
-          users: response[1].data.users,
-          isLoading: false,
-        });
+    axios.all([axios.get(projectUrl), axios.get(getUsersUrl)]).then(response => {
+      const selectedUsers = response[0].data.users.map(user => Number(user.user_id));
+      this.setState({
+        selectedUsers,
+        users: response[1].data.users,
+        isLoading: false
       });
+    });
   }
 
   resetState() {
@@ -54,9 +50,7 @@ class ManageUsersProjectForm extends React.Component {
   }
 
   handleUsersChange(e) {
-    const users = Array.from(e.target.selectedOptions, (option) =>
-      Number(option.value)
-    );
+    const users = Array.from(e.target.selectedOptions, option => Number(option.value));
     this.setState({ selectedUsers: users });
   }
 
@@ -70,31 +64,31 @@ class ManageUsersProjectForm extends React.Component {
     if (!selectedUsers || !Array.isArray(selectedUsers)) {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please select users!",
-        successMessage: "",
+        errorMessage: 'Please select users!',
+        successMessage: ''
       });
       return;
     }
 
     axios({
-      method: "patch",
+      method: 'patch',
       url: updateUsersProject,
       data: {
-        users: selectedUsers,
-      },
+        users: selectedUsers
+      }
     })
-      .then((response) => {
+      .then(response => {
         this.setState({
           isSubmitting: false,
           successMessage: response.data.message,
-          errorMessage: null,
+          errorMessage: null
         });
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           isSubmitting: false,
           errorMessage: error.response.data.message,
-          successMessage: "",
+          successMessage: ''
         });
       });
   }
@@ -102,8 +96,8 @@ class ManageUsersProjectForm extends React.Component {
   handleAlertDismiss(e) {
     e.preventDefault();
     this.setState({
-      successMessage: "",
-      errorMessage: "",
+      successMessage: '',
+      errorMessage: ''
     });
   }
 
@@ -114,7 +108,7 @@ class ManageUsersProjectForm extends React.Component {
       successMessage,
       users,
       selectedUsers,
-      isLoading,
+      isLoading
     } = this.state;
     return (
       <div className="container h-75 text-center">
@@ -122,21 +116,24 @@ class ManageUsersProjectForm extends React.Component {
           <form
             className="col-6"
             name="manage_users"
-            ref={(el) => (this.form = el)}
+            ref={el => {
+              this.form = el;
+              return null;
+            }}
           >
             {isLoading ? <Loader /> : null}
             {errorMessage ? (
               <Alert
                 type="danger"
                 message={errorMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             {successMessage ? (
               <Alert
                 type="success"
                 message={successMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             {!isLoading ? (
@@ -150,12 +147,12 @@ class ManageUsersProjectForm extends React.Component {
                     multiple
                     size="10"
                     value={selectedUsers}
-                    onChange={(e) => this.handleUsersChange(e)}
+                    onChange={e => this.handleUsersChange(e)}
                   >
                     {users.map((user, index) => {
                       return (
-                        <option value={user["user_id"]} key={index}>
-                          {user["username"]}
+                        <option value={user.user_id} key={index}>
+                          {user.username}
                         </option>
                       );
                     })}
@@ -167,9 +164,9 @@ class ManageUsersProjectForm extends React.Component {
                       size="lg"
                       type="primary"
                       disabled={isSubmitting}
-                      onClick={(e) => this.handleManageUsersProject(e)}
+                      onClick={e => this.handleManageUsersProject(e)}
                       isSubmitting={isSubmitting}
-                      alt={"Save"}
+                      alt="Save"
                       text="Save"
                     />
                   </div>
@@ -182,5 +179,10 @@ class ManageUsersProjectForm extends React.Component {
     );
   }
 }
+
+ManageUsersProjectForm.propTypes = {
+  projectId: PropTypes.number.isRequired,
+  projectName: PropTypes.string.isRequired
+};
 
 export default withStore(withRouter(ManageUsersProjectForm));

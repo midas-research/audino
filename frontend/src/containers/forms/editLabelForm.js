@@ -1,55 +1,55 @@
-import React from "react";
-import axios from "axios";
-import { withRouter } from "react-router";
-import { withStore } from "@spyna/react-store";
+import React from 'react';
+import axios from 'axios';
+import { withRouter } from 'react-router-dom';
+import { withStore } from '@spyna/react-store';
 
-import Alert from "../../components/alert";
-import { Button } from "../../components/button";
-import Loader from "../../components/loader";
+import Alert from '../../components/alert';
+import { Button } from '../../components/button';
+import Loader from '../../components/loader';
 
 class EditLabelForm extends React.Component {
   constructor(props) {
     super(props);
 
-    const projectId = this.props.projectId;
-    const labelId = this.props.labelId;
+    const { projectId } = this.props;
+    const { labelId } = this.props;
 
     this.initialState = {
       projectId,
       labelId,
-      name: "",
-      type: "-1",
+      name: '',
+      type: '-1',
       errorMessage: null,
       successMessage: null,
       isLoading: false,
-      labelUrl: `/api/projects/${projectId}/labels/${labelId}`,
+      labelUrl: `/api/projects/${projectId}/labels/${labelId}`
     };
 
-    this.state = Object.assign({}, this.initialState);
+    this.state = { ...this.initialState };
   }
 
   componentDidMount() {
     const { labelUrl } = this.state;
     this.setState({ isLoading: true });
     axios({
-      method: "get",
-      url: labelUrl,
+      method: 'get',
+      url: labelUrl
     })
-      .then((response) => {
+      .then(response => {
         if (response.status === 200) {
           const { label_name, label_type_id } = response.data;
           this.setState({
             name: label_name,
             type: String(label_type_id),
-            isLoading: false,
+            isLoading: false
           });
         }
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
           successMessage: null,
-          isLoading: false,
+          isLoading: false
         });
       });
   }
@@ -74,23 +74,23 @@ class EditLabelForm extends React.Component {
     const { labelUrl, type } = this.state;
 
     // TODO: Get these values from api
-    if (!type || !["1", "2"].includes(type)) {
+    if (!type || !['1', '2'].includes(type)) {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please select a valid label type id!",
-        successMessage: null,
+        errorMessage: 'Please select a valid label type id!',
+        successMessage: null
       });
       return;
     }
 
     axios({
-      method: "patch",
+      method: 'patch',
       url: labelUrl,
       data: {
-        type,
-      },
+        type
+      }
     })
-      .then((response) => {
+      .then(response => {
         if (response.status === 200) {
           const { label_name, label_type_id } = response.data;
           this.setState({
@@ -98,16 +98,16 @@ class EditLabelForm extends React.Component {
             type: label_type_id,
             isLoading: false,
             isSubmitting: false,
-            successMessage: "Label has been updated",
-            errorMessage: null,
+            successMessage: 'Label has been updated',
+            errorMessage: null
           });
         }
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
           successMessage: null,
-          isSubmitting: false,
+          isSubmitting: false
         });
       });
   }
@@ -115,42 +115,31 @@ class EditLabelForm extends React.Component {
   handleAlertDismiss(e) {
     e.preventDefault();
     this.setState({
-      successMessage: "",
-      errorMessage: "",
+      successMessage: '',
+      errorMessage: ''
     });
   }
 
   render() {
-    const {
-      name,
-      type,
-      isSubmitting,
-      errorMessage,
-      successMessage,
-      isLoading,
-    } = this.state;
+    const { name, type, isSubmitting, errorMessage, successMessage, isLoading } = this.state;
 
     return (
       <div className="container h-75 text-center">
         <div className="row h-100 justify-content-center align-items-center">
-          <form
-            className="col-6"
-            name="edit_label"
-            ref={(el) => (this.form = el)}
-          >
+          <form className="col-6" name="edit_label" ref={el => (this.form = el)}>
             {isLoading ? <Loader /> : null}
             {errorMessage ? (
               <Alert
                 type="danger"
                 message={errorMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             {successMessage ? (
               <Alert
                 type="success"
                 message={successMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             {!isLoading ? (
@@ -162,9 +151,9 @@ class EditLabelForm extends React.Component {
                     id="name"
                     placeholder="Name"
                     value={name}
-                    autoFocus={true}
-                    required={true}
-                    disabled={true}
+                    autoFocus
+                    required
+                    disabled
                   />
                 </div>
                 <div className="form-group">
@@ -172,7 +161,7 @@ class EditLabelForm extends React.Component {
                     className="form-control"
                     name="type"
                     value={type}
-                    onChange={(e) => this.handleLabelTypeChange(e)}
+                    onChange={e => this.handleLabelTypeChange(e)}
                   >
                     <option value="-1">Choose Label Type</option>
                     <option value="1">Select</option>
@@ -184,8 +173,8 @@ class EditLabelForm extends React.Component {
                     <Button
                       size="lg"
                       type="primary"
-                      disabled={isSubmitting ? true : false}
-                      onClick={(e) => this.handleLabelUpdation(e)}
+                      disabled={!!isSubmitting}
+                      onClick={e => this.handleLabelUpdation(e)}
                       isSubmitting={isSubmitting}
                       text="Update"
                     />

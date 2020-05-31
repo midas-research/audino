@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-import LoginForm from "../containers/forms/loginForm";
+import LoginForm from '../containers/forms/loginForm';
 
 const Home = () => {
   return (

@@ -1,15 +1,15 @@
-import axios from "axios";
-import React from "react";
-import { Helmet } from "react-helmet";
+import axios from 'axios';
+import React from 'react';
+import { Helmet } from 'react-helmet';
 
-import Loader from "../components/loader";
+import Loader from '../components/loader';
 
 class Dashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       projects: [],
-      isProjectLoading: false,
+      isProjectLoading: false
     };
   }
 
@@ -17,19 +17,19 @@ class Dashboard extends React.Component {
     this.setState({ isProjectLoading: true });
 
     axios({
-      method: "get",
-      url: "/api/current_user/projects",
+      method: 'get',
+      url: '/api/current_user/projects'
     })
-      .then((response) => {
+      .then(response => {
         this.setState({
           projects: response.data.projects,
-          isProjectLoading: false,
+          isProjectLoading: false
         });
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
-          isProjectLoading: false,
+          isProjectLoading: false
         });
       });
   }
@@ -66,16 +66,10 @@ class Dashboard extends React.Component {
                             {index + 1}
                           </th>
                           <td className="align-middle">
-                            <a href={`/projects/${project["project_id"]}/data`}>
-                              {project["name"]}
-                            </a>
+                            <a href={`/projects/${project.project_id}/data`}>{project.name}</a>
                           </td>
-                          <td className="align-middle">
-                            {project["created_by"]}
-                          </td>
-                          <td className="align-middle">
-                            {project["created_on"]}
-                          </td>
+                          <td className="align-middle">{project.created_by}</td>
+                          <td className="align-middle">{project.created_on}</td>
                         </tr>
                       );
                     })}

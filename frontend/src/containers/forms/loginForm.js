@@ -1,26 +1,26 @@
-import React from "react";
-import axios from "axios";
-import { withRouter } from "react-router";
-import { withStore } from "@spyna/react-store";
+import React from 'react';
+import axios from 'axios';
+import { withRouter } from 'react-router-dom';
+import { withStore } from '@spyna/react-store';
 
-import Alert from "../../components/alert";
-import { Button } from "../../components/button";
+import Alert from '../../components/alert';
+import { Button } from '../../components/button';
 
-import { setAuthorizationToken } from "../../utils";
+import { setAuthorizationToken } from '../../utils';
 
 class LoginForm extends React.Component {
   constructor(props) {
     super(props);
 
     this.initialState = {
-      username: "",
-      password: "",
+      username: '',
+      password: '',
       isSigningIn: false,
-      errorMessage: "",
-      successMessage: "",
+      errorMessage: '',
+      successMessage: ''
     };
 
-    this.state = Object.assign({}, this.initialState);
+    this.state = { ...this.initialState };
   }
 
   resetState() {
@@ -43,36 +43,36 @@ class LoginForm extends React.Component {
     const { history } = this.props;
 
     axios({
-      method: "post",
-      url: "/auth/login",
+      method: 'post',
+      url: '/auth/login',
       data: {
         username,
-        password,
-      },
+        password
+      }
     })
-      .then((response) => {
+      .then(response => {
         this.resetState();
         this.setState({
-          successMessage: "Logging you in...",
+          successMessage: 'Logging you in...'
         });
 
         const { access_token, username, is_admin } = response.data;
 
-        localStorage.setItem("access_token", access_token);
+        localStorage.setItem('access_token', access_token);
 
         setAuthorizationToken(access_token);
 
-        this.props.store.set("username", username);
-        this.props.store.set("isAdmin", is_admin);
-        this.props.store.set("isUserLoggedIn", true);
+        this.props.store.set('username', username);
+        this.props.store.set('isAdmin', is_admin);
+        this.props.store.set('isUserLoggedIn', true);
 
-        history.push("/dashboard");
+        history.push('/dashboard');
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           isSigningIn: false,
-          successMessage: "",
-          errorMessage: error.response.data.message,
+          successMessage: '',
+          errorMessage: error.response.data.message
         });
       });
   }
@@ -80,8 +80,8 @@ class LoginForm extends React.Component {
   handleAlertDismiss(e) {
     e.preventDefault();
     this.setState({
-      successMessage: "",
-      errorMessage: "",
+      successMessage: '',
+      errorMessage: ''
     });
   }
 
@@ -90,17 +90,13 @@ class LoginForm extends React.Component {
     return (
       <form className="col-4" name="login">
         {errorMessage ? (
-          <Alert
-            type="danger"
-            message={errorMessage}
-            onClose={(e) => this.handleAlertDismiss(e)}
-          />
+          <Alert type="danger" message={errorMessage} onClose={e => this.handleAlertDismiss(e)} />
         ) : null}
         {successMessage ? (
           <Alert
             type="success"
             message={successMessage}
-            onClose={(e) => this.handleAlertDismiss(e)}
+            onClose={e => this.handleAlertDismiss(e)}
           />
         ) : null}
         <h1 className="h3 mb-3 font-weight-normal">Sign in</h1>
@@ -110,9 +106,9 @@ class LoginForm extends React.Component {
             className="form-control"
             id="username"
             placeholder="Username"
-            autoFocus={true}
-            required={true}
-            onChange={(e) => this.handleUsernameChange(e)}
+            autoFocus
+            required
+            onChange={e => this.handleUsernameChange(e)}
           />
         </div>
         <div className="form-group">
@@ -121,16 +117,16 @@ class LoginForm extends React.Component {
             className="form-control"
             id="password"
             placeholder="Password"
-            required={true}
-            onChange={(e) => this.handlePasswordChange(e)}
+            required
+            onChange={e => this.handlePasswordChange(e)}
           />
         </div>
         <div className="form-group">
           <Button
             size="lg"
             type="primary"
-            disabled={isSigningIn ? true : false}
-            onClick={(e) => this.handleLoggingIn(e)}
+            disabled={!!isSigningIn}
+            onClick={e => this.handleLoggingIn(e)}
             isSubmitting={isSigningIn}
             text="Login"
           />
