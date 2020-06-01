@@ -23,6 +23,8 @@ Current features of the tool include:
 
 ## Usage
 
+*Note: Please see [getting-started.md](docs/getting-started.md) for configurations and concrete usage.*
+
 Please install the following dependencies to run `audino` on your system:
 
 1. [git](https://git-scm.com/) *[tested on v2.23.0]*

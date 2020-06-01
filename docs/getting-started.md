@@ -1,6 +1,6 @@
 # Getting started
 
-## Usage
+## Requirements
 
 Please install the following dependencies to run `audino` on your system:
 
@@ -38,7 +38,7 @@ Audio datapoints uploaded are stored in `/root/uploads` folder inside docker con
 
 *Environment Variables:*
 
-1. `MYSQL_DATABASE`: MySQL Database name. Defaults to `audino`. If changed, you need to change databasename in `../mysql/create_database.sql`.
+1. `MYSQL_DATABASE`: MySQL Database name. Defaults to `audino`. If changed, you need to change database name in `../mysql/create_database.sql`.
 2. `MYSQL_ROOT_PASSWORD`: Password for `root` user. Defaults to `root`.
 3. `MYSQL_USER`: Application user to be created for `MYSQL_DATABASE`. *Note: `DATABASE_URL` in `backend` service should reflect this change*
 4. `MYSQL_PASSWORD`: Application user's password. *Note: `DATABASE_URL` in `backend` service should reflect this change*
@@ -79,11 +79,9 @@ Then, in browser, go to [http://0.0.0.0/](http://0.0.0.0/) to view the applicati
 $ docker-compose -f docker-compose.prod.yml down
 ```
 
-
 ### Development
 
 Similar to `production` setup, you need to use development [configuration](./docker-compose.dev.yml) for working on the project, fixing bugs and making contributions.
-
 
 #### Running
 
