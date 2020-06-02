@@ -86,5 +86,9 @@ Then, in browser, go to [http://localhost:3000/](http://localhost:3000/) to view
 $ docker-compose -f docker-compose.dev.yml down
 ```
 
+## Tutorials
+
+We provide a set of [tutorials](./docs/tutorial.md) to guide users to acheive certain tasks. If you feel something is missing and should be included, please open an [issue](https://github.com/midas-research/audino/issues).
+
 ## License
 [MIT](https://github.com/midas-research/audino/blob/master/LICENSE) © MIDAS, IIIT Delhi
