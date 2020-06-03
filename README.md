@@ -5,6 +5,8 @@
 
 # audino
 
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/midas-research/audino/blob/master/LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/midas-research/audino/blob/add-more-docs/docs/getting-started.md#development)
+
 audino is an open source audio annotation tool. It provides features such as transcription and labeling which enables annotation for Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition tasks and more. 
 
 ## Features
@@ -20,6 +22,8 @@ Current features of the tool include:
 7. Flexibility in label creation
 
 ## Usage
+
+*Note: Please see [getting started](docs/getting-started.md) guide for configurations and concrete usage.*
 
 Please install the following dependencies to run `audino` on your system:
 
@@ -81,6 +85,10 @@ Then, in browser, go to [http://localhost:3000/](http://localhost:3000/) to view
 ```sh
 $ docker-compose -f docker-compose.dev.yml down
 ```
+
+## Tutorials
+
+We provide a set of [tutorials](./docs/tutorial.md) to guide users to acheive certain tasks. If you feel something is missing and should be included, please open an [issue](https://github.com/midas-research/audino/issues).
 
 ## License
 [MIT](https://github.com/midas-research/audino/blob/master/LICENSE) © MIDAS, IIIT Delhi

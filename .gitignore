@@ -128,7 +128,7 @@ dmypy.json
 *.db
 
 # vscode settings
-./settings/*.json
+.vscode/*.json
 
 # Sample files
 !*.sample.json
