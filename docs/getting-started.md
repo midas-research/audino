@@ -104,3 +104,7 @@ Then, in browser, go to [http://localhost:3000/](http://localhost:3000/) to view
 ```sh
 $ docker-compose -f docker-compose.dev.yml down
 ```
+
+#### Database
+
+To understand the structure of the database, the current entity-relationship diagram is shared [here](./database/database.png). Please update the diagram using [draw.io](./database/drawio/database.drawio) importable file if any change or pull request modifies it.
