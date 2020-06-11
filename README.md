@@ -92,7 +92,7 @@ We provide a set of [tutorials](./docs/tutorial.md) to guide users to acheive ce
 
 ## Citation
 
-Currently, the paper is under review. For now, please cite it as:
+Currently, the [paper](https://arxiv.org/abs/2006.05236) is under review. For now, please cite it as:
 
 ```
 @misc{grover2020audino,
