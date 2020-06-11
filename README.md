@@ -90,5 +90,20 @@ $ docker-compose -f docker-compose.dev.yml down
 
 We provide a set of [tutorials](./docs/tutorial.md) to guide users to acheive certain tasks. If you feel something is missing and should be included, please open an [issue](https://github.com/midas-research/audino/issues).
 
+## Citation
+
+Currently, the paper is under review. For now, please cite it as:
+
+```
+@misc{grover2020audino,
+    title={audino: A Modern Annotation Tool for Audio and Speech},
+    author={Manraj Singh Grover and Pakhi Bamdev and Yaman Kumar and Mika Hama and Rajiv Ratn Shah},
+    year={2020},
+    eprint={2006.05236},
+    archivePrefix={arXiv},
+    primaryClass={cs.SD}
+}
+```
+
 ## License
 [MIT](https://github.com/midas-research/audino/blob/master/LICENSE) © MIDAS, IIIT Delhi
