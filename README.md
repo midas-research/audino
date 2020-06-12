@@ -88,7 +88,7 @@ $ docker-compose -f docker-compose.dev.yml down
 
 ## Tutorials
 
-We provide a set of [tutorials](./docs/tutorial.md) to guide users to acheive certain tasks. If you feel something is missing and should be included, please open an [issue](https://github.com/midas-research/audino/issues).
+We provide a set of [tutorials](./docs/tutorial.md) to guide users to achieve certain tasks. If you feel something is missing and should be included, please open an [issue](https://github.com/midas-research/audino/issues).
 
 ## Citation
 
