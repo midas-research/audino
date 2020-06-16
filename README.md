@@ -38,6 +38,12 @@ $ git clone https://github.com/midas-research/audino.git
 $ cd audino
 ```
 
+**Note for Windows users**: Please configure git to handle line endings correctly as services might throw an error and not come up. You can do this by cloning the project this way:
+
+```sh
+$ git clone https://github.com/midas-research/audino.git --config core.autocrlf=input
+```
+
 ### For Production
 
 You can either run the project on [default configuration](./docker-compose.prod.yml) or modify them to your need.
