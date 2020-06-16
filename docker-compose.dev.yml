@@ -2,7 +2,7 @@ version: "3.7"
 services:
   backend:
     image: python:3.7
-    command: ["/app/backend/scripts/run-dev.sh"]
+    command: ["bash", "/app/backend/scripts/run-dev.sh"]
     volumes:
       - ./backend:/app/backend
       - ./backend/venv:/app/backend/venv
@@ -27,7 +27,7 @@ services:
 
   frontend:
     image: node:13.13.0
-    command: ["/app/frontend/scripts/run-dev.sh"]
+    command: ["bash", "/app/frontend/scripts/run-dev.sh"]
     volumes:
       - ./frontend:/app/frontend
       - ./frontend/node_modules:/app/frontend/node_modules

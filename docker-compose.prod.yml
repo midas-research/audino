@@ -2,7 +2,7 @@ version: "3.7"
 services:
   backend:
     build: ./backend
-    command: ["/app/backend/scripts/run-prod.sh"]
+    command: ["sh", "/app/backend/scripts/run-prod.sh"]
     volumes:
       - backend_data:/root/uploads
     environment:
