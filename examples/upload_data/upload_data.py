@@ -28,7 +28,7 @@ parser.add_argument(
 )
 parser.add_argument("--host", type=str, help="Host of service", default=None)
 parser.add_argument(
-    "--marked_review",
+    "--is_marked_for_review",
     type=bool,
     help="Whether datapoint should be marked for review",
     default=False,
@@ -50,14 +50,14 @@ else:
 
 reference_transcription = args.reference_transcription
 username = args.username
-marked_review = args.marked_review
+is_marked_for_review = args.is_marked_for_review
 
 file = {"audio_file": (audio_filename, audio_obj)}
 
 values = {
     "reference_transcription": reference_transcription,
     "username": username,
-    "marked_review": marked_review,
+    "is_marked_for_review": is_marked_for_review,
 }
 
 print("Creating datapoint")
