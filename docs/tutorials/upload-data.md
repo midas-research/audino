@@ -12,7 +12,7 @@ You can also provide the following optional information:
 1. `reference_transcription`: Transcription of audio for reference.
 2. `is_marked_for_review`:  Whether this audio should be marked for review or not.
 
-We provide an [example CLI script](../../example/upload_data/upload_data.py) to show how to upload the datapoints.
+We provide an [example CLI script](../../examples/upload_data/upload_data.py) to show how to upload the datapoints.
 
 For example,
 
