@@ -1,3 +1,4 @@
+import json
 import sqlalchemy as sa
 import uuid
 
@@ -9,7 +10,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 
 from backend import app, db
-from backend.models import Data, Project, User
+from backend.models import Data, Project, User, Segmentation, LabelValue
 
 from . import api
 
@@ -20,6 +21,54 @@ ALLOWED_EXTENSIONS = ["wav", "mp3", "ogg"]
 @jwt_required
 def send_audio_file(file_name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], file_name)
+
+
+def validate_segmentation(segment):
+    """Validate the segmentation before accepting the annotation's upload from users
+    """
+    required_key = {"annotations", "end_time", "created_at",
+                    "last_modified", "start_time", "transcription"}
+
+    if set(required_key).issubset(segment.keys()):
+        return True
+    else:
+        return False
+
+
+def generate_segmentation(
+    annotations, transcription, data_id, 
+    start_time, end_time, segmentation_id=None
+):
+    """Generate a Segmentation from the required segment information
+    """
+    if segmentation_id is None:
+        segmentation = Segmentation(
+            data_id=data_id, start_time=start_time, end_time=end_time
+        )
+    else:
+        segmentation = Segmentation.query.filter_by(
+            data_id=data_id, id=segmentation_id
+        ).first()
+
+    segmentation.set_transcription(transcription)
+    values = []
+    for label_name, label_value in annotations.items():
+        app.logger.info(label_name)
+        app.logger.info(label_value)
+        if type(label_value["values"]) is list:
+            for val_id in label_value["values"]:
+                value = LabelValue.query.filter_by(
+                    id=int(val_id), label_id=label_value["label_id"]
+                ).first()
+                values.append(value)
+        else:
+            value = LabelValue.query.filter_by(
+                id=int(label_value["values"]), label_id=label_value["label_id"]
+            ).first()
+            values.append(value)
+    segmentation.values = values
+
+    return segmentation
 
 
 @api.route("/data", methods=["POST"])
@@ -41,6 +90,7 @@ def add_data():
     if not user:
         return jsonify(message="No user found with given username"), 404
 
+    segmentations = request.form.get("segmentations", [])
     reference_transcription = request.form.get("reference_transcription", None)
     is_marked_for_review = bool(request.form.get("is_marked_for_review", False))
     audio_file = request.files["audio_file"]
@@ -57,7 +107,6 @@ def add_data():
     audio_file.save(file_path.as_posix())
 
     app.logger.info(filename)
-
     try:
 
         data = Data(
@@ -71,6 +120,31 @@ def add_data():
         db.session.add(data)
         db.session.commit()
         db.session.refresh(data)
+
+        if isinstance(segmentations, str):
+            segmentations = json.loads(segmentations)
+        elif segmentations != []:
+            app.logger.error("Could not parse segmentations from ",
+                            type(segmentations))
+        annotations = []
+        for segment in segmentations:
+            validation = validate_segmentation(segment)
+            if validation:
+                segmentation = generate_segmentation(
+                    data_id=data.id,
+                    end_time=segment['end_time'],
+                    start_time=segment['start_time'],
+                    annotations=segment['annotations'],
+                    transcription=segment['transcription'],
+                )
+
+                db.session.add(segmentation)
+                db.session.commit()
+                db.session.refresh(segmentation)
+            else:
+                app.logger.error(f"Error adding segmentation: {segment}")
+                raise Exception("The segmentation was not valid with Audino format")
+
     except Exception as e:
         app.logger.error(f"Error adding data to project: {project.name}")
         app.logger.error(e)
