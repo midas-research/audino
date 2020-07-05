@@ -9,6 +9,7 @@ from backend import app, db
 from backend.models import Project, User, Label, Data, Segmentation, LabelValue
 
 from . import api
+from .data import generate_segmentation
 
 
 def generate_api_key():
@@ -564,31 +565,14 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
         if request_user != data.assigned_user:
             return jsonify(message="Unauthorized access!"), 401
 
-        if request.method == "POST" and segmentation_id == None:
-            segmentation = Segmentation(
-                data_id=data_id, start_time=start_time, end_time=end_time
-            )
-        else:
-            segmentation = Segmentation.query.filter_by(
-                data_id=data_id, id=segmentation_id
-            ).first()
-        segmentation.set_transcription(transcription)
-        values = []
-        for label_name, label_value in annotations.items():
-            app.logger.info(label_name)
-            app.logger.info(label_value)
-            if type(label_value["values"]) is list:
-                for val_id in label_value["values"]:
-                    value = LabelValue.query.filter_by(
-                        id=int(val_id), label_id=label_value["label_id"]
-                    ).first()
-                    values.append(value)
-            else:
-                value = LabelValue.query.filter_by(
-                    id=int(label_value["values"]), label_id=label_value["label_id"]
-                ).first()
-                values.append(value)
-        segmentation.values = values
+        segmentation = generate_segmentation(
+            data_id=data_id,
+            end_time=end_time,
+            start_time=start_time,
+            annotations=annotations,
+            transcription=transcription,
+            segmentation_id=segmentation_id
+        )
 
         db.session.add(segmentation)
         db.session.commit()
