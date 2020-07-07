@@ -13,6 +13,7 @@ import {
   faBackward,
   faForward,
   faPlayCircle,
+  faCoffee,
   faPauseCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import Alert from "../components/alert";
@@ -30,9 +31,13 @@ class Annotate extends React.Component {
       isPlaying: false,
       projectId,
       dataId,
+      after_id: -1,
+      before_id: -1,
       labels: {},
       labelsUrl: `/api/projects/${projectId}/labels`,
+      searchUrl: `/api/projects/${projectId}/search/${dataId}`,
       dataUrl: `/api/projects/${projectId}/data/${dataId}`,
+      annotationUrl: `projects/${projectId}/data/${dataId}/annotate`,
       segmentationUrl: `/api/projects/${projectId}/data/${dataId}/segmentations`,
       isDataLoading: false,
       wavesurfer: null,
@@ -50,7 +55,7 @@ class Annotate extends React.Component {
   }
 
   componentDidMount() {
-    const { labelsUrl, dataUrl } = this.state;
+    const { labelsUrl, dataUrl, searchUrl } = this.state;
     this.setState({ isDataLoading: true });
     const wavesurfer = WaveSurfer.create({
       container: "#waveform",
@@ -96,7 +101,8 @@ class Annotate extends React.Component {
     });
 
     axios
-      .all([axios.get(labelsUrl), axios.get(dataUrl)])
+      .all([axios.get(labelsUrl), axios.get(dataUrl), axios.get(searchUrl)])
+      // .all([axios.get(labelsUrl), axios.get(dataUrl)])
       .then((response) => {
         this.setState({
           isDataLoading: false,
@@ -122,7 +128,14 @@ class Annotate extends React.Component {
           };
         });
 
+        const {
+          after_id,
+          before_id
+        } = response[2].data;
+
         this.setState({
+          after_id,
+          before_id,
           isDataLoading: false,
           referenceTranscription: reference_transcription,
           isMarkedForReview: is_marked_for_review,
@@ -178,6 +191,21 @@ class Annotate extends React.Component {
     const { wavesurfer } = this.state;
     wavesurfer.skipBackward(5);
   }
+
+  handleNextAnnotation() {
+    const { projectId, after_id } = this.state;
+    let path = `/projects/${projectId}/data/${after_id}/annotate`;
+    this.props.history.push(path);
+    window.location.reload();
+    // this.props.history.push("https://stackoverflow.com/questions/50644976/react-button-onclick-redirect-page");
+  }
+
+  handlePreviousAnnotation() {
+    const { projectId, before_id } = this.state;
+    let path = `/projects/${projectId}/data/${before_id}/annotate`;
+    this.props.history.push(path);
+    window.location.reload();
+  }  
 
   handleZoom(e) {
     const { wavesurfer } = this.state;
@@ -393,6 +421,16 @@ class Annotate extends React.Component {
                 <div className="row justify-content-md-center my-4">
                   <div className="col-1">
                     <IconButton
+                      icon={faCoffee}
+                      size="2x"
+                      title="Previous Annotation"
+                      onClick={() => {
+                        this.handlePreviousAnnotation();
+                      }}
+                    />
+                  </div> 
+                  <div className="col-1">
+                    <IconButton
                       icon={faBackward}
                       size="2x"
                       title="Skip Backward"
@@ -433,6 +471,16 @@ class Annotate extends React.Component {
                       }}
                     />
                   </div>
+                  <div className="col-1">
+                    <IconButton
+                      icon={faCoffee}
+                      size="2x"
+                      title="Next Annotation"
+                      onClick={() => {
+                        this.handleNextAnnotation();
+                      }}
+                    />
+                  </div>                  
                 </div>
                 <div className="row justify-content-center">
                   <div className="col-1">
@@ -573,7 +621,7 @@ class Annotate extends React.Component {
                       className="form-check-label"
                       htmlFor="isMarkedForReview"
                     >
-                      Mark for review
+                      Mark for review 
                     </label>
                   </div>
                 </div>
