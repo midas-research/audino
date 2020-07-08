@@ -9,7 +9,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 
 from backend import app, db
-from backend.models import Data, Project, User
+from backend.models import Data, Project, User, Segmentation
 
 from . import api
 
@@ -60,17 +60,50 @@ def add_data():
 
     try:
 
-        data = Data(
-            project_id=project.id,
-            filename=filename,
-            original_filename=original_filename,
-            reference_transcription=reference_transcription,
-            is_marked_for_review=is_marked_for_review,
-            assigned_user_id=user.id,
+        segmentations = db.session.query(
+            Segmentation.data_id).distinct().subquery()
+
+        currdata = Data.query.filter_by(id="82", project_id="4").first()
+        data = {}
+        data = (
+            db.session.query(Data)
+            # .filter(Data.assigned_user_id == "1")
+            .filter(Data.project_id == "4")
+            # .filter(Data.id.in_(segmentations))
+            .filter(Data.id.notin_(segmentations))
+            .distinct()
+            .order_by(Data.created_at.desc())
         )
-        db.session.add(data)
-        db.session.commit()
-        db.session.refresh(data)
+        before, after = data[0], data[-1]
+        index = list(data).index(currdata)
+        before, after = data[index-1], data[index+1]
+
+        # nextctr = 0
+        # for dat in data:
+        #     app.logger.info(f"interation {dat.id}")
+        #     if nextctr == 1:
+        #         nextdata = dat
+        #         break
+        #     if dat == currdata:
+        #         nextctr = 1
+        #     else:
+        #         lastone = dat
+
+        app.logger.info(f"Total numer of data is {currdata}")
+        app.logger.info(
+            f"Total numer of segmentations is {currdata.is_marked_for_review}")
+        # app.logger.info(f"Total numer of segmentations is {len(segmentations)}")
+        # data = Data(
+        #     project_id=project.id,
+        #     filename=filename,
+        #     original_filename=original_filename,
+        #     reference_transcription=reference_transcription,
+        #     is_marked_for_review=is_marked_for_review,
+        #     assigned_user_id=user.id,
+        # )
+        # db.session.add(data)
+        # db.session.commit()
+        # db.session.refresh(data)
     except Exception as e:
         app.logger.error(f"Error adding data to project: {project.name}")
         app.logger.error(e)
@@ -84,7 +117,8 @@ def add_data():
 
     return (
         jsonify(
-            data_id=data.id,
+            data_id="69",
+            # data_id=data.id,
             message=f"Data uploaded, created and assigned successfully",
             type="DATA_CREATED",
         ),
