@@ -13,7 +13,8 @@ import {
   faBackward,
   faForward,
   faPlayCircle,
-  faCoffee,
+  faArrowRight,
+  faArrowLeft,
   faPauseCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import Alert from "../components/alert";
@@ -421,7 +422,7 @@ class Annotate extends React.Component {
                 <div className="row justify-content-md-center my-4">
                   <div className="col-1">
                     <IconButton
-                      icon={faCoffee}
+                      icon={faArrowLeft}
                       size="2x"
                       title="Previous Annotation"
                       onClick={() => {
@@ -473,7 +474,7 @@ class Annotate extends React.Component {
                   </div>
                   <div className="col-1">
                     <IconButton
-                      icon={faCoffee}
+                      icon={faArrowRight}
                       size="2x"
                       title="Next Annotation"
                       onClick={() => {

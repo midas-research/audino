@@ -544,14 +544,6 @@ def search_data(project_id, data_id):
         #    pagetype = "Review"
 
 
-        # if pagetype == "All":
-        #     data = (
-        #         db.session.query(Data)
-        #         .filter(Data.project_id == project_id)
-        #         # .filter(Data.id.in_(segmentations))
-        #         # .filter(Data.id.notin_(segmentations))
-        #         .distinct()
-        #         .order_by(Data.created_at.desc()))
         if pagetype == "Review":
             data = (
                 db.session.query(Data)
@@ -585,18 +577,6 @@ def search_data(project_id, data_id):
 
         before, after = data[0], data[-1]
         index = list(data).index(currdata)
-        # Bottom is an alternative of above
-        # nextctr = 0
-        # for dat in data:
-        #     app.logger.info(f"interation {dat.id}")
-        #     if nextctr == 1:
-        #         nextdata = dat
-        #         break
-        #     if dat == currdata:
-        #         nextctr = 1
-        #     else:
-        #         lastone = dat
-
         before, after = data[index-1], data[index+1]
 
     except Exception as e:
