@@ -26,8 +26,7 @@ def send_audio_file(file_name):
 def validate_segmentation(segment):
     """Validate the segmentation before accepting the annotation's upload from users
     """
-    required_key = {"annotations", "end_time", "created_at",
-                    "last_modified", "start_time", "transcription"}
+    required_key = {"annotations", "end_time", "created_at", "transcription"}
 
     if set(required_key).issubset(segment.keys()):
         return True
@@ -36,15 +35,21 @@ def validate_segmentation(segment):
 
 
 def generate_segmentation(
-    annotations, transcription, data_id, 
-    start_time, end_time, segmentation_id=None
+    annotations, transcription,
+    start_time, end_time, data_id=None, segmentation_id=None
 ):
     """Generate a Segmentation from the required segment information
     """
     if segmentation_id is None:
-        segmentation = Segmentation(
-            data_id=data_id, start_time=start_time, end_time=end_time
-        )
+        if data_id is None:
+            segmentation = Segmentation(
+                start_time=start_time, end_time=end_time
+            )
+        else:
+            segmentation = Segmentation(
+                data_id=data_id,
+                start_time=start_time, end_time=end_time
+            )
     else:
         segmentation = Segmentation.query.filter_by(
             data_id=data_id, id=segmentation_id
@@ -109,18 +114,6 @@ def add_data():
     app.logger.info(filename)
     try:
 
-        data = Data(
-            project_id=project.id,
-            filename=filename,
-            original_filename=original_filename,
-            reference_transcription=reference_transcription,
-            is_marked_for_review=is_marked_for_review,
-            assigned_user_id=user.id,
-        )
-        db.session.add(data)
-        db.session.commit()
-        db.session.refresh(data)
-
         if isinstance(segmentations, str):
             segmentations = json.loads(segmentations)
         elif segmentations != []:
@@ -128,22 +121,31 @@ def add_data():
                             type(segmentations))
         annotations = []
         for segment in segmentations:
-            validation = validate_segmentation(segment)
-            if validation:
-                segmentation = generate_segmentation(
-                    data_id=data.id,
-                    end_time=segment['end_time'],
-                    start_time=segment['start_time'],
-                    annotations=segment['annotations'],
-                    transcription=segment['transcription'],
-                )
-
-                db.session.add(segmentation)
-                db.session.commit()
-                db.session.refresh(segmentation)
-            else:
+            validated = validate_segmentation(segment)
+            annotations.append(generate_segmentation(
+                data_id=None,
+                end_time=segment['end_time'],
+                start_time=segment['start_time'],
+                annotations=segment['annotations'],
+                transcription=segment['transcription'],
+            ))
+            if not validated:
                 app.logger.error(f"Error adding segmentation: {segment}")
-                raise Exception("The segmentation was not valid with Audino format")
+                app.logger.error(f"Skipping the data point")
+
+        data = Data(
+            project_id=project.id,
+            filename=filename,
+            segmentations=annotations,
+            original_filename=original_filename,
+            reference_transcription=reference_transcription,
+            is_marked_for_review=is_marked_for_review,
+            assigned_user_id=user.id,
+        )
+
+        db.session.add(data)
+        db.session.commit()
+        db.session.refresh(data)
 
     except Exception as e:
         app.logger.error(f"Error adding data to project: {project.name}")
