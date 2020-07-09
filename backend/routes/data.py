@@ -26,7 +26,7 @@ def send_audio_file(file_name):
 def validate_segmentation(segment):
     """Validate the segmentation before accepting the annotation's upload from users
     """
-    required_key = {"annotations", "end_time", "created_at", "transcription"}
+    required_key = {"annotations", "end_time", "transcription"}
 
     if set(required_key).issubset(segment.keys()):
         return True
@@ -122,6 +122,17 @@ def add_data():
         annotations = []
         for segment in segmentations:
             validated = validate_segmentation(segment)
+
+            if not validated:
+                app.logger.error(f"Error adding segmentation: {segment}")
+                return (
+                    jsonify(
+                        message=f"Error adding data to project: {project.name}",
+                        type="DATA_CREATION_FAILED",
+                    ),
+                    400,
+                )
+
             annotations.append(generate_segmentation(
                 data_id=None,
                 end_time=segment['end_time'],
@@ -129,9 +140,6 @@ def add_data():
                 annotations=segment['annotations'],
                 transcription=segment['transcription'],
             ))
-            if not validated:
-                app.logger.error(f"Error adding segmentation: {segment}")
-                app.logger.error(f"Skipping the data point")
 
         data = Data(
             project_id=project.id,
