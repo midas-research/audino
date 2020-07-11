@@ -622,7 +622,7 @@ class Annotate extends React.Component {
                       className="form-check-label"
                       htmlFor="isMarkedForReview"
                     >
-                      Mark for review 
+                      Mark for review
                     </label>
                   </div>
                 </div>
