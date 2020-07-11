@@ -284,6 +284,12 @@ class Segmentation(db.Model):
         single_parent=True,
     )
 
+    def set_start_time(self, start_time):
+        self.start_time = start_time
+
+    def set_end_time(self, end_time):
+        self.end_time = end_time
+
     def set_transcription(self, transcription):
         self.transcription = transcription
 

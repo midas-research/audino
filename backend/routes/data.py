@@ -26,7 +26,7 @@ def send_audio_file(file_name):
 def validate_segmentation(segment):
     """Validate the segmentation before accepting the annotation's upload from users
     """
-    required_key = {"annotations", "end_time", "transcription"}
+    required_key = {"annotations", "start_time", "end_time", "transcription"}
 
     if set(required_key).issubset(segment.keys()):
         return True
@@ -41,16 +41,18 @@ def generate_segmentation(
     """Generate a Segmentation from the required segment information
     """
     if segmentation_id is None:
+        # segmentation created for new data
         if data_id is None:
             segmentation = Segmentation(
                 start_time=start_time, end_time=end_time
             )
+        # segmetation created for existing data
         else:
-            segmentation = Segmentation(
-                data_id=data_id,
-                start_time=start_time, end_time=end_time
-            )
+            segmentation = Segmentation(data_id=data_id)
+            segmentation.set_start_time(start_time)
+            segmentation.set_end_time(end_time)
     else:
+        # segmentation updated for existing data
         segmentation = Segmentation.query.filter_by(
             data_id=data_id, id=segmentation_id
         ).first()
@@ -113,12 +115,7 @@ def add_data():
 
     app.logger.info(filename)
     try:
-
-        if isinstance(segmentations, str):
-            segmentations = json.loads(segmentations)
-        elif segmentations != []:
-            app.logger.error("Could not parse segmentations from ",
-                            type(segmentations))
+        segmentations = json.loads(segmentations)
         annotations = []
         for segment in segmentations:
             validated = validate_segmentation(segment)
@@ -154,6 +151,16 @@ def add_data():
         db.session.add(data)
         db.session.commit()
         db.session.refresh(data)
+
+    except AttributeError as e:
+        app.logger.error(f"Error parsing segmentations, please make sure segmentations are passed as a list")
+        return (
+            jsonify(
+                message=f"Error adding data to project: {project.name}",
+                type="DATA_CREATION_FAILED",
+            ),
+            400,
+        )
 
     except Exception as e:
         app.logger.error(f"Error adding data to project: {project.name}")

@@ -33,6 +33,12 @@ parser.add_argument(
     help="Whether datapoint should be marked for review",
     default=False,
 )
+parser.add_argument(
+    "--segmentations",
+    type=str,
+    help="List of segmentations for the audio",
+    default=[],
+)
 parser.add_argument("--port", type=int, help="Port to make request to", default=80)
 
 args = parser.parse_args()
@@ -51,15 +57,16 @@ else:
 reference_transcription = args.reference_transcription
 username = args.username
 is_marked_for_review = args.is_marked_for_review
+segmentations = args.segmentations
 
 file = {"audio_file": (audio_filename, audio_obj)}
 
 values = {
     "reference_transcription": reference_transcription,
     "username": username,
+    "segmentations": segmentations,
     "is_marked_for_review": is_marked_for_review,
 }
-
 print("Creating datapoint")
 response = requests.post(
     f"http://{args.host}:{args.port}/api/data", files=file, data=values, headers=headers
