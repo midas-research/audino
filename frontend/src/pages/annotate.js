@@ -353,6 +353,7 @@ class Annotate extends React.Component {
       isPlaying,
       labels,
       isDataLoading,
+      filename,
       isMarkedForReview,
       referenceTranscription,
       selectedSegment,
@@ -390,6 +391,9 @@ class Annotate extends React.Component {
             </div>
             {!isDataLoading ? (
               <div>
+                <div className="row justify-content-md-center my-4">
+                  {filename}
+                </div>
                 <div className="row justify-content-md-center my-4">
                   <div className="col-1">
                     <IconButton
