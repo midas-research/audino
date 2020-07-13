@@ -10,7 +10,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 
 from backend import app, db
-from backend.models import Data, Project, User, Segmentation, LabelValue
+from backend.models import Data, Project, User, Segmentation, Label, LabelValue
 
 from . import api
 
@@ -21,6 +21,15 @@ ALLOWED_EXTENSIONS = ["wav", "mp3", "ogg"]
 @jwt_required
 def send_audio_file(file_name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], file_name)
+
+
+class LabelNotFoundError(Exception):
+    """Exception raised when label or labelvalue is not found
+    """
+
+    def __init__(self, value, mapping):
+        self.message = f"{value} does not exist in current mapping of {mapping}"
+        super().__init__(self.message)
 
 
 def validate_segmentation(segment):
@@ -35,7 +44,7 @@ def validate_segmentation(segment):
 
 
 def generate_segmentation(
-    annotations, transcription,
+    annotations, transcription, project_id,
     start_time, end_time, data_id=None, segmentation_id=None
 ):
     """Generate a Segmentation from the required segment information
@@ -48,33 +57,65 @@ def generate_segmentation(
             )
         # segmetation created for existing data
         else:
-            segmentation = Segmentation(data_id=data_id)
-            segmentation.set_start_time(start_time)
-            segmentation.set_end_time(end_time)
+            segmentation = Segmentation(
+                data_id=data_id, start_time=start_time, end_time=end_time
+            )
     else:
         # segmentation updated for existing data
         segmentation = Segmentation.query.filter_by(
             data_id=data_id, id=segmentation_id
         ).first()
+        segmentation.set_start_time(start_time)
+        segmentation.set_end_time(end_time)
 
     segmentation.set_transcription(transcription)
     values = []
-    for label_name, label_value in annotations.items():
-        app.logger.info(label_name)
-        app.logger.info(label_value)
-        if type(label_value["values"]) is list:
-            for val_id in label_value["values"]:
+    if annotations:
+        for label_name, label_value in annotations.items():
+            app.logger.info(label_name)
+            app.logger.info(label_value)
+            if isinstance(label_value, list):
+                label = Label.query.filter_by(
+                    name=label_name, project_id=project_id).first()
+                if label is None:
+                    raise LabelNotFoundError(value=label_name, mapping="Label")
+
+                for _value in label_value:
+                    value = LabelValue.query.filter_by(
+                        value=_value, label_id=label.id
+                    ).first()
+                    if value is None:
+                        raise LabelNotFoundError(value=_value, mapping="LabelValue")
+                    values.append(value)
+
+            elif isinstance(label_value["values"], list):
+                for val_id in label_value["values"]:
+                    value = LabelValue.query.filter_by(
+                        id=int(val_id), label_id=label_value["label_id"]
+                    ).first()
+                    values.append(value)
+
+            elif isinstance(label_value["values"], dict):
+                label = Label.query.filter_by(
+                    name=label_name, project_id=project_id).first()
+                if label is None:
+                    raise LabelNotFoundError(value=label_name, mapping="Label")
+
                 value = LabelValue.query.filter_by(
-                    id=int(val_id), label_id=label_value["label_id"]
+                    id=int(label_value["values"]["id"]), label_id=label_value["id"]
+                ).first()
+                if value is None:
+                    raise LabelNotFoundError(
+                        value=label_value["values"]["value"], mapping="LabelValue")
+                values.append(value)
+
+            else:
+                value = LabelValue.query.filter_by(
+                    id=int(label_value["values"]), label_id=label_value["label_id"]
                 ).first()
                 values.append(value)
-        else:
-            value = LabelValue.query.filter_by(
-                id=int(label_value["values"]), label_id=label_value["label_id"]
-            ).first()
-            values.append(value)
-    segmentation.values = values
 
+    segmentation.values = values
     return segmentation
 
 
@@ -99,7 +140,8 @@ def add_data():
 
     segmentations = request.form.get("segmentations", [])
     reference_transcription = request.form.get("reference_transcription", None)
-    is_marked_for_review = bool(request.form.get("is_marked_for_review", False))
+    is_marked_for_review = bool(
+        request.form.get("is_marked_for_review", False))
     audio_file = request.files["audio_file"]
     original_filename = secure_filename(audio_file.filename)
 
@@ -132,6 +174,7 @@ def add_data():
 
             annotations.append(generate_segmentation(
                 data_id=None,
+                project_id=project.id,
                 end_time=segment['end_time'],
                 start_time=segment['start_time'],
                 annotations=segment['annotations'],
@@ -153,7 +196,18 @@ def add_data():
         db.session.refresh(data)
 
     except AttributeError as e:
-        app.logger.error(f"Error parsing segmentations, please make sure segmentations are passed as a list")
+        app.logger.error(
+            f"Error parsing segmentations, please make sure segmentations are passed as a list", e)
+        return (
+            jsonify(
+                message=f"Error adding data to project: {project.name}",
+                type="DATA_CREATION_FAILED",
+            ),
+            400,
+        )
+
+    except LabelNotFoundError as e:
+        app.logger.error(e)
         return (
             jsonify(
                 message=f"Error adding data to project: {project.name}",

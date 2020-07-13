@@ -567,6 +567,7 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
 
         segmentation = generate_segmentation(
             data_id=data_id,
+            project_id=project.id,
             end_time=end_time,
             start_time=start_time,
             annotations=annotations,
