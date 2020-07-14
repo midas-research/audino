@@ -133,6 +133,7 @@ class Labels extends React.Component {
                   <thead>
                     <tr>
                       <th scope="col">#</th>
+                      <th scope="col">LabelId</th>
                       <th scope="col">Name</th>
                       <th scope="col">Type</th>
                       <th scope="col">Created On</th>
@@ -146,6 +147,7 @@ class Labels extends React.Component {
                           <th scope="row" className="align-middle">
                             {index + 1}
                           </th>
+                          <td className="align-middle">{label["label_id"]}</td>
                           <td className="align-middle">{label["name"]}</td>
                           <td className="align-middle">{label["type"]}</td>
                           <td className="align-middle">
