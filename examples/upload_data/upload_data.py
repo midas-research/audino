@@ -67,12 +67,16 @@ values = {
     "segmentations": segmentations,
     "is_marked_for_review": is_marked_for_review,
 }
+
 print("Creating datapoint")
 response = requests.post(
     f"http://{args.host}:{args.port}/api/data", files=file, data=values, headers=headers
 )
-if response.status_code == 200:
-    print("Datapoint created!")
-else:
+
+if response.status_code == 201:
     response_json = response.json()
-    print(response_json["message"])
+    print(f"Message: {response_json['message']}")
+else:
+    print(f"Error Code: {response.status_code}")
+    response_json = response.json()
+    print(f"Message: {response_json['message']}")

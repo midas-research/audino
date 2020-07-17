@@ -161,8 +161,6 @@ def update_project_users(project_id):
             400,
         )
 
-    app.logger.info(users)
-
     try:
         project = Project.query.get(project_id)
         # TODO: Decide whether to give creator of project access
@@ -551,8 +549,6 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
     start_time = round(start_time, 4)
     end_time = round(end_time, 4)
 
-    app.logger.info(annotations)
-
     try:
         request_user = User.query.filter_by(username=identity["username"]).first()
         project = Project.query.get(project_id)
@@ -572,7 +568,7 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
             start_time=start_time,
             annotations=annotations,
             transcription=transcription,
-            segmentation_id=segmentation_id
+            segmentation_id=segmentation_id,
         )
 
         db.session.add(segmentation)

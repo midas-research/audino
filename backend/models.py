@@ -86,6 +86,9 @@ class Data(db.Model):
     def update_marked_review(self, marked_review):
         self.is_marked_for_review = marked_review
 
+    def set_segmentations(self, segmentations):
+        self.segmentations = segmentations
+
     def to_dict(self):
         return {
             "original_filename": self.original_filename,
@@ -278,10 +281,7 @@ class Segmentation(db.Model):
     )
 
     values = db.relationship(
-        "LabelValue",
-        secondary=annotation_table,
-        back_populates="segmentations",
-        single_parent=True,
+        "LabelValue", secondary=annotation_table, back_populates="segmentations",
     )
 
     def set_start_time(self, start_time):

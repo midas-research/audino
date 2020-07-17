@@ -133,7 +133,7 @@ class Labels extends React.Component {
                   <thead>
                     <tr>
                       <th scope="col">#</th>
-                      <th scope="col">LabelId</th>
+                      <th scope="col">Label Id</th>
                       <th scope="col">Name</th>
                       <th scope="col">Type</th>
                       <th scope="col">Created On</th>

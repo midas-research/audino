@@ -125,7 +125,7 @@ class LabelValues extends React.Component {
                   <thead>
                     <tr>
                       <th scope="col">#</th>
-                      <th scope="col">LabelValueId</th>
+                      <th scope="col">Label Value Id</th>
                       <th scope="col">Value</th>
                       <th scope="col">Created On</th>
                       <th scope="col">Options</th>
