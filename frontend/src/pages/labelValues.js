@@ -125,6 +125,7 @@ class LabelValues extends React.Component {
                   <thead>
                     <tr>
                       <th scope="col">#</th>
+                      <th scope="col">Label Value Id</th>
                       <th scope="col">Value</th>
                       <th scope="col">Created On</th>
                       <th scope="col">Options</th>
@@ -137,6 +138,9 @@ class LabelValues extends React.Component {
                           <th scope="row" className="align-middle">
                             {index + 1}
                           </th>
+                          <td className="align-middle">
+                            {labelValue["value_id"]}
+                          </td>
                           <td className="align-middle">
                             {labelValue["value"]}
                           </td>
