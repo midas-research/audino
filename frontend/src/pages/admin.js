@@ -166,10 +166,9 @@ class Admin extends React.Component {
       });
   }
 
-  handleUploadData(e, projectName, projectId) {
-    console.log(projectId, projectName);
+  handleUploadData(e, userId, projectId) {
     this.setModalShow(true);
-    this.setState({ formType: "NEW_DATA", title: "Create New Project", projectId, projectName });
+    this.setState({ formType: "NEW_DATA", title: "Create New Project", userId, projectId });
   }
 
   setModalShow(modalShow) {
@@ -274,7 +273,7 @@ class Admin extends React.Component {
                               onClick={(e) =>
                                 this.handleUploadData(
                                   e,
-                                  project["name"],
+                                  "admin",
                                   project["project_id"]
                                 )
                               }

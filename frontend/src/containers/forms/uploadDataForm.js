@@ -9,8 +9,10 @@ class UploadDataForm extends React.Component {
         super(props);
 
         const projectId = this.props.projectId;
+        const userId = this.props.userId;
 
         this.initialState = {
+            userId,
             projectId,
             addDataUrl: `/api/datazip`,
         };
@@ -22,7 +24,8 @@ class UploadDataForm extends React.Component {
     getUploadParams = ({ file, meta }) => {
         const body = new FormData()
         body.append('fileField', file)
-        body.append('temp', 'ratin')
+        body.append('userId', this.state.userId)
+        body.append('projectId', this.state.projectId)
         return { url: this.state.addDataUrl, body }
     }
     handleChangeStatus = ({ meta, file }, status) => { console.log(status, meta, file) }
