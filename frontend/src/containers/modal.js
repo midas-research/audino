@@ -30,7 +30,7 @@ const FormModal = (props) => {
         {props.formType === "NEW_USER" ? <CreateUserForm /> : null}
         {props.formType === "NEW_PROJECT" ? <CreateProjectForm /> : null}
         {props.formType === "NEW_DATA" ? (
-          <UploadDataForm projectId={props.projectId} userId={props.userId} />
+          <UploadDataForm userName={props.userId} projectId={props.projectId} />
         ) : null}
         {props.formType === "EDIT_USER" ? (
           <EditUserForm userId={props.userId} />

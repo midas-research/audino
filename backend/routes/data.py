@@ -212,7 +212,7 @@ def add_datazip():
     #     return jsonify(message="Missing JSON in request"), 400
 
     pid = request.form.get("projectId", None)
-    username = request.form.get("userId", None)
+    username = request.form.get("username", None)
     project = Project.query.filter_by(id=pid).first()
     user = User.query.filter_by(username=username).first()
 
@@ -220,45 +220,44 @@ def add_datazip():
 
     app.logger.info(f"user: {user} / project: {project}")
 
-    for _, audio_file in files:
-        filename = audio_file.filename
-        filename_ext = Path(filename).suffix.lower()
-        if filename_ext[1:] in ALLOWED_COMPRESSED_EXTENSIONS:
-            app.logger.info(f"Compressed file in consideration: {filename}")
-            with ZipFile(audio_file, "r") as zip_obj:
-                for cmprsd_filename in zip_obj.namelist():
-                    app.logger.info(f"cmpressed files are: {cmprsd_filename}")
-                    cmprsd_extension = Path(cmprsd_filename).suffix.lower()
-                    if cmprsd_extension[1:] in ALLOWED_EXTENSIONS:
+    for _, zip_file in files:
+        zip_filename = zip_file.filename
+        zip__ext = Path(zip_filename).suffix.lower()
+        if zip__ext[1:] in ALLOWED_COMPRESSED_EXTENSIONS:
+            app.logger.info(
+                f"File to be decompressed: {zip_filename}")
+            with ZipFile(zip_file, "r") as zip_obj:
+                for cfilename in zip_obj.namelist():
+                    cfile_extension = Path(cfilename).suffix.lower()
+                    app.logger.info(f"  compressed file: {cfilename}")
+                    if cfile_extension[1:] in ALLOWED_EXTENSIONS:
                         zip_obj.extract(
-                            cmprsd_filename,
+                            cfilename,
                             app.config["UPLOAD_FOLDER"]
                         )
-                        tfilename = f"{str(uuid.uuid4().hex)}{cmprsd_extension}"
+                        filename = f"{str(uuid.uuid4().hex)}{cfile_extension}"
+
                         shutil.move(
-                            Path(app.config["UPLOAD_FOLDER"]).joinpath(cmprsd_filename), Path(
-                                app.config["UPLOAD_FOLDER"]).joinpath(tfilename)
+                            Path(app.config["UPLOAD_FOLDER"]).joinpath(cfilename), 
+                            Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
                         )
                         data = Data(
                             project_id=project.id,
-                            filename=tfilename,
-                            original_filename=cmprsd_filename,
+                            filename=filename,
+                            original_filename=cfilename,
                             reference_transcription="",
                             is_marked_for_review=True,
                             assigned_user_id=user.id,
                         )
 
-
-                        db.session.add(data)
+                        db.session.add(data)    
                         db.session.flush()
-                        db.session.commit()
+                        # db.session.commit()
 
-                    elif cmprsd_extension[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
-                        pass
-                        # reading the file, temp store it
+                    elif cfile_extension[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
                         temp_loc = Path(app.config["UPLOAD_FOLDER"]
-                                        ).joinpath(cmprsd_filename)
-                        zip_obj.extract(cmprsd_filename,
+                                        ).joinpath(cfilename)
+                        zip_obj.extract(cfilename,
                                         app.config["UPLOAD_FOLDER"])
                         
                         segmentations = json.load(open(temp_loc, "r"))
@@ -267,15 +266,14 @@ def add_datazip():
                             validated = validate_segmentation(_segment, without_data=True)
 
                             if not validated:
-                                continue  # skip this datapoint
+                                continue  # raise error and skip transaction
 
                             if validated:
                                 try:
                                     data = Data.query.filter_by(
                                         project_id=pid, original_filename=_segment['filename']).first()
-
+                                    
                                     if data.id:
-
                                         new_segment = generate_segmentation(
                                             data_id=data.id,
                                             project_id=project.id,
@@ -284,13 +282,11 @@ def add_datazip():
                                             transcription=_segment["transcription"],
                                             annotations=_segment.get("annotations", {})
                                         )
-
-                                        data.set_segmentations([new_segment])
-                                        app.logger.info(f"new_segment: {new_segment.data_id}")
                                         db.session.commit()
-                                        db.session.refresh(data)
                                 except Exception as e:
                                     app.logger.info(f"Error {e} for data: {data.id}")
+                                
+                    db.session.commit()
 
     return jsonify(
         resp="HAHA"
