@@ -212,9 +212,9 @@ def add_datazip():
     #     return jsonify(message="Missing JSON in request"), 400
 
     pid = request.form.get("projectId", None)
-    uid = request.form.get("userId", None)
+    username = request.form.get("userId", None)
     project = Project.query.filter_by(id=pid).first()
-    user = User.query.filter_by(username=uid).first()
+    user = User.query.filter_by(username=username).first()
 
     files = request.files.items()
 
@@ -260,12 +260,14 @@ def add_datazip():
                                         ).joinpath(cmprsd_filename)
                         zip_obj.extract(cmprsd_filename,
                                         app.config["UPLOAD_FOLDER"])
+                        
                         segmentations = json.load(open(temp_loc, "r"))
+
                         for _segment in segmentations:
                             validated = validate_segmentation(_segment, without_data=True)
 
-                            # if not validated:
-                            #     continue  # skip this datapoint
+                            if not validated:
+                                continue  # skip this datapoint
 
                             if validated:
                                 try:
@@ -273,7 +275,6 @@ def add_datazip():
                                         project_id=pid, original_filename=_segment['filename']).first()
 
                                     if data.id:
-                                        app.logger.info(f"seraching for segments: {data.id}")
 
                                         new_segment = generate_segmentation(
                                             data_id=data.id,
@@ -284,12 +285,10 @@ def add_datazip():
                                             annotations=_segment.get("annotations", {})
                                         )
 
-                                        app.logger.info(
-                                            f"will try to add data in: {data}")
                                         data.set_segmentations([new_segment])
                                         app.logger.info(f"new_segment: {new_segment.data_id}")
-                                        db.session.refresh(data)
                                         db.session.commit()
+                                        db.session.refresh(data)
                                 except Exception as e:
                                     app.logger.info(f"Error {e} for data: {data.id}")
 
