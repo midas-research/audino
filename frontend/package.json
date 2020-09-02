@@ -12,6 +12,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "axios": "^0.19.2",
+    "react-dropzone-uploader": "^2.11.0",
     "bootstrap": "^4.4.1",
     "jquery": "^3.5.0",
     "popper.js": "^1.16.1",

@@ -273,7 +273,7 @@ class Admin extends React.Component {
                               onClick={(e) =>
                                 this.handleUploadData(
                                   e,
-                                  "admin",
+                                  "admin", // since admin is the uploader
                                   project["project_id"]
                                 )
                               }
