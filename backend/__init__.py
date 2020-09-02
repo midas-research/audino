@@ -13,7 +13,9 @@ from backend.config import Config
 
 
 def create_app(test_config=None):
+    from flask_cors import CORS #ratin
     app = Flask(__name__, instance_relative_config=True)
+    cors = CORS(app) #ratin
 
     app.config.from_object(Config)
     app.logger.info(app.config["UPLOAD_FOLDER"])

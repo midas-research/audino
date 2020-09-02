@@ -90,3 +90,60 @@ def add_data():
         ),
         201,
     )
+
+
+@api.route("/datazip", methods=["POST"])
+# @jwt_required
+def add_datazip():
+    # identity = get_jwt_identity()
+    # request_user = User.query.filter_by(username=identity["username"]).first()
+    # app.logger.info(f"Current user is: {request_user}")
+    # is_admin = True if request_user.role.role == "admin" else False
+
+    # if is_admin == False:
+    #     return jsonify(message="Unauthorized access!"), 401
+
+    # if not request.is_json:
+    #     return jsonify(message="Missing JSON in request"), 400
+
+    from zipfile import ZipFile
+    files = request.files.items()
+    for filename, audio_file in files:
+        # extract all the files and validate them
+        with ZipFile(audio_file, "r") as zip_ref:
+            for cmprsd_file in zip_ref.namelist():
+                with zip_ref.open(cmprsd_file) as file_test:
+                    pass
+                # zip_ref.extractall("test")
+
+    return jsonify(
+        resp="HAHA"
+    )
+
+
+def validate_audio_file(audio_file):
+    """Validate the audio file before adding saving it
+
+    Args:
+        audio_file (werkzeug.datastructures.FileStorage): The file to be validated before insertion
+    """
+    original_filename = secure_filename(audio_file.filename)
+    extension = Path(original_filename).suffix.lower()
+
+    if len(extension) > 1 and extension[1:] not in ALLOWED_EXTENSIONS:
+        return False
+
+    filename = f"{str(uuid.uuid4().hex)}{extension}"
+    file_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
+
+    return file_path.as_posix()
+
+
+def validate_annotation_file(annotation_file):
+    """[summary]
+
+    Args:
+        annotation_file ([type]): [description]
+    """
+
+    return

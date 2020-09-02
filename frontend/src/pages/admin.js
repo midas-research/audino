@@ -9,6 +9,7 @@ import {
   faUserPlus,
   faTags,
   faDownload,
+  faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
@@ -165,6 +166,12 @@ class Admin extends React.Component {
       });
   }
 
+  handleUploadData(e, projectName, projectId) {
+    console.log(projectId, projectName);
+    this.setModalShow(true);
+    this.setState({ formType: "NEW_DATA", title: "Create New Project", projectId, projectName });
+  }
+
   setModalShow(modalShow) {
     this.setState({ modalShow });
   }
@@ -256,6 +263,18 @@ class Admin extends React.Component {
                               onClick={(e) =>
                                 this.handleAddLabelsToProject(
                                   e,
+                                  project["project_id"]
+                                )
+                              }
+                            />
+                            <IconButton
+                              icon={faUpload}
+                              size="sm"
+                              title={"Upload data"}
+                              onClick={(e) =>
+                                this.handleUploadData(
+                                  e,
+                                  project["name"],
                                   project["project_id"]
                                 )
                               }
