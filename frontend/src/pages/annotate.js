@@ -347,6 +347,39 @@ class Annotate extends React.Component {
     });
   }
 
+  handleDeleteData(e) {
+    const { dataId, projectId } = this.state;
+    const { history } = this.props;
+    console.log("Data to be detelted: ", dataId);
+    axios({
+      method: "post",
+      url: "/api/rmdata",
+      data: {
+        dataId,
+        projectId
+      },
+    })
+      .then((response) => {
+        if (response.status === 201) {
+          this.setState({ successMessage: response.data.message });
+        }
+        // TODO: Then revert to the index page
+        console.log("history ", history);
+        history.replace({ pathname: "/empty" });
+        setTimeout(() => {
+          history.replace({ pathname: `/projects/${projectId}/data` });
+        });
+      })
+      .catch((error) => {
+        console.log(error.response);
+        this.setState({
+          errorMessage: error.response.data.message,
+          successMessage: "",
+          isSubmitting: false,
+        });
+      });
+  }
+
   render() {
     const {
       zoom,
@@ -575,6 +608,13 @@ class Annotate extends React.Component {
                     >
                       Mark for review
                     </label>
+                    <Button
+                      size="lg"
+                      type="primary"
+                      disabled={isDataLoading ? true : false}
+                      onClick={(e) => this.handleDeleteData(e)}
+                      text="Delete DataPoint"
+                    />
                   </div>
                 </div>
               </div>

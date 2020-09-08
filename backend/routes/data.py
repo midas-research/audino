@@ -1,3 +1,4 @@
+import os
 import json
 import sqlalchemy as sa
 import uuid
@@ -187,6 +188,50 @@ def add_data():
             data_id=data.id,
             message=f"Data uploaded, created and assigned successfully",
             type="DATA_CREATED",
+        ),
+        201,
+    )
+
+
+@api.route("/rmdata", methods=["POST"])
+@jwt_required
+def remove_data():
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    data_id = request.json['dataId']
+    project_id = request.json['projectId']
+
+    app.logger.info(f"This is something: {data_id} : {project_id}")
+
+    try:
+        data = Data.query.filter_by(id=data_id, project_id=project_id).first()
+        for segment in Segmentation.query.filter_by(data_id=data.id):
+            db.session.delete(segment)
+        db.session.delete(data)
+
+        # delete the file of the folder
+        filename = data.filename
+        os.remove(
+            path=Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
+        )
+    except Exception as e:
+        app.logger.error("Error deleting datapoint")
+        app.logger.error(e)
+        return jsonify(message="Error deleting datapoint!"), 500
+
+    db.session.commit()
+
+    return (
+        jsonify(
+            message=f"Data deleted",
+            type="DATA_DELETED",
         ),
         201,
     )
