@@ -59,6 +59,36 @@ def create_project():
 
     return jsonify(project_id=project.id, message="Project has been created!"), 201
 
+@api.route("/rmprojects", methods=["POST"])
+@jwt_required
+def remove_project():
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    project_id = request.json.get("projectId", None)
+
+    try:
+        project = Project.query.filter_by(id=project_id).first()
+        for data in Data.query.filter_by(project_id=project.id):
+            for segment in Segmentation.query.filter_by(data_id=data.id):
+                db.session.delete(segment)
+            db.session.delete(data)
+        db.session.delete(project)
+        db.session.commit()
+    except Exception as e:
+        app.logger.error("Error deleting project")
+        app.logger.error(e)
+        return jsonify(message="Error deleting project!"), 500
+
+    return jsonify(project_id=project_id, message="Project has been deleted!"), 201
+
 
 @api.route("/projects", methods=["GET"])
 @jwt_required

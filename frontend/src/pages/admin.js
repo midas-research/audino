@@ -9,6 +9,7 @@ import {
   faUserPlus,
   faTags,
   faDownload,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
@@ -86,6 +87,32 @@ class Admin extends React.Component {
     this.setState({ formType: "EDIT_USER", title: "Edit User", userId });
   }
 
+  handleRemoveUser(e, rmuserId) {
+    console.log("We are removing the user: ", rmuserId);
+    axios({
+      method: "post",
+      url: "/api/rmusers",
+      data: {
+        rmuserId
+      },
+    })
+      .then((response) => {
+        if (response.status === 201) {
+          this.setState({ successMessage: response.data.message });
+        }
+        this.refreshPage();
+      })
+      .catch((error) => {
+        console.log(error.response);
+        this.setState({
+          errorMessage: error.response.data.message,
+          successMessage: "",
+          isSubmitting: false,
+        });
+      });
+  }
+
+
   handleAddLabelsToProject(e, projectId) {
     const { history } = this.props;
     history.push(`/projects/${projectId}/labels`);
@@ -161,6 +188,31 @@ class Admin extends React.Component {
         this.setState({
           errorMessage: error.response.data.message,
           isUserLoading: false,
+        });
+      });
+  }
+
+  handleDeleteProject(e, projectId) {
+    console.log("will delete: ", projectId);
+    axios({
+      method: "post",
+      url: "/api/rmprojects",
+      data: {
+        projectId,
+      },
+    })
+      .then((response) => {
+        if (response.status === 201) {
+          this.setState({ successMessage: response.data.message });
+        }
+        this.refreshPage();
+      })
+      .catch((error) => {
+        console.log(error.response);
+        this.setState({
+          errorMessage: error.response.data.message,
+          successMessage: "",
+          isSubmitting: false,
         });
       });
   }
@@ -272,6 +324,17 @@ class Admin extends React.Component {
                                 )
                               }
                             />
+                            <IconButton
+                              icon={faTrash}
+                              size="sm"
+                              title={"Delete Project"}
+                              onClick={(e) =>
+                                this.handleDeleteProject(
+                                  e,
+                                  project["project_id"]
+                                )
+                              }
+                            />
                           </td>
                         </tr>
                       );
@@ -328,6 +391,14 @@ class Admin extends React.Component {
                               title={"Edit user"}
                               onClick={(e) =>
                                 this.handleEditUser(e, user["user_id"])
+                              }
+                            />
+                            <IconButton
+                              icon={faTrash}
+                              size="sm"
+                              title={"Remove user"}
+                              onClick={(e) =>
+                                this.handleRemoveUser(e, user["user_id"])
                               }
                             />
                             {/* <IconButton

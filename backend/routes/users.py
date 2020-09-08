@@ -65,6 +65,37 @@ def create_user():
     return jsonify(user_id=user.id, message="User has been created!"), 201
 
 
+@api.route("/rmusers", methods=["POST"])
+@jwt_required
+def remove_user():
+    # TODO: Make jwt user id based to expire user session if permissions are changed
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    try:
+        del_user_id = request.json['rmuserId']
+        del_user = User.query.filter_by(id=del_user_id).first()
+        if del_user.id == request_user.id:
+            app.logger.error("Cannot delete self")
+            return jsonify(message="Cannot delete self!"), 500
+
+        db.session.delete(del_user)
+        db.session.commit()
+    except Exception as e:
+        app.logger.error("Error deleting user")
+        app.logger.error(e)
+        return jsonify(message="Error deleting user!"), 500
+
+    return jsonify(user_id=request_user.id, name=request_user.username, message="User has been deleted!"), 201
+
+
+
 @api.route("/users/<int:user_id>", methods=["GET"])
 @jwt_required
 def fetch_user(user_id):
