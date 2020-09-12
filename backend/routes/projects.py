@@ -78,9 +78,9 @@ def remove_project():
         project = Project.query.filter_by(id=project_id).first()
         for data in Data.query.filter_by(project_id=project.id):
             for segment in Segmentation.query.filter_by(data_id=data.id):
-                db.session.delete(segment)
-            db.session.delete(data)
-        db.session.delete(project)
+                segment.is_deleted = sa.func.now()
+            data.is_deleted = sa.func.now()
+        project.is_deleted = sa.func.now()
         db.session.commit()
     except Exception as e:
         app.logger.error("Error deleting project")
@@ -94,13 +94,15 @@ def remove_project():
 @jwt_required
 def fetch_all_projects():
     identity = get_jwt_identity()
-    request_user = User.query.filter_by(username=identity["username"]).first()
+    request_user = User.query.filter_by(
+        username=identity["username"]).first()
     is_admin = True if request_user.role.role == "admin" else False
 
     if is_admin == False:
         return jsonify(message="Unauthorized access!"), 401
     try:
         projects = Project.query.all()
+        app.logger.info(f"All the projects are : {projects}")
         response = list(
             [
                 {

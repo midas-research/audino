@@ -18,6 +18,7 @@ import {
 import Alert from "../components/alert";
 import { IconButton, Button } from "../components/button";
 import Loader from "../components/loader";
+import FormModal from "../containers/modal";
 
 class Annotate extends React.Component {
   constructor(props) {
@@ -37,6 +38,7 @@ class Annotate extends React.Component {
       isDataLoading: false,
       wavesurfer: null,
       zoom: 100,
+      modalShow: false,
       referenceTranscription: null,
       isMarkedForReview: false,
       selectedSegment: null,
@@ -143,6 +145,10 @@ class Annotate extends React.Component {
           isDataLoading: false,
         });
       });
+  }
+
+  setModalShow(modalShow) {
+    this.setState({ modalShow });
   }
 
   loadRegions(regions) {
@@ -347,37 +353,8 @@ class Annotate extends React.Component {
     });
   }
 
-  handleDeleteData(e) {
-    const { dataId, projectId } = this.state;
-    const { history } = this.props;
-    console.log("Data to be detelted: ", dataId);
-    axios({
-      method: "post",
-      url: "/api/rmdata",
-      data: {
-        dataId,
-        projectId
-      },
-    })
-      .then((response) => {
-        if (response.status === 201) {
-          this.setState({ successMessage: response.data.message });
-        }
-        // TODO: Then revert to the index page
-        console.log("history ", history);
-        history.replace({ pathname: "/empty" });
-        setTimeout(() => {
-          history.replace({ pathname: `/projects/${projectId}/data` });
-        });
-      })
-      .catch((error) => {
-        console.log(error.response);
-        this.setState({
-          errorMessage: error.response.data.message,
-          successMessage: "",
-          isSubmitting: false,
-        });
-      });
+  handleDeleteData(e, dataId) {
+    this.setModalShow(true);
   }
 
   render() {
@@ -385,6 +362,9 @@ class Annotate extends React.Component {
       zoom,
       isPlaying,
       labels,
+      modalShow,
+      dataId,
+      projectId,
       isDataLoading,
       isMarkedForReview,
       referenceTranscription,
@@ -543,7 +523,7 @@ class Annotate extends React.Component {
                                   selectedSegment.data.annotations &&
                                   selectedSegment.data.annotations[key] &&
                                   selectedSegment.data.annotations[key][
-                                  "values"
+                                    "values"
                                   ]) ||
                                 (value["type"] === "multiselect" ? [] : "")
                               }
@@ -612,12 +592,23 @@ class Annotate extends React.Component {
                       size="lg"
                       type="primary"
                       disabled={isDataLoading ? true : false}
-                      onClick={(e) => this.handleDeleteData(e)}
+                      onClick={(e) => this.handleDeleteData(e, dataId)}
                       text="Delete DataPoint"
                     />
                   </div>
                 </div>
               </div>
+            ) : null}
+            {modalShow ? (
+              <FormModal
+                onExited={() => this.refreshPage()}
+                formType="DELETE_DATA"
+                title="Deleting data"
+                dataId={dataId}
+                projectId={projectId}
+                show={modalShow}
+                onHide={() => this.setModalShow(false)}
+              />
             ) : null}
           </div>
         </div>

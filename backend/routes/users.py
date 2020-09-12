@@ -68,7 +68,6 @@ def create_user():
 @api.route("/rmusers", methods=["POST"])
 @jwt_required
 def remove_user():
-    # TODO: Make jwt user id based to expire user session if permissions are changed
     identity = get_jwt_identity()
     request_user = User.query.filter_by(username=identity["username"]).first()
     is_admin = True if request_user.role.role == "admin" else False
@@ -85,7 +84,11 @@ def remove_user():
             app.logger.error("Cannot delete self")
             return jsonify(message="Cannot delete self!"), 500
 
-        db.session.delete(del_user)
+        if del_user.is_deleted:
+            app.logger.error("This user had already been deleted")
+            return jsonify(message="User not found"), 404
+
+        del_user.is_deleted = sa.func.now()
         db.session.commit()
     except Exception as e:
         app.logger.error("Error deleting user")
@@ -108,6 +111,9 @@ def fetch_user(user_id):
 
     try:
         user = User.query.get(user_id)
+        # user = User.query.filter(User.id == user_id)
+        # user = User.query.filter(User.id == user_id, User.is_deleted != None)
+
     except Exception as e:
         app.logger.error(f"No user exists with user_id: {user_id}")
         app.logger.error(e)
@@ -190,6 +196,7 @@ def fetch_all_users():
 
     try:
         users = User.query.all()
+        # users = User.query.not_deleted().all()
         response = list(
             [
                 {

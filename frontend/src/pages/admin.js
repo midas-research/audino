@@ -87,29 +87,14 @@ class Admin extends React.Component {
     this.setState({ formType: "EDIT_USER", title: "Edit User", userId });
   }
 
-  handleRemoveUser(e, rmuserId) {
-    console.log("We are removing the user: ", rmuserId);
-    axios({
-      method: "post",
-      url: "/api/rmusers",
-      data: {
-        rmuserId
-      },
-    })
-      .then((response) => {
-        if (response.status === 201) {
-          this.setState({ successMessage: response.data.message });
-        }
-        this.refreshPage();
-      })
-      .catch((error) => {
-        console.log(error.response);
-        this.setState({
-          errorMessage: error.response.data.message,
-          successMessage: "",
-          isSubmitting: false,
-        });
-      });
+  handleRemoveUser(e, user) {
+    console.log("We are removing the user: ", user);
+    this.setModalShow(true);
+    this.setState({
+      formType: "DELETE_USER",
+      title: "Deleting user",
+      user: user,
+    });
   }
 
 
@@ -232,6 +217,7 @@ class Admin extends React.Component {
       formType,
       userId,
       projectId,
+      user,
     } = this.state;
 
     return (
@@ -246,6 +232,7 @@ class Admin extends React.Component {
             title={title}
             show={modalShow}
             userId={userId}
+            user={user}
             projectId={projectId}
             onHide={() => this.setModalShow(false)}
           />
@@ -398,7 +385,7 @@ class Admin extends React.Component {
                               size="sm"
                               title={"Remove user"}
                               onClick={(e) =>
-                                this.handleRemoveUser(e, user["user_id"])
+                                this.handleRemoveUser(e, user)
                               }
                             />
                             {/* <IconButton

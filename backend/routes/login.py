@@ -51,7 +51,7 @@ def login():
             400,
         )
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.not_deleted().filter_by(username=username).first()
 
     if user is None or not user.check_password(password):
         return (

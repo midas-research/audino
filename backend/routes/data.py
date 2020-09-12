@@ -212,15 +212,11 @@ def remove_data():
 
     try:
         data = Data.query.filter_by(id=data_id, project_id=project_id).first()
-        for segment in Segmentation.query.filter_by(data_id=data.id):
-            db.session.delete(segment)
-        db.session.delete(data)
+        data.is_deleted = sa.func.now()
 
-        # delete the file of the folder
-        filename = data.filename
-        os.remove(
-            path=Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
-        )
+        # for segment in Segmentation.query.filter_by(data_id=data.id):
+        #     segment.is_deleted = sa.func.now()
+
     except Exception as e:
         app.logger.error("Error deleting datapoint")
         app.logger.error(e)
