@@ -36,7 +36,7 @@ class Annotate extends React.Component {
       before_id: -1,
       labels: {},
       labelsUrl: `/api/projects/${projectId}/labels`,
-      searchUrl: `/api/projects/${projectId}/search/${dataId}`,
+      searchUrl: `/api/projects/${projectId}/neighbours/${dataId}`,
       dataUrl: `/api/projects/${projectId}/data/${dataId}`,
       annotationUrl: `projects/${projectId}/data/${dataId}/annotate`,
       segmentationUrl: `/api/projects/${projectId}/data/${dataId}/segmentations`,
@@ -103,7 +103,6 @@ class Annotate extends React.Component {
 
     axios
       .all([axios.get(labelsUrl), axios.get(dataUrl), axios.get(searchUrl)])
-      // .all([axios.get(labelsUrl), axios.get(dataUrl)])
       .then((response) => {
         this.setState({
           isDataLoading: false,
@@ -116,6 +115,8 @@ class Annotate extends React.Component {
           segmentations,
           filename,
         } = response[1].data;
+
+        console.log("This was the reponse from the thing: ", response)
 
         const regions = segmentations.map((segmentation) => {
           return {
@@ -206,7 +207,7 @@ class Annotate extends React.Component {
     let path = `/projects/${projectId}/data/${before_id}/annotate`;
     this.props.history.push(path);
     window.location.reload();
-  }  
+  }
 
   handleZoom(e) {
     const { wavesurfer } = this.state;
@@ -429,7 +430,7 @@ class Annotate extends React.Component {
                         this.handlePreviousAnnotation();
                       }}
                     />
-                  </div> 
+                  </div>
                   <div className="col-1">
                     <IconButton
                       icon={faBackward}
@@ -481,7 +482,7 @@ class Annotate extends React.Component {
                         this.handleNextAnnotation();
                       }}
                     />
-                  </div>                  
+                  </div>
                 </div>
                 <div className="row justify-content-center">
                   <div className="col-1">

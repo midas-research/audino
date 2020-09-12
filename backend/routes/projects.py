@@ -515,10 +515,11 @@ def update_data(project_id, data_id):
     )
 
 
-@api.route("/projects/<int:project_id>/search/<int:data_id>", methods=["GET"])
+@api.route("/projects/<int:project_id>/neighbours/<int:data_id>", methods=["GET"])
 @jwt_required
-def search_data(project_id, data_id):
-    """Returns the next and the prior in the queue for the category
+def neighbours_data(project_id, data_id):
+    """
+    Returns dataId s for the next and previous data
     """
     identity = get_jwt_identity()
 
@@ -530,7 +531,6 @@ def search_data(project_id, data_id):
         if request_user not in project.users:
             return jsonify(message="Unauthorized access!"), 401
 
-        # The data whose neighbours we want
         currdata = Data.query.filter_by(
             id=data_id, project_id=project_id).first()
 
@@ -538,7 +538,7 @@ def search_data(project_id, data_id):
            pagetype = "Annotated"
         else:
            pagetype = "Yet To annotate"
-        
+
         # if currdata.is_marked_for_review:
         #    pagetype = "Review"
 
@@ -562,21 +562,24 @@ def search_data(project_id, data_id):
                 .order_by(Data.created_at.desc()))
 
         elif pagetype == "Yet To annotate":
-            segmentations = db.session.query(
-            Segmentation.data_id).distinct().subquery()
+            # segmentations = db.session.query(
+            # Segmentation.data_id).distinct().subquery()
             data = (
                 db.session.query(Data)
                 .filter(Data.project_id == project_id)
-                .filter(Data.id.notin_(segmentations))
                 .distinct()
-                .order_by(Data.created_at.desc()))       
+                # .order_by(Data.id)
+                )
+                # .filter(Data.id.notin_(segmentations))
 
         else:
             raise  Exception("This is not the right way of using this API")
 
-        before, after = data[0], data[-1]
-        index = list(data).index(currdata)
-        before, after = data[index-1], data[index+1]
+        if currdata.id == data[0].id or currdata.id == data[-1].id:
+            before, after = data[0], data[-1]
+        else:
+            index = list(data).index(currdata)
+            before, after = data[index-1], data[index+1]
 
     except Exception as e:
         app.logger.error(f"Error searching data")
