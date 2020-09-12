@@ -1,15 +1,26 @@
 import sqlalchemy as sa
 import uuid
 
+from pathlib import Path
 from flask import jsonify, flash, redirect, url_for, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.urls import url_parse
+from werkzeug.exceptions import BadRequest
 
 from backend import app, db
 from backend.models import Project, User, Label, Data, Segmentation, LabelValue
 
 from . import api
-from .data import generate_segmentation
+
+from .data import (
+    files_from_zip,
+    file_to_database,
+    ALLOWED_EXTENSIONS,
+    generate_segmentation,
+    annotation_to_database,
+    ALLOWED_ANNOTATION_EXTENSIONS,
+    ALLOWED_COMPRESSED_EXTENSIONS
+)
 
 
 def generate_api_key():
@@ -708,3 +719,104 @@ def get_project_annotations(project_id):
         ),
         200,
     )
+
+@api.route("/projects/<int:project_id>/data", methods=["POST"])
+@jwt_required
+def add_data_to_project(project_id):
+    """Upload data via zip files ro direct supported formats
+
+    """
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    app.logger.info(f"Current user is: {request_user}")
+    is_admin = True if request_user.role.role == "admin" else False
+
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    project = Project.query.get(project_id)
+    files = request.files.items()
+
+    for _, file in files:
+        filename = file.filename
+        file_ext = Path(filename).suffix.lower()
+
+        if file_ext[1:] in ALLOWED_EXTENSIONS:
+            # if its a normal file, simple insertion
+            commit_flag = file_to_database(
+                db=db,
+                user=request_user,
+                project=project,
+                audio_file=file,
+                is_marked_for_review=True,
+                reference_transcription="False"
+            )
+
+            if not commit_flag:
+                return (
+                    jsonify(
+                        message="Error during uploading of file",
+                        type="UPLOAD_FAILED",
+                    ),
+                    500
+                )
+
+
+        elif file_ext[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
+            commit_flag = annotation_to_database(
+                project=project,
+                annotation_file=file
+            )
+
+            if not commit_flag:
+                return (
+                    jsonify(
+                        message="Error during uploading of file",
+                        type="UPLOAD_FAILED",
+                    ),
+                    500
+                )
+
+        elif file_ext[1:] in ALLOWED_COMPRESSED_EXTENSIONS:
+            cmprsd_files = files_from_zip(
+                zip_file=file
+            )
+            for cfilename, filetype in cmprsd_files:
+                if filetype == "data":
+                    commit_flag = file_to_database(
+                        db=db,
+                        user=request_user,
+                        project=project,
+                        audio_file=cfilename,
+                        is_marked_for_review=True,
+                        reference_transcription="False",
+                        compressed_file=True
+                    )
+                else:
+                    cfile = open(cfilename, "r")
+                    commit_flag = annotation_to_database(
+                        project=project,
+                        annotation_file=cfile
+                    )
+
+                app.logger.info(f"File rpocessed was: {cfilename} \n")
+
+                if not commit_flag:
+                    return (
+                        jsonify(
+                            message="Error during uploading of file",
+                            type="UPLOAD_FAILED",
+                        ),
+                        500
+                    )
+
+        else:
+            raise BadRequest(description="File format is not supported")
+
+        app.logger.info("Going to commit the session now")
+        try:
+            db.session.commit()
+        except Exception as e:
+            app.logger.error(e)
+
+    return jsonify(something="Asd")

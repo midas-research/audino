@@ -168,9 +168,9 @@ class Admin extends React.Component {
 
   handleUploadData(e, userName, projectId) {
     this.setModalShow(true);
-    this.setState({ 
-      formType: "NEW_DATA", 
-      title: "Create New Project", 
+    this.setState({
+      formType: "NEW_DATA",
+      title: "Create New Project",
       userId: userName, // userName: userName does not work :(
       projectId: projectId });
   }

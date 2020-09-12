@@ -1,3 +1,4 @@
+import os
 import shutil
 import json
 import sqlalchemy as sa
@@ -196,98 +197,209 @@ def add_data():
         201,
     )
 
-# TODO: Add authentication
-@api.route("/datazip", methods=["POST"])
+
+def files_from_zip(zip_file):
+    """Generator for getting files from the a zip file
+
+    Returns:
+        Generator: if valid, generator of files in the zip
+        False: if the file is invalid
+    """
+    with ZipFile(zip_file, "r") as zip_obj:
+        for cfilename in zip_obj.namelist():
+            cfile_extension = Path(cfilename).suffix.lower()
+            if cfile_extension[1:] in ALLOWED_EXTENSIONS:
+                zip_obj.extract(
+                    cfilename,
+                    Path(app.config["UPLOAD_FOLDER"])
+                )
+                yield Path(app.config["UPLOAD_FOLDER"]).joinpath(cfilename), "data"
+            elif cfile_extension[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
+                zip_obj.extract(
+                    cfilename,
+                    Path(app.config["UPLOAD_FOLDER"])
+                )
+                yield Path(app.config["UPLOAD_FOLDER"]).joinpath(cfilename), "annotation"
+
+def file_to_database(
+    db,
+    user,
+    project,
+    audio_file,
+    is_marked_for_review,
+    reference_transcription,
+    compressed_file=False
+):
+    """Add data to database and save a copy in the /uploads folder
+
+    TODO:
+        - delete compressed file is there was some error
+    """
+    try:
+
+        if compressed_file:
+            original_filename = os.path.basename(audio_file)
+            extension = Path(original_filename).suffix.lower()
+            filename = f"{str(uuid.uuid4().hex)}{extension}"
+            from_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(original_filename)
+            to_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
+            shutil.move(from_path, to_path)
+        else:
+            original_filename = secure_filename(audio_file.filename)
+            extension = Path(original_filename).suffix.lower()
+            filename = f"{str(uuid.uuid4().hex)}{extension}"
+            file_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
+            audio_file.save(file_path.as_posix())
+
+        data = Data(
+            project_id=project.id,
+            filename=filename,
+            original_filename=original_filename,
+            reference_transcription=reference_transcription,
+            is_marked_for_review=is_marked_for_review,
+            assigned_user_id=user.id,
+        )
+        db.session.add(data)
+        db.session.flush()
+
+        return True
+    except Exception as e:
+        if compressed_file:
+            shutil.rmtree(path=from_path, ignore_errors=True)
+            shutil.rmtree(path=to_path, ignore_errors=True)
+        app.logger.error(e)
+        app.logger.info(f"the error was: { e.with_traceback }")
+        return False
+
+
+def annotation_to_database(
+    project,
+    annotation_file
+):
+    """Add segmentation to database from a json
+    """
+    try:
+        segmentations = json.load(annotation_file)
+        for _segment in segmentations:
+            validated = validate_segmentation(
+                _segment, without_data=True
+            )
+            if validated:
+                data = Data.query.filter_by(
+                    project_id=project.id,
+                    original_filename=_segment['filename']
+                ).first()
+
+                if data:
+                    new_segment = generate_segmentation(
+                        data_id=data.id,
+                        project_id=project.id,
+                        end_time=_segment["end_time"],
+                        start_time=_segment["start_time"],
+                        transcription=_segment["transcription"],
+                        annotations=_segment.get(
+                            "annotations", {})
+                    )
+
+                return True
+        return False
+    except Exception as e:
+        app.logger.error(e)
+        return False
+
+# @api.route("/datazip", methods=["POST"])
 # @jwt_required
-def add_datazip():
-    # identity = get_jwt_identity()
-    # request_user = User.query.filter_by(username=identity["username"]).first()
-    # app.logger.info(f"Current user is: {request_user}")
-    # is_admin = True if request_user.role.role == "admin" else False
+# def add_datazip():
+#     identity = get_jwt_identity()
+#     app.logger.info(f"Current user is: {identity}")
+#     request_user = User.query.filter_by(username=identity["username"]).first()
+#     app.logger.info(f"Current user is: {request_user}")
+#     is_admin = True if request_user.role.role == "admin" else False
 
-    # if is_admin == False:
-    #     return jsonify(message="Unauthorized access!"), 401
+#     if is_admin == False:
+#         return jsonify(message="Unauthorized access!"), 401
 
-    # if not request.is_json:
-    #     return jsonify(message="Missing JSON in request"), 400
 
-    pid = request.form.get("projectId", None)
-    username = request.form.get("username", None)
-    project = Project.query.filter_by(id=pid).first()
-    user = User.query.filter_by(username=username).first()
+#     project = Project.query.filter_by(id=pid).first()
+#     user = User.query.filter_by(username=username).first()
 
-    files = request.files.items()
+#     files = request.files.items()
 
-    app.logger.info(f"user: {user} / project: {project}")
+#     app.logger.info(f"user: {user} / project: {project}")
 
-    for _, zip_file in files:
-        zip_filename = zip_file.filename
-        zip__ext = Path(zip_filename).suffix.lower()
-        if zip__ext[1:] in ALLOWED_COMPRESSED_EXTENSIONS:
-            app.logger.info(
-                f"File to be decompressed: {zip_filename}")
-            with ZipFile(zip_file, "r") as zip_obj:
-                for cfilename in zip_obj.namelist():
-                    cfile_extension = Path(cfilename).suffix.lower()
-                    app.logger.info(f"  compressed file: {cfilename}")
-                    if cfile_extension[1:] in ALLOWED_EXTENSIONS:
-                        zip_obj.extract(
-                            cfilename,
-                            app.config["UPLOAD_FOLDER"]
-                        )
-                        filename = f"{str(uuid.uuid4().hex)}{cfile_extension}"
+#     # for _, zip_file in files:
+#     #     zip_filename = zip_file.filename
+#     #     zip__ext = Path(zip_filename).suffix.lower()
+#     #     if zip__ext[1:] in ALLOWED_COMPRESSED_EXTENSIONS:
+#     #         app.logger.info(
+#     #             f"File to be decompressed: {zip_filename}")
+#     #         with ZipFile(zip_file, "r") as zip_obj:
+#     #             for cfilename in zip_obj.namelist():
+#     #                 cfile_extension = Path(cfilename).suffix.lower()
+#     #                 app.logger.info(f"  compressed file: {cfilename}")
+#     #                 if cfile_extension[1:] in ALLOWED_EXTENSIONS:
+#     #                     zip_obj.extract(
+#     #                         cfilename,
+#     #                         app.config["UPLOAD_FOLDER"]
+#     #                     )
+#     #                     filename = f"{str(uuid.uuid4().hex)}{cfile_extension}"
 
-                        shutil.move(
-                            Path(app.config["UPLOAD_FOLDER"]).joinpath(cfilename), 
-                            Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
-                        )
-                        data = Data(
-                            project_id=project.id,
-                            filename=filename,
-                            original_filename=cfilename,
-                            reference_transcription="",
-                            is_marked_for_review=True,
-                            assigned_user_id=user.id,
-                        )
+#     #                     shutil.move(
+#     #                         Path(app.config["UPLOAD_FOLDER"]
+#     #                              ).joinpath(cfilename),
+#     #                         Path(app.config["UPLOAD_FOLDER"]
+#     #                              ).joinpath(filename)
+#     #                     )
+#     #                     data = Data(
+#     #                         project_id=project.id,
+#     #                         filename=filename,
+#     #                         original_filename=cfilename,
+#     #                         reference_transcription="",
+#     #                         is_marked_for_review=True,
+#     #                         assigned_user_id=user.id,
+#     #                     )
 
-                        db.session.add(data)    
-                        db.session.flush()
-                        # db.session.commit()
+#     #                     db.session.add(data)
+#     #                     db.session.flush()
+#     #                     # db.session.commit()
 
-                    elif cfile_extension[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
-                        temp_loc = Path(app.config["UPLOAD_FOLDER"]
-                                        ).joinpath(cfilename)
-                        zip_obj.extract(cfilename,
-                                        app.config["UPLOAD_FOLDER"])
-                        
-                        segmentations = json.load(open(temp_loc, "r"))
+#     #                 elif cfile_extension[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
+#     #                     temp_loc = Path(app.config["UPLOAD_FOLDER"]
+#     #                                     ).joinpath(cfilename)
+#     #                     zip_obj.extract(cfilename,
+#     #                                     app.config["UPLOAD_FOLDER"])
 
-                        for _segment in segmentations:
-                            validated = validate_segmentation(_segment, without_data=True)
+#     #                     segmentations = json.load(open(temp_loc, "r"))
 
-                            if not validated:
-                                continue  # raise error and skip transaction
+#     #                     for _segment in segmentations:
+#     #                         validated = validate_segmentation(
+#     #                             _segment, without_data=True)
 
-                            if validated:
-                                try:
-                                    data = Data.query.filter_by(
-                                        project_id=pid, original_filename=_segment['filename']).first()
-                                    
-                                    if data.id:
-                                        new_segment = generate_segmentation(
-                                            data_id=data.id,
-                                            project_id=project.id,
-                                            end_time=_segment["end_time"],
-                                            start_time=_segment["start_time"],
-                                            transcription=_segment["transcription"],
-                                            annotations=_segment.get("annotations", {})
-                                        )
-                                        db.session.commit()
-                                except Exception as e:
-                                    app.logger.info(f"Error {e} for data: {data.id}")
-                                
-                    db.session.commit()
+#     #                         if not validated:
+#     #                             continue  # raise error and skip transaction
 
-    return jsonify(
-        resp="HAHA"
-    )
+#     #                         if validated:
+#     #                             try:
+#     #                                 data = Data.query.filter_by(
+#     #                                     project_id=pid, original_filename=_segment['filename']).first()
+
+#     #                                 if data.id:
+#     #                                     new_segment = generate_segmentation(
+#     #                                         data_id=data.id,
+#     #                                         project_id=project.id,
+#     #                                         end_time=_segment["end_time"],
+#     #                                         start_time=_segment["start_time"],
+#     #                                         transcription=_segment["transcription"],
+#     #                                         annotations=_segment.get(
+#     #                                             "annotations", {})
+#     #                                     )
+#     #                                     db.session.commit()
+#     #                             except Exception as e:
+#     #                                 app.logger.info(
+#     #                                     f"Error {e} for data: {data.id}")
+
+#     #                 db.session.commit()
+
+#     return jsonify(
+#         resp="HAHA"
+#     )
