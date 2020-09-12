@@ -562,24 +562,24 @@ def neighbours_data(project_id, data_id):
                 .order_by(Data.created_at.desc()))
 
         elif pagetype == "Yet To annotate":
-            # segmentations = db.session.query(
-            # Segmentation.data_id).distinct().subquery()
             data = (
                 db.session.query(Data)
                 .filter(Data.project_id == project_id)
                 .distinct()
-                # .order_by(Data.id)
                 )
-                # .filter(Data.id.notin_(segmentations))
 
         else:
             raise  Exception("This is not the right way of using this API")
 
-        if currdata.id == data[0].id or currdata.id == data[-1].id:
-            before, after = data[0], data[-1]
+        if currdata.id == data[-1].id:
+        # if currdata.id == data[0].id or currdata.id == data[-1].id:
+            index = list(data).index(currdata)
+            before, after = data[index-1], data[0]
         else:
             index = list(data).index(currdata)
             before, after = data[index-1], data[index+1]
+
+        app.logger.info(f"The nieghbours are: {before, after}")
 
     except Exception as e:
         app.logger.error(f"Error searching data")
