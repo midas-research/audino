@@ -720,7 +720,8 @@ def get_project_annotations(project_id):
         200,
     )
 
-@api.route("/projects/<int:project_id>/data", methods=["POST"])
+
+@api.route("/projects/<int:project_id>/upload", methods=["POST"])
 @jwt_required
 def add_data_to_project(project_id):
     """Upload data via zip files ro direct supported formats
@@ -742,7 +743,6 @@ def add_data_to_project(project_id):
         file_ext = Path(filename).suffix.lower()
 
         if file_ext[1:] in ALLOWED_EXTENSIONS:
-            # if its a normal file, simple insertion
             commit_flag = file_to_database(
                 db=db,
                 user=request_user,
@@ -760,7 +760,6 @@ def add_data_to_project(project_id):
                     ),
                     500
                 )
-
 
         elif file_ext[1:] in ALLOWED_ANNOTATION_EXTENSIONS:
             commit_flag = annotation_to_database(
@@ -799,8 +798,6 @@ def add_data_to_project(project_id):
                         annotation_file=cfile
                     )
 
-                app.logger.info(f"File rpocessed was: {cfilename} \n")
-
                 if not commit_flag:
                     return (
                         jsonify(
@@ -812,11 +809,12 @@ def add_data_to_project(project_id):
 
         else:
             raise BadRequest(description="File format is not supported")
+        db.session.commit()
 
-        app.logger.info("Going to commit the session now")
-        try:
-            db.session.commit()
-        except Exception as e:
-            app.logger.error(e)
-
-    return jsonify(something="Asd")
+    return (
+        jsonify(
+            message="Data uploaded succesfully",
+            type="UPLOAD_SUCCESS",
+        ),
+        200
+    )

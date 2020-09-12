@@ -171,7 +171,6 @@ class Admin extends React.Component {
     this.setState({
       formType: "NEW_DATA",
       title: "Create New Project",
-      userId: userName, // userName: userName does not work :(
       projectId: projectId });
   }
 
