@@ -136,9 +136,6 @@ def update_user(user_id):
         app.logger.error(e)
         return jsonify(message="No user found!"), 404
 
-    app.logger.info(user.username)
-    app.logger.info(user.role.role)
-    app.logger.info(user.role.id)
     return (
         jsonify(
             username=user.username,

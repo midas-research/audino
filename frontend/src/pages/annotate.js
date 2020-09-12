@@ -559,7 +559,7 @@ class Annotate extends React.Component {
                                   selectedSegment.data.annotations &&
                                   selectedSegment.data.annotations[key] &&
                                   selectedSegment.data.annotations[key][
-                                    "values"
+                                  "values"
                                   ]) ||
                                 (value["type"] === "multiselect" ? [] : "")
                               }
