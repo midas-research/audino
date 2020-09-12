@@ -32,8 +32,8 @@ class Annotate extends React.Component {
       isPlaying: false,
       projectId,
       dataId,
-      after_id: dataId,
-      before_id: dataId,
+      afterId: -1,
+      beforeId: -1,
       labels: {},
       labelsUrl: `/api/projects/${projectId}/labels`,
       neighboursUrl: `/api/projects/${projectId}/neighbours/${dataId}`,
@@ -136,8 +136,8 @@ class Annotate extends React.Component {
         } = response[2].data;
 
         this.setState({
-          after_id,
-          before_id,
+          afterId: after_id,
+          beforeId: before_id,
           isDataLoading: false,
           referenceTranscription: reference_transcription,
           isMarkedForReview: is_marked_for_review,
@@ -195,18 +195,23 @@ class Annotate extends React.Component {
   }
 
   handleNextAnnotation() {
-    const { projectId, after_id } = this.state;
-    let path = `/projects/${projectId}/data/${after_id}/annotate`;
-    this.props.history.push(path);
-    window.location.reload();
-    // this.props.history.push("https://stackoverflow.com/questions/50644976/react-button-onclick-redirect-page");
+    const { history } = this.props;
+    const { projectId, afterId } = this.state;
+    const path = `/projects/${projectId}/data/${afterId}/annotate`;
+    history.replace({ pathname: "/empty" });
+    setTimeout(() => {
+      history.replace({ pathname: path });
+    });
   }
 
   handlePreviousAnnotation() {
-    const { projectId, before_id } = this.state;
-    let path = `/projects/${projectId}/data/${before_id}/annotate`;
-    this.props.history.push(path);
-    window.location.reload();
+    const { history } = this.props;
+    const { projectId, beforeId } = this.state;
+    const path = `/projects/${projectId}/data/${beforeId}/annotate`;
+    history.replace({ pathname: "/empty" });
+    setTimeout(() => {
+      history.replace({ pathname: path });
+    });
   }
 
   handleZoom(e) {
