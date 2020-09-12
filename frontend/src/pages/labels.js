@@ -7,6 +7,7 @@ import {
   faPlusSquare,
   faEdit,
   faList,
+  faTrashAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { IconButton } from "../components/button";
@@ -72,6 +73,16 @@ class Labels extends React.Component {
   handleManageLabelValues(e, labelId) {
     const { history } = this.props;
     history.push(`/labels/${labelId}/values`);
+  }
+
+  handleDelteLabel(e, labelId) {
+    console.log("We are removing the user: ", labelId);
+    this.setModalShow(true);
+    this.setState({
+      formType: "DELETE_LABEL",
+      title: "Deleting label",
+      labelId,
+    });
   }
 
   refreshPage() {
@@ -171,6 +182,14 @@ class Labels extends React.Component {
                                   e,
                                   label["label_id"]
                                 )
+                              }
+                            />
+                            <IconButton
+                              icon={faTrashAlt}
+                              size="sm"
+                              title={"Edit label"}
+                              onClick={(e) =>
+                                this.handleDelteLabel(e, label["label_id"])
                               }
                             />
                           </td>

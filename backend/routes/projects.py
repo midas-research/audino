@@ -146,7 +146,7 @@ def fetch_project(project_id):
                 "type": label.label_type.type,
                 "created_on": label.created_at.strftime("%B %d, %Y"),
             }
-            for label in project.labels
+            for label in project.labels if label.is_deleted is None
         ]
     except Exception as e:
         app.logger.error(f"No project exists with Project ID: {project_id}")
@@ -306,6 +306,50 @@ def add_label_to_project(project_id):
         ),
         201,
     )
+
+
+@api.route("/projects/<int:project_id>/rmlabels", methods=["DELETE"])
+@jwt_required
+def remove_label_to_project(project_id):
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    label_id = request.json.get("labelId", None)
+
+    try:
+        project = Project.query.get(project_id)
+        label = Label.query.get(label_id)
+        label.is_deleted = db.func.now()
+
+        db.session.commit()
+    except Exception as e:
+        app.logger.error(f"Error adding label to project: {project_id}")
+        app.logger.error(e)
+        return (
+            jsonify(
+                message=f"Error deleting label to project: {project_id}",
+                type="LABEL_DELETION_FAILED",
+            ),
+            500,
+        )
+
+    return (
+        jsonify(
+            project_id=project.id,
+            label_id=label.id,
+            message=f"Label deleted from project: {project.name}",
+            type="LABEL_DELETED_FROM_PROJECT",
+        ),
+        201,
+    )
+
 
 
 @api.route("/projects/<int:project_id>/labels/<int:label_id>", methods=["GET"])

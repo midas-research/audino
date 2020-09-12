@@ -158,8 +158,12 @@ class Data(db.Model):
 
 class Label(db.Model):
     __tablename__ = "label"
+    query_class = QueryWithSoftDelete
+
 
     id = db.Column("id", db.Integer(), primary_key=True)
+    is_deleted = db.Column("is_deleted", db.DateTime(),
+                           nullable=True, default=None)
 
     name = db.Column("name", db.String(32), nullable=False)
 
@@ -218,6 +222,9 @@ class LabelValue(db.Model):
     __tablename__ = "label_value"
 
     id = db.Column("id", db.Integer(), primary_key=True)
+
+    # deleted = db.Column("deleted", db.DateTime(),
+    #                        nullable=True, default=None)
 
     label_id = db.Column(
         "label_id", db.Integer(), db.ForeignKey("label.id"), nullable=False

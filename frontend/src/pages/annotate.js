@@ -14,6 +14,7 @@ import {
   faForward,
   faPlayCircle,
   faPauseCircle,
+  faTrashAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import Alert from "../components/alert";
 import { IconButton, Button } from "../components/button";
@@ -446,6 +447,14 @@ class Annotate extends React.Component {
                       }}
                     />
                   </div>
+                  <div className="col-1">
+                    <IconButton
+                      icon={faTrashAlt}
+                      size="2x"
+                      title="Remove Data"
+                      onClick={(e) => this.handleDeleteData(e, dataId)}
+                    />
+                  </div>
                 </div>
                 <div className="row justify-content-center">
                   <div className="col-1">
@@ -588,13 +597,6 @@ class Annotate extends React.Component {
                     >
                       Mark for review
                     </label>
-                    <Button
-                      size="lg"
-                      type="primary"
-                      disabled={isDataLoading ? true : false}
-                      onClick={(e) => this.handleDeleteData(e, dataId)}
-                      text="Delete DataPoint"
-                    />
                   </div>
                 </div>
               </div>

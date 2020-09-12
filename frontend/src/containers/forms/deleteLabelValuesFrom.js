@@ -6,18 +6,21 @@ import { withStore } from "@spyna/react-store";
 import Alert from "../../components/alert";
 import { Button } from "../../components/button";
 
-class DeleteDataform extends React.Component {
+class DeleteLabelValuesForm extends React.Component {
   constructor(props) {
     super(props);
 
-    const dataId = this.props.dataId;
+    const labelId = this.props.labelId;
     const projectId = this.props.projectId;
-
+    const labelValueId = this.props.labelValueId;
+    console.log(labelId, labelValueId, projectId);
     this.initialState = {
-      dataId,
+      labelId,
       projectId,
-      message: `Are you sure you want to delete the datapoint ${dataId}`,
-      refreshPath: `/projects/${projectId}/data`,
+      labelValueId,
+      message: `Are you sure you want to delete the label: ${labelId}`,
+      refreshPath: `/labels`,
+      deleteLabelValueUrl: `/api/labels/${labelId}/values/${labelValueId}`,
       errorMessage: "",
       successMessage: "",
       isSubmitting: false,
@@ -41,21 +44,18 @@ class DeleteDataform extends React.Component {
     });
   }
 
-  handleUserDelete(e, dataId, projectId) {
-    console.log("The data to be deleted will be:", dataId, " from the project: ", projectId);
+  handleLabelDelete(e) {
+    const { labelId, labelValueId, deleteLabelValueUrl } = this.state;
+    console.log("The data to be deleted will be:", labelId, labelValueId);
     axios({
-      method: "post",
-      url: "/api/rmdata",
-      data: {
-        dataId,
-        projectId
-      },
+      method: "DELETE",
+      url: deleteLabelValueUrl,
     })
       .then((response) => {
         if (response.status === 201) {
           this.setState({ successMessage: response.data.message });
         }
-        this.refreshPage()
+        this.refreshPage();
       })
       .catch((error) => {
         console.log(error.response);
@@ -65,13 +65,11 @@ class DeleteDataform extends React.Component {
           isSubmitting: false,
         });
       });
-
   }
 
   render() {
     const {
-      dataId,
-      projectId,
+      labelId,
       message,
       isSubmitting,
       errorMessage,
@@ -98,9 +96,9 @@ class DeleteDataform extends React.Component {
                   size="lg"
                   type="primary"
                   disabled={isSubmitting ? true : false}
-                  onClick={(e) => this.handleUserDelete(e, dataId, projectId)}
+                  onClick={(e) => this.handleLabelDelete(e, labelId)}
                   isSubmitting={isSubmitting}
-                  text="Delete Data"
+                  text="Delete LabelValue"
                 />
               </div>
             </div>
@@ -111,4 +109,4 @@ class DeleteDataform extends React.Component {
   }
 }
 
-export default withStore(withRouter(DeleteDataform));
+export default withStore(withRouter(DeleteLabelValuesForm));

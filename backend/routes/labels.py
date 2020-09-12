@@ -34,6 +34,7 @@ def add_value_to_label(label_id):
 
     try:
         label_value = LabelValue(value=value, label_id=label_id)
+        app.logger.info(f"soemthing was done here: {label_value}")
         db.session.add(label_value)
         db.session.commit()
         db.session.refresh(label_value)
@@ -86,6 +87,7 @@ def get_values_for_label(label_id):
                 "created_on": value.created_at.strftime("%B %d, %Y"),
             }
             for value in values
+            # for value in values if value.is_deleted is None
         ]
     except Exception as e:
         app.logger.error(f"No values exists for label with id: {label_id}")
@@ -93,6 +95,31 @@ def get_values_for_label(label_id):
         return (jsonify(message=f"No values exists for label with id: {label_id}"), 404)
 
     return (jsonify(values=response), 200)
+
+
+@api.route("/labels/<int:label_id>/values/<int:label_value_id>", methods=["DELETE"])
+@jwt_required
+def remove_values_from_label(label_id, label_value_id):
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    try:
+        value = LabelValue.query.get(label_value_id)
+        value.is_deleted = db.func.now()
+        db.session.commit()
+    except Exception as e:
+        app.logger.error(f"No values exists for label with id: {label_id}")
+        app.logger.error(e)
+        return (jsonify(message=f"No values exists for label with id: {label_id}"), 404)
+
+    return (jsonify(
+        label_value_id=label_value_id,
+        message=f"LabelValue was deleted"
+        ), 200)
 
 
 @api.route("/labels/<int:label_id>/values/<int:label_value_id>", methods=["GET"])

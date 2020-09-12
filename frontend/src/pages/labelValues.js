@@ -3,7 +3,7 @@ import React from "react";
 import { withRouter } from "react-router-dom";
 import { Helmet } from "react-helmet";
 
-import { faPlusSquare, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { faPlusSquare, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
@@ -63,6 +63,18 @@ class LabelValues extends React.Component {
       title: "Edit Label Value",
       labelId,
       labelValueId,
+    });
+  }
+
+  handleDeleteLabelValue(e, labelId, labelValueId) {
+    const { projectId } = this.state;
+    console.log("will delete: ", labelId, labelValueId, projectId);
+    this.setModalShow(true);
+    this.setState({
+      formType: "DELETE_LABEL_VALUE",
+      title: "Deleting labelvalue",
+      labelId,
+      labelValueId
     });
   }
 
@@ -154,6 +166,18 @@ class LabelValues extends React.Component {
                               title={"Edit label value"}
                               onClick={(e) =>
                                 this.handleEditLabelValue(
+                                  e,
+                                  labelId,
+                                  labelValue["value_id"]
+                                )
+                              }
+                            />
+                            <IconButton
+                              icon={faTrash}
+                              size="sm"
+                              title={"Edit label value"}
+                              onClick={(e) =>
+                                this.handleDeleteLabelValue(
                                   e,
                                   labelId,
                                   labelValue["value_id"]
