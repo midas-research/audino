@@ -36,7 +36,7 @@ class Annotate extends React.Component {
       before_id: dataId,
       labels: {},
       labelsUrl: `/api/projects/${projectId}/labels`,
-      searchUrl: `/api/projects/${projectId}/neighbours/${dataId}`,
+      neighboursUrl: `/api/projects/${projectId}/neighbours/${dataId}`,
       dataUrl: `/api/projects/${projectId}/data/${dataId}`,
       annotationUrl: `projects/${projectId}/data/${dataId}/annotate`,
       segmentationUrl: `/api/projects/${projectId}/data/${dataId}/segmentations`,
@@ -56,7 +56,7 @@ class Annotate extends React.Component {
   }
 
   componentDidMount() {
-    const { labelsUrl, dataUrl, searchUrl } = this.state;
+    const { labelsUrl, dataUrl, neighboursUrl } = this.state;
     this.setState({ isDataLoading: true });
     const wavesurfer = WaveSurfer.create({
       container: "#waveform",
@@ -102,7 +102,7 @@ class Annotate extends React.Component {
     });
 
     axios
-      .all([axios.get(labelsUrl), axios.get(dataUrl), axios.get(searchUrl)])
+      .all([axios.get(labelsUrl), axios.get(dataUrl), axios.get(neighboursUrl)])
       .then((response) => {
         this.setState({
           isDataLoading: false,
