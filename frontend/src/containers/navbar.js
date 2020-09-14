@@ -92,7 +92,6 @@ class NavBar extends React.Component {
                 </li>
                 {this.state.modalShow ? (
                   <FormModal
-                    onExited={() => this.refreshPage()}
                     formType="RESET_USER"
                     title="Reset Password"
                     show={this.state.modalShow}
