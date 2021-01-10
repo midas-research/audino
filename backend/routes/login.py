@@ -15,7 +15,7 @@ from . import auth
 
 
 @jwt.token_in_blacklist_loader
-def check_if_token_is_revoked(decrypted_token):
+def revoked_token_callback(decrypted_token):
     jti = decrypted_token["jti"]
     entry = redis_client.get(jti)
 
@@ -26,8 +26,13 @@ def check_if_token_is_revoked(decrypted_token):
 
 
 @jwt.expired_token_loader
-def my_expired_token_callback(expired_token):
+def expired_token_callback(expired_token):
     return jsonify(message="JWT has expired!", type="JWT_EXPIRED"), 401
+
+
+@jwt.invalid_token_loader
+def tampered_token_callback(expired_token):
+    return jsonify(message="JWT is tampered!", type="JWT_TAMPERED"), 401
 
 
 @auth.route("/login", methods=["POST"])
