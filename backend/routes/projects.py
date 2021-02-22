@@ -538,7 +538,7 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
     if not (isinstance(start_time, (int, float)) or isinstance(end_time, (int, float))):
         return (
             jsonify(
-                message="Params `start_time` and `end_time` need to be float values"
+                message="Params `start_time` and `end_time` need to be float or int values"
             ),
             400,
         )

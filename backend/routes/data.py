@@ -169,8 +169,8 @@ def add_data():
         new_segment = generate_segmentation(
             data_id=data.id,
             project_id=project.id,
-            end_time=segment["end_time"],
-            start_time=segment["start_time"],
+            end_time=float(segment["end_time"]),
+            start_time=float(segment["start_time"]),
             annotations=segment.get("annotations", {}),
             transcription=segment["transcription"],
         )
