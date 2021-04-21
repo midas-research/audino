@@ -535,10 +535,10 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
     if start_time is None or end_time is None:
         return jsonify(message="Params `start_time` or `end_time` missing"), 400
 
-    if type(start_time) is not float or type(end_time) is not float:
+    if not (isinstance(start_time, (int, float)) or isinstance(end_time, (int, float))):
         return (
             jsonify(
-                message="Params `start_time` and `end_time` need to be float values"
+                message="Params `start_time` and `end_time` need to be float or int values"
             ),
             400,
         )
@@ -546,8 +546,8 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
     transcription = request.json.get("transcription", None)
     annotations = request.json.get("annotations", dict())
 
-    start_time = round(start_time, 4)
-    end_time = round(end_time, 4)
+    start_time = round(float(start_time), 4)
+    end_time = round(float(end_time), 4)
 
     try:
         request_user = User.query.filter_by(username=identity["username"]).first()
