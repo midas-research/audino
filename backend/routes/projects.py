@@ -455,6 +455,7 @@ def get_segmentations_for_data(project_id, data_id):
 
         response = {
             "filename": data.filename,
+            "tracked_time": data.tracked_time,
             "original_filename": data.original_filename,
             "reference_transcription": data.reference_transcription,
             "is_marked_for_review": data.is_marked_for_review,
@@ -478,6 +479,7 @@ def update_data(project_id, data_id):
         return jsonify(message="Missing JSON in request"), 400
 
     is_marked_for_review = bool(request.json.get("is_marked_for_review", False))
+    tracked_time = int(request.json.get("tracked_time", 0))
 
     try:
         request_user = User.query.filter_by(username=identity["username"]).first()
@@ -492,7 +494,8 @@ def update_data(project_id, data_id):
             return jsonify(message="Unauthorized access!"), 401
 
         data.update_marked_review(is_marked_for_review)
-
+        if tracked_time:
+            data.tracked_time = tracked_time
         db.session.add(data)
         db.session.commit()
         db.session.refresh(data)

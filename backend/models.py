@@ -46,6 +46,7 @@ class Data(db.Model):
     __tablename__ = "data"
 
     id = db.Column("id", db.Integer(), primary_key=True)
+    tracked_time = db.Column("tracked_time", db.Integer(), default=0)
 
     project_id = db.Column(
         "project_id", db.Integer(), db.ForeignKey("project.id"), nullable=False
@@ -281,7 +282,9 @@ class Segmentation(db.Model):
     )
 
     values = db.relationship(
-        "LabelValue", secondary=annotation_table, back_populates="segmentations",
+        "LabelValue",
+        secondary=annotation_table,
+        back_populates="segmentations",
     )
 
     def set_start_time(self, start_time):
