@@ -13,13 +13,12 @@ class DeleteLabelValuesForm extends React.Component {
     const labelId = this.props.labelId;
     const projectId = this.props.projectId;
     const labelValueId = this.props.labelValueId;
-    console.log(labelId, labelValueId, projectId);
     this.initialState = {
       labelId,
       projectId,
       labelValueId,
       message: `Are you sure you want to delete the label: ${labelId}`,
-      refreshPath: `/labels`,
+      refreshPath: `/labels/${labelId}/values`,
       deleteLabelValueUrl: `/api/labels/${labelId}/values/${labelValueId}`,
       errorMessage: "",
       successMessage: "",
@@ -45,8 +44,7 @@ class DeleteLabelValuesForm extends React.Component {
   }
 
   handleLabelDelete(e) {
-    const { labelId, labelValueId, deleteLabelValueUrl } = this.state;
-    console.log("The data to be deleted will be:", labelId, labelValueId);
+    const { deleteLabelValueUrl } = this.state;
     axios({
       method: "DELETE",
       url: deleteLabelValueUrl,

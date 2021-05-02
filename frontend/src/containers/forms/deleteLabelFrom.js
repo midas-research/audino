@@ -44,7 +44,6 @@ class DeleteLabelForm extends React.Component {
 
   handleLabelDelete(e) {
     const { labelId, deleteLabelUrl } = this.state;
-    console.log("The data to be deleted will be:", labelId);
     axios({
       method: "DELETE",
       url: deleteLabelUrl,
@@ -100,7 +99,7 @@ class DeleteLabelForm extends React.Component {
                   disabled={isSubmitting ? true : false}
                   onClick={(e) => this.handleLabelDelete(e, labelId)}
                   isSubmitting={isSubmitting}
-                  text="Delete User"
+                  text="Delete Label"
                 />
               </div>
             </div>

@@ -8,7 +8,7 @@ class QueryWithSoftDelete(BaseQuery):
 
     def __new__(cls, *args, **kwargs):
         obj = super(QueryWithSoftDelete, cls).__new__(cls)
-        obj._with_deleted = kwargs.pop('_with_deleted', False)
+        obj._with_deleted = kwargs.pop("_with_deleted", False)
         if len(args) > 0:
             super(QueryWithSoftDelete, obj).__init__(*args, **kwargs)
             return obj.filter_by(is_deleted=None) if obj._with_deleted is None else obj
@@ -18,8 +18,11 @@ class QueryWithSoftDelete(BaseQuery):
         pass
 
     def with_deleted(self):
-        return self.__class__(db.class_mapper(self._mapper_zero().class_),
-                              session=db.session(), _with_deleted=True)
+        return self.__class__(
+            db.class_mapper(self._mapper_zero().class_),
+            session=db.session(),
+            _with_deleted=True,
+        )
 
     def _get(self, *args, **kwargs):
         # this calls the original query.get function from the base class
@@ -29,7 +32,9 @@ class QueryWithSoftDelete(BaseQuery):
         # the query.get method does not like it if there is a filter clause
         # pre-loaded, so we need to implement it using a workaround
         obj = self.with_deleted()._get(*args, **kwargs)
-        return obj if obj is None or self._with_deleted or obj.is_deleted is None else None
+        return (
+            obj if obj is None or self._with_deleted or obj.is_deleted is None else None
+        )
 
     def _all(self, *args, **kwargs):
         return super(QueryWithSoftDelete, self).all(*args, **kwargs)
@@ -95,8 +100,7 @@ class Data(db.Model):
 
     id = db.Column("id", db.Integer(), primary_key=True)
 
-    is_deleted = db.Column("is_deleted", db.DateTime(),
-                        nullable=True, default=None)
+    is_deleted = db.Column("is_deleted", db.DateTime(), nullable=True, default=None)
     project_id = db.Column(
         "project_id", db.Integer(), db.ForeignKey("project.id"), nullable=False
     )
@@ -160,10 +164,8 @@ class Label(db.Model):
     __tablename__ = "label"
     query_class = QueryWithSoftDelete
 
-
     id = db.Column("id", db.Integer(), primary_key=True)
-    is_deleted = db.Column("is_deleted", db.DateTime(),
-                           nullable=True, default=None)
+    is_deleted = db.Column("is_deleted", db.DateTime(), nullable=True, default=None)
 
     name = db.Column("name", db.String(32), nullable=False)
 
@@ -216,6 +218,7 @@ class LabelType(db.Model):
         default=db.func.now(),
         onupdate=db.func.utc_timestamp(),
     )
+    is_deleted = db.Column("is_deleted", db.DateTime(), nullable=True, default=None)
 
 
 class LabelValue(db.Model):
@@ -223,8 +226,7 @@ class LabelValue(db.Model):
 
     id = db.Column("id", db.Integer(), primary_key=True)
 
-    # deleted = db.Column("deleted", db.DateTime(),
-    #                        nullable=True, default=None)
+    is_deleted = db.Column("is_deleted", db.DateTime(), nullable=True, default=None)
 
     label_id = db.Column(
         "label_id", db.Integer(), db.ForeignKey("label.id"), nullable=False
@@ -282,8 +284,7 @@ class Project(db.Model):
         onupdate=db.func.utc_timestamp(),
     )
 
-    # is_deleted = db.Column("is_deleted", db.DateTime(),
-    #                     nullable=True, default=None)
+    is_deleted = db.Column("is_deleted", db.DateTime(), nullable=True, default=None)
 
     users = db.relationship(
         "User", secondary=user_project_table, back_populates="projects"
@@ -291,6 +292,7 @@ class Project(db.Model):
     data = db.relationship("Data", backref="Project")
     labels = db.relationship("Label", backref="Project")
     creator_user = db.relationship("User")
+
 
 class Role(db.Model):
     __tablename__ = "role"
@@ -340,7 +342,9 @@ class Segmentation(db.Model):
     )
 
     values = db.relationship(
-        "LabelValue", secondary=annotation_table, back_populates="segmentations",
+        "LabelValue",
+        secondary=annotation_table,
+        back_populates="segmentations",
     )
 
     def set_start_time(self, start_time):
@@ -404,4 +408,3 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-

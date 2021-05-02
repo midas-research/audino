@@ -72,7 +72,7 @@ class LabelValues extends React.Component {
     this.setModalShow(true);
     this.setState({
       formType: "DELETE_LABEL_VALUE",
-      title: "Deleting labelvalue",
+      title: "Deleting Lavel Value",
       labelId,
       labelValueId
     });
@@ -175,7 +175,7 @@ class LabelValues extends React.Component {
                             <IconButton
                               icon={faTrash}
                               size="sm"
-                              title={"Edit label value"}
+                              title={"Delete label value"}
                               onClick={(e) =>
                                 this.handleDeleteLabelValue(
                                   e,

@@ -59,6 +59,7 @@ def create_project():
 
     return jsonify(project_id=project.id, message="Project has been created!"), 201
 
+
 @api.route("/rmprojects", methods=["POST"])
 @jwt_required
 def remove_project():
@@ -94,14 +95,13 @@ def remove_project():
 @jwt_required
 def fetch_all_projects():
     identity = get_jwt_identity()
-    request_user = User.query.filter_by(
-        username=identity["username"]).first()
+    request_user = User.query.filter_by(username=identity["username"]).first()
     is_admin = True if request_user.role.role == "admin" else False
 
     if is_admin == False:
         return jsonify(message="Unauthorized access!"), 401
     try:
-        projects = Project.query.all()
+        projects = Project.query.filter_by(is_deleted=None).all()
         app.logger.info(f"All the projects are : {projects}")
         response = list(
             [
@@ -146,7 +146,8 @@ def fetch_project(project_id):
                 "type": label.label_type.type,
                 "created_on": label.created_at.strftime("%B %d, %Y"),
             }
-            for label in project.labels if label.is_deleted is None
+            for label in project.labels
+            if label.is_deleted is None
         ]
     except Exception as e:
         app.logger.error(f"No project exists with Project ID: {project_id}")
@@ -349,7 +350,6 @@ def remove_label_to_project(project_id):
         ),
         201,
     )
-
 
 
 @api.route("/projects/<int:project_id>/labels/<int:label_id>", methods=["GET"])

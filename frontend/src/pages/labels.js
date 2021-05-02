@@ -75,7 +75,7 @@ class Labels extends React.Component {
     history.push(`/labels/${labelId}/values`);
   }
 
-  handleDelteLabel(e, labelId) {
+  handleDeleteLabel(e, labelId) {
     console.log("We are removing the user: ", labelId);
     this.setModalShow(true);
     this.setState({
@@ -187,9 +187,9 @@ class Labels extends React.Component {
                             <IconButton
                               icon={faTrashAlt}
                               size="sm"
-                              title={"Edit label"}
+                              title={"Delete label"}
                               onClick={(e) =>
-                                this.handleDelteLabel(e, label["label_id"])
+                                this.handleDeleteLabel(e, label["label_id"])
                               }
                             />
                           </td>
