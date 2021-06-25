@@ -6,7 +6,14 @@ import { withStore } from "@spyna/react-store";
 
 import { setAuthorizationToken } from "../utils";
 
+import FormModal from "./modal";
+
 class NavBar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { modalShow: false };
+  }
+
   handleLogout(e) {
     const { history } = this.props;
 
@@ -28,6 +35,14 @@ class NavBar extends React.Component {
         // TODO: Show error logging out
         console.log(error);
       });
+  }
+
+  setModalShow(modalShow) {
+    this.setState({ modalShow });
+  }
+
+  handleResetPassword(e) {
+    this.setModalShow(true);
   }
 
   render() {
@@ -66,6 +81,23 @@ class NavBar extends React.Component {
                     Logout
                   </button>
                 </li>
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className="nav-link btn btn-link text-decoration-none"
+                    onClick={(e) => this.handleResetPassword(e)}
+                  >
+                    Reset Password
+                  </button>
+                </li>
+                {this.state.modalShow ? (
+                  <FormModal
+                    formType="RESET_USER"
+                    title="Reset Password"
+                    show={this.state.modalShow}
+                    onHide={() => this.setModalShow(false)}
+                  />
+                ) : null}
               </ul>
             </div>
           </div>
