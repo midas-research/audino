@@ -1,12 +1,9 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
 const Alert = ({ type, message, onClose = () => {} }) => {
   return (
-    <div
-      className={`alert alert-${type} alert-dismissible fade show`}
-      role="alert"
-    >
+    <div className={`alert alert-${type} alert-dismissible fade show`} role="alert">
       {message}
       <button
         type="button"
@@ -24,7 +21,7 @@ const Alert = ({ type, message, onClose = () => {} }) => {
 Alert.propTypes = {
   type: PropTypes.string.isRequired,
   message: PropTypes.string.isRequired,
-  onClick: PropTypes.func,
+  onClick: PropTypes.func
 };
 
 export default Alert;

@@ -16,5 +16,10 @@
       }
     ],
     "no-console": "off"
+  },
+  "globals": {
+    "localStorage": true,
+    "fetch": true,
+    "document": true
   }
 }

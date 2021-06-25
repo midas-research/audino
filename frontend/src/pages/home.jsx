@@ -1,13 +1,15 @@
-import React from "react";
+import React from 'react';
 
-const Error = (props) => {
+import LoginForm from '../containers/forms/loginForm';
+
+const Home = () => {
   return (
     <div className="container h-75 text-center">
       <div className="row h-100 justify-content-center align-items-center">
-        {props.message}
+        <LoginForm />
       </div>
     </div>
   );
 };
 
-export default Error;
+export default Home;

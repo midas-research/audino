@@ -1,29 +1,29 @@
-import axios from "axios";
-import React from "react";
+import axios from 'axios';
+import React from 'react';
 
-import { withRouter } from "react-router";
-import { withStore } from "@spyna/react-store";
+import { withRouter } from 'react-router';
+import { withStore } from '@spyna/react-store';
 
-import Alert from "../../components/alert";
-import { Button } from "../../components/button";
+import Alert from '../../components/alert';
+import { Button } from '../../components/button';
 
 class CreateLabelForm extends React.Component {
   constructor(props) {
     super(props);
 
-    const projectId = this.props.projectId;
+    const { projectId } = this.props;
 
     this.initialState = {
       projectId,
       name: null,
       type: null,
-      errorMessage: "",
-      successMessage: "",
+      errorMessage: '',
+      successMessage: '',
       isSubmitting: false,
-      createLabelUrl: `/api/projects/${projectId}/labels`,
+      createLabelUrl: `/api/projects/${projectId}/labels`
     };
 
-    this.state = Object.assign({}, this.initialState);
+    this.state = { ...this.initialState };
   }
 
   resetState() {
@@ -45,47 +45,47 @@ class CreateLabelForm extends React.Component {
 
     const { name, type, createLabelUrl } = this.state;
 
-    if (!name || name === "") {
+    if (!name || name === '') {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please enter a valid label name!",
-        successMessage: "",
+        errorMessage: 'Please enter a valid label name!',
+        successMessage: ''
       });
       return;
     }
 
-    if (!type || !["1", "2"].includes(type)) {
+    if (!type || !['1', '2'].includes(type)) {
       this.setState({
         isSubmitting: false,
-        errorMessage: "Please select a valid label type!",
-        successMessage: "",
+        errorMessage: 'Please select a valid label type!',
+        successMessage: ''
       });
       return;
     }
 
     axios({
-      method: "post",
+      method: 'post',
       url: createLabelUrl,
       data: {
         name,
-        type,
-      },
+        type
+      }
     })
-      .then((response) => {
+      .then(response => {
         if (response.status === 201) {
           this.resetState();
           this.form.reset();
 
           this.setState({
-            successMessage: response.data.message,
+            successMessage: response.data.message
           });
         }
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
-          successMessage: "",
-          isSubmitting: false,
+          successMessage: '',
+          isSubmitting: false
         });
       });
   }
@@ -93,8 +93,8 @@ class CreateLabelForm extends React.Component {
   handleAlertDismiss(e) {
     e.preventDefault();
     this.setState({
-      successMessage: "",
-      errorMessage: "",
+      successMessage: '',
+      errorMessage: ''
     });
   }
 
@@ -103,23 +103,19 @@ class CreateLabelForm extends React.Component {
     return (
       <div className="container h-75 text-center">
         <div className="row h-100 justify-content-center align-items-center">
-          <form
-            className="col-6"
-            name="new_user"
-            ref={(el) => (this.form = el)}
-          >
+          <form className="col-6" name="new_user" ref={el => (this.form = el)}>
             {errorMessage ? (
               <Alert
                 type="danger"
                 message={errorMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             {successMessage ? (
               <Alert
                 type="success"
                 message={successMessage}
-                onClose={(e) => this.handleAlertDismiss(e)}
+                onClose={e => this.handleAlertDismiss(e)}
               />
             ) : null}
             <div className="form-group">
@@ -128,16 +124,16 @@ class CreateLabelForm extends React.Component {
                 className="form-control"
                 id="label_name"
                 placeholder="Label Name"
-                autoFocus={true}
-                required={true}
-                onChange={(e) => this.handleLabelNameChange(e)}
+                autoFocus
+                required
+                onChange={e => this.handleLabelNameChange(e)}
               />
             </div>
             <div className="form-group">
               <select
                 className="form-control"
                 name="label_type"
-                onChange={(e) => this.handleLabelTypeChange(e)}
+                onChange={e => this.handleLabelTypeChange(e)}
               >
                 <option value="-1">Choose Label Type</option>
                 <option value="1">Select</option>
@@ -149,8 +145,8 @@ class CreateLabelForm extends React.Component {
                 <Button
                   size="lg"
                   type="primary"
-                  disabled={isSubmitting ? true : false}
-                  onClick={(e) => this.handleLabelCreation(e)}
+                  disabled={!!isSubmitting}
+                  onClick={e => this.handleLabelCreation(e)}
                   isSubmitting={isSubmitting}
                   text="Save"
                 />

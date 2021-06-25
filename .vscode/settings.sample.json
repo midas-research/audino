@@ -1,7 +1,9 @@
 {
-  "python.venvPath": "~/.envs",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
   "python.pythonPath": "",
   "python.formatting.provider": "black",
-  "editor.formatOnSave": true,
   "python.linting.enabled": true
 }

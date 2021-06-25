@@ -1,9 +1,9 @@
-import axios from "axios";
-import React from "react";
-import { Helmet } from "react-helmet";
-import { withRouter } from "react-router-dom";
+import axios from 'axios';
+import React from 'react';
+import { Helmet } from 'react-helmet';
+import { withRouter } from 'react-router-dom';
 
-import Loader from "../components/loader";
+import Loader from '../components/loader';
 
 class Data extends React.Component {
   constructor(props) {
@@ -16,24 +16,24 @@ class Data extends React.Component {
     this.state = {
       projectId,
       data: [],
-      active: params.get("active") || "pending",
-      page: params.get("page") || 1,
+      active: params.get('active') || 'pending',
+      page: params.get('page') || 1,
       count: {
         pending: 0,
         completed: 0,
         all: 0,
-        marked_review: 0,
+        marked_review: 0
       },
       apiUrl: `/api/current_user/projects/${projectId}/data`,
       tabUrls: {
-        pending: this.prepareUrl(projectId, 1, "pending"),
-        completed: this.prepareUrl(projectId, 1, "completed"),
-        all: this.prepareUrl(projectId, 1, "all"),
-        marked_review: this.prepareUrl(projectId, 1, "marked_review"),
+        pending: this.prepareUrl(projectId, 1, 'pending'),
+        completed: this.prepareUrl(projectId, 1, 'completed'),
+        all: this.prepareUrl(projectId, 1, 'all'),
+        marked_review: this.prepareUrl(projectId, 1, 'marked_review')
       },
       nextPage: null,
       prevPage: null,
-      isDataLoading: false,
+      isDataLoading: false
     };
   }
 
@@ -47,18 +47,11 @@ class Data extends React.Component {
     apiUrl = `${apiUrl}?page=${page}&active=${active}`;
 
     axios({
-      method: "get",
-      url: apiUrl,
+      method: 'get',
+      url: apiUrl
     })
-      .then((response) => {
-        const {
-          data,
-          count,
-          active,
-          page,
-          next_page,
-          prev_page,
-        } = response.data;
+      .then(response => {
+        const { data, count, active, page, next_page, prev_page } = response.data;
         this.setState({
           data,
           count,
@@ -66,13 +59,13 @@ class Data extends React.Component {
           page,
           nextPage: next_page,
           prevPage: prev_page,
-          isDataLoading: false,
+          isDataLoading: false
         });
       })
-      .catch((error) => {
+      .catch(error => {
         this.setState({
           errorMessage: error.response.data.message,
-          isDataLoading: false,
+          isDataLoading: false
         });
       });
   }
@@ -87,7 +80,7 @@ class Data extends React.Component {
       page,
       nextPage,
       prevPage,
-      tabUrls,
+      tabUrls
     } = this.state;
 
     const nextPageUrl = this.prepareUrl(projectId, nextPage, active);
@@ -112,42 +105,41 @@ class Data extends React.Component {
                     <li className="nav-item">
                       {/*  See: https://github.com/ReactTraining/react-router/issues/7293 */}
                       <a
-                        className={`nav-link ${
-                          active === "pending" ? "active" : null
-                        }`}
-                        href={tabUrls["pending"]}
+                        className={`nav-link ${active === 'pending' ? 'active' : null}`}
+                        href={tabUrls.pending}
                       >
-                        Yet to annotate ({count["pending"]})
+                        Yet to annotate ( 
+{' '}
+{count.pending})
                       </a>
                     </li>
                     <li className="nav-item">
                       <a
-                        className={`nav-link ${
-                          active === "completed" ? "active" : null
-                        }`}
-                        href={tabUrls["completed"]}
+                        className={`nav-link ${active === 'completed' ? 'active' : null}`}
+                        href={tabUrls.completed}
                       >
-                        Annotated ({count["completed"]})
+                        Annotated (
+{count.completed})
                       </a>
                     </li>
                     <li className="nav-item">
                       <a
-                        className={`nav-link ${
-                          active === "all" ? "active" : null
-                        }`}
-                        href={tabUrls["all"]}
+                        className={`nav-link ${active === 'all' ? 'active' : null}`}
+                        href={tabUrls.all}
                       >
-                        All ({count["all"]})
+                        All ( 
+{' '}
+{count.all})
                       </a>
                     </li>
                     <li className="nav-item">
                       <a
-                        className={`nav-link ${
-                          active === "marked_review" ? "active" : null
-                        }`}
-                        href={tabUrls["marked_review"]}
+                        className={`nav-link ${active === 'marked_review' ? 'active' : null}`}
+                        href={tabUrls.marked_review}
                       >
-                        Marked for review ({count["marked_review"]})
+                        Marked for review ( 
+{' '}
+{count.marked_review})
                       </a>
                     </li>
                   </ul>
@@ -166,18 +158,12 @@ class Data extends React.Component {
                         return (
                           <tr key={index}>
                             <td className="align-middle">
-                              <a
-                                href={`/projects/${projectId}/data/${data["data_id"]}/annotate`}
-                              >
-                                {data["original_filename"]}
+                              <a href={`/projects/${projectId}/data/${data.data_id}/annotate`}>
+                                {data.original_filename}
                               </a>
                             </td>
-                            <td className="align-middle">
-                              {data["number_of_segmentations"]}
-                            </td>
-                            <td className="align-middle">
-                              {data["created_on"]}
-                            </td>
+                            <td className="align-middle">{data.number_of_segmentations}</td>
+                            <td className="align-middle">{data.created_on}</td>
                           </tr>
                         );
                       })}
