@@ -1,8 +1,10 @@
-import sqlalchemy as sa
 import uuid
 
 from flask import jsonify, flash, redirect, url_for, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from werkzeug.urls import url_parse
 
 from backend import app, db
@@ -47,7 +49,7 @@ def create_project():
         db.session.commit()
         db.session.refresh(project)
     except Exception as e:
-        if type(e) == sa.exc.IntegrityError:
+        if type(e) == IntegrityError:
             app.logger.info(f"Project {name} already exists!")
             return (
                 jsonify(message="Project already exists!", type="DUPLICATE_PROJECT"),
@@ -246,7 +248,7 @@ def add_label_to_project(project_id):
         db.session.commit()
         db.session.refresh(label)
     except Exception as e:
-        if type(e) == sa.exc.IntegrityError:
+        if type(e) == IntegrityError:
             app.logger.info(f"Label: {label_name} already exists!")
             return (
                 jsonify(
@@ -653,8 +655,11 @@ def get_project_annotations(project_id):
     identity = get_jwt_identity()
 
     try:
+        # TODO: Check if this can be optimized
         request_user = User.query.filter_by(username=identity["username"]).first()
-        project = Project.query.get(project_id)
+        project = Project.query.options(
+            joinedload(Project.data).joinedload(Data.segmentations).joinedload(Segmentation.values)
+        ).get(project_id)
 
         if request_user not in project.users:
             return jsonify(message="Unauthorized access!"), 401

@@ -283,7 +283,7 @@ class Admin extends React.Component {
             <div className="row my-4 justify-content-center align-items-center">
               {isProjectLoading ? <Loader /> : null}
               {!isProjectLoading && projects.length === 0 ? (
-                <div className="font-weight-bold">No projects exists!</div>
+                <div className="font-weight-bold">No projects exists! To proceed, please create one using add symbol above.</div>
               ) : null}
             </div>
             <div className="row mt-2">

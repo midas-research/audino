@@ -59,8 +59,6 @@ services:
       - redis_data:/data
     environment:
       REDIS_PASSWORD: "audino"
-    ports:
-      - 6379:6379
     networks:
       - backend-network
 
