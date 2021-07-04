@@ -62,6 +62,37 @@ def create_project():
     return jsonify(project_id=project.id, message="Project has been created!"), 201
 
 
+@api.route("/rmprojects", methods=["POST"])
+@jwt_required
+def remove_project():
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    project_id = request.json.get("projectId", None)
+
+    try:
+        project = Project.query.filter_by(id=project_id).first()
+        for data in Data.query.filter_by(project_id=project.id):
+            for segment in Segmentation.query.filter_by(data_id=data.id):
+                segment.is_deleted = sa.func.now()
+            data.is_deleted = sa.func.now()
+        project.is_deleted = sa.func.now()
+        db.session.commit()
+    except Exception as e:
+        app.logger.error("Error deleting project")
+        app.logger.error(e)
+        return jsonify(message="Error deleting project!"), 500
+
+    return jsonify(project_id=project_id, message="Project has been deleted!"), 201
+
+
 @api.route("/projects", methods=["GET"])
 @jwt_required
 def fetch_all_projects():
@@ -72,7 +103,8 @@ def fetch_all_projects():
     if is_admin == False:
         return jsonify(message="Unauthorized access!"), 401
     try:
-        projects = Project.query.all()
+        projects = Project.query.filter_by(is_deleted=None).all()
+        app.logger.info(f"All the projects are : {projects}")
         response = list(
             [
                 {
@@ -117,6 +149,7 @@ def fetch_project(project_id):
                 "created_on": label.created_at.strftime("%B %d, %Y"),
             }
             for label in project.labels
+            if label.is_deleted is None
         ]
     except Exception as e:
         app.logger.error(f"No project exists with Project ID: {project_id}")
@@ -273,6 +306,49 @@ def add_label_to_project(project_id):
             label_id=label.id,
             message=f"Label assigned to project: {project.name}",
             type="LABEL_ASSIGNED_TO_PROJECT",
+        ),
+        201,
+    )
+
+
+@api.route("/projects/<int:project_id>/rmlabels", methods=["DELETE"])
+@jwt_required
+def remove_label_to_project(project_id):
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+    is_admin = True if request_user.role.role == "admin" else False
+
+    if is_admin == False:
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    label_id = request.json.get("labelId", None)
+
+    try:
+        project = Project.query.get(project_id)
+        label = Label.query.get(label_id)
+        label.is_deleted = db.func.now()
+
+        db.session.commit()
+    except Exception as e:
+        app.logger.error(f"Error adding label to project: {project_id}")
+        app.logger.error(e)
+        return (
+            jsonify(
+                message=f"Error deleting label to project: {project_id}",
+                type="LABEL_DELETION_FAILED",
+            ),
+            500,
+        )
+
+    return (
+        jsonify(
+            project_id=project.id,
+            label_id=label.id,
+            message=f"Label deleted from project: {project.name}",
+            type="LABEL_DELETED_FROM_PROJECT",
         ),
         201,
     )
