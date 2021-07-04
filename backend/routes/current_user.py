@@ -11,6 +11,35 @@ from backend.models import Project, User, Data, Segmentation
 from . import api
 
 
+@api.route("/current_user/projects/search", methods=["GET"])
+@jwt_required
+def search_current_projects():
+    identity = get_jwt_identity()
+
+    try:
+        search_query = request.args.get("search_query")
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        response = []
+        for project in request_user.projects:
+            response.extend(
+                [
+                    data.original_filename
+                    for data in Data.query.filter_by(
+                        project_id=project.id, assigned_user_id=request_user.id
+                    )
+                    .filter(Data.original_filename.like(f"%{search_query}%"))
+                    .all()
+                ]
+            )
+    except Exception as e:
+        message = "Error fetching all projects"
+        app.logger.error(message)
+        app.logger.error(e)
+        return jsonify(message=message), 500
+
+    return jsonify(projects=response), 200
+
+
 @api.route("/current_user/projects", methods=["GET"])
 @jwt_required
 def fetch_current_user_projects():

@@ -3,12 +3,14 @@ import React from "react";
 import { Helmet } from "react-helmet";
 
 import Loader from "../components/loader";
-
+import { ListGroup, Form, FormControl, Button } from "react-bootstrap";
 class Dashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       projects: [],
+      searchValue: "",
+      searchResults: [],
       isProjectLoading: false,
     };
   }
@@ -34,14 +36,58 @@ class Dashboard extends React.Component {
       });
   }
 
+  handleSearchSubmit = () => {
+    if (this.state.searchValue) {
+      axios({
+        method: "get",
+        url: `/api/current_user/projects/search?search_query=${this.state.searchValue}`,
+      }).then((response) => {
+        this.setState({ searchResults: response.data.projects.slice(0, 5) });
+      });
+      this.setState({ searchValue: "" });
+    } else {
+      alert("Please enter some search text!");
+    }
+  };
+
   render() {
-    const { isProjectLoading, projects } = this.state;
+    const { isProjectLoading, projects, searchResults } = this.state;
     return (
       <div>
         <Helmet>
           <title>Dashboard</title>
         </Helmet>
         <div className="container h-100">
+          <div className="row border-bottom my-5">
+            <Form inline onSubmit={this.handleFormSubmit}>
+              <FormControl
+                onChange={(e) => this.setState({ searchValue: e.target.value })}
+                value={this.state.searchValue}
+                onKeyUp={(event) => {
+                  event.preventDefault();
+                  if (event.key === "Enter" && event.keyCode === 13) {
+                    this.handleSearchSubmit();
+                  }
+                }}
+                type="text"
+                placeholder="Search for files by name"
+                className="mr-sm-2"
+              />
+              <Button onClick={this.handleSearchSubmit} variant="outline-info">
+                Search
+              </Button>
+            </Form>
+          </div>
+          {searchResults.length ? (
+            <div className="h-100 mt-5">
+              <h2>Search Results:</h2>
+              <ListGroup>
+                {searchResults.map((item, itr) => {
+                  return <ListGroup.Item key={itr}>{item}</ListGroup.Item>;
+                })}
+              </ListGroup>
+            </div>
+          ) : null}
           <div className="h-100 mt-5">
             <div className="row border-bottom my-3">
               <div className="col float-left">
