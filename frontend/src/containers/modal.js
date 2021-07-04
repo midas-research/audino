@@ -2,6 +2,7 @@ import React from "react";
 import Modal from "react-bootstrap/Modal";
 
 import CreateUserForm from "./forms/createUserForm";
+import UploadDataForm from "./forms/uploadDataForm";
 import EditUserForm from "./forms/editUserForm";
 import CreateProjectForm from "./forms/createProjectForm";
 import CreateLabelForm from "./forms/createLabelForm";
@@ -28,6 +29,9 @@ const FormModal = (props) => {
       <Modal.Body>
         {props.formType === "NEW_USER" ? <CreateUserForm /> : null}
         {props.formType === "NEW_PROJECT" ? <CreateProjectForm /> : null}
+        {props.formType === "NEW_DATA" ? (
+          <UploadDataForm projectId={props.projectId} />
+        ) : null}
         {props.formType === "EDIT_USER" ? (
           <EditUserForm userId={props.userId} />
         ) : null}
