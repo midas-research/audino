@@ -29,6 +29,7 @@ class Annotate extends React.Component {
     this.state = {
       isPlaying: false,
       projectId,
+      localTrackedTime: 0,
       dataId,
       labels: {},
       labelsUrl: `/api/projects/${projectId}/labels`,
@@ -49,7 +50,47 @@ class Annotate extends React.Component {
     this.transcription = null;
   }
 
+  handleTrackTimeChange() {
+    axios({
+      method: "patch",
+      url: this.state.dataUrl,
+      data: {
+        tracked_time: this.state.localTrackedTime,
+      },
+    })
+      .then(() => {
+        this.setState({
+          successMessage: "Tracked Time updated succesfully",
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        this.setState({
+          errorMessage: "Tracked Time not updated",
+        });
+      });
+  }
+
+  // fired, when changing to an internal page
+  componentWillUnmount() {
+    clearInterval(this.interval);
+    this.handleTrackTimeChange();
+  }
+
   componentDidMount() {
+    // anytime changed to another page
+    window.onbeforeunload = function () {
+      this.handleTrackTimeChange();
+    }.bind(this);
+
+    this.interval = setInterval(
+      () =>
+        this.setState({
+          localTrackedTime: this.state.localTrackedTime + 1000,
+        }),
+      1000
+    );
+
     const { labelsUrl, dataUrl } = this.state;
     this.setState({ isDataLoading: true });
     const wavesurfer = WaveSurfer.create({
@@ -108,6 +149,7 @@ class Annotate extends React.Component {
           is_marked_for_review,
           segmentations,
           filename,
+          tracked_time,
         } = response[1].data;
 
         const regions = segmentations.map((segmentation) => {
@@ -121,11 +163,16 @@ class Annotate extends React.Component {
             },
           };
         });
-
+        if (tracked_time) {
+          this.setState({
+            localTrackedTime: this.state.localTrackedTime + tracked_time,
+          });
+        }
         this.setState({
           isDataLoading: false,
           referenceTranscription: reference_transcription,
           isMarkedForReview: is_marked_for_review,
+          localTrackedTime: tracked_time,
           filename,
         });
 
@@ -352,6 +399,7 @@ class Annotate extends React.Component {
       zoom,
       isPlaying,
       labels,
+      localTrackedTime,
       isDataLoading,
       isMarkedForReview,
       referenceTranscription,
@@ -510,7 +558,7 @@ class Annotate extends React.Component {
                                   selectedSegment.data.annotations &&
                                   selectedSegment.data.annotations[key] &&
                                   selectedSegment.data.annotations[key][
-                                  "values"
+                                    "values"
                                   ]) ||
                                 (value["type"] === "multiselect" ? [] : "")
                               }
@@ -574,6 +622,10 @@ class Annotate extends React.Component {
                       htmlFor="isMarkedForReview"
                     >
                       Mark for review
+                    </label>
+                    <br></br>
+                    <label className="form-check-label">
+                      Tracked Time: {Math.floor(localTrackedTime / 600)} Seconds
                     </label>
                   </div>
                 </div>
