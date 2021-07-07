@@ -5,7 +5,7 @@ Flask-Migrate==2.5.2
 Flask-SQLAlchemy==2.4.1
 Flask-WTF==0.14.2
 itsdangerous==1.1.0
-Jinja2==2.10.3
+Jinja2==2.11.3
 Mako==1.1.0
 MarkupSafe==1.1.1
 PyMySQL==0.9.3
