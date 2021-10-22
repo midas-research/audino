@@ -26,7 +26,7 @@ services:
       - frontend-network
 
   frontend:
-    image: node:13.13.0
+    image: node:14.18.1
     command: ["bash", "/app/frontend/scripts/run-dev.sh"]
     volumes:
       - ./frontend:/app/frontend
