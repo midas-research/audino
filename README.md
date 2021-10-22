@@ -49,7 +49,7 @@ $ cd audino
 $ git clone https://github.com/midas-research/audino.git --config core.autocrlf=input
 ```
 
-### For Production
+## Deploy
 
 You can either run the project on [default configuration](./docker-compose.prod.yml) or modify them to your need.
 **Note**: Before proceeding further, you might need to give docker `sudo` access or run the commands listed below as `sudo`.
@@ -74,9 +74,9 @@ Then, in browser, go to [http://0.0.0.0/](http://0.0.0.0/) to view the applicati
 $ docker-compose -f docker-compose.prod.yml down
 ```
 
-### For Development
+## Contribute to the project
 
-Similar to `production` setup, you need to use development [configuration](./docker-compose.dev.yml) for working on the project, fixing bugs and making contributions.
+To contribute to the project, you need to use development [configuration](./docker-compose.dev.yml) for working on the project, fixing bugs and making contributions.
 **Note**: Before proceeding further, you might need to give docker `sudo` access or run the commands listed below as `sudo`.
 
 **To build the services, run:**
