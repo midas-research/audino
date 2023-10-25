@@ -32,5 +32,5 @@ After creating a region you will be asked to provide the following information t
 | Segment transcription |  Add a transcription for that particular region |
 | Label names |  Select the attribute value that suits the best for that region |
 
-![alt text](../assets/annotation-detail.png)
+![alt text](../assets/annotation_detail.png)
 For saving the annotation object user need to click on "Save" button.
