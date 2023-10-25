@@ -5,9 +5,9 @@
 
 # audino v2
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/midas-research/audino/blob/master/LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./docs/getting-started.md#development)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/midas-research/audino/blob/master/LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/midas-research/audino/issues)
 
-Audino v2 (`main` branch) is an open-source audio annotation tool sponsored by [Human Protocol](https://hmt.ai/). It represents the evolution of Audino (found in the `master` branch) and offers a range of powerful features, including transcription and labeling capabilities. These features make Audino v2 an ideal choice for various tasks, such as Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition, and more.
+Audino v2 (`main` branch) is an open-source audo annotation tool sponsored by [Human Protocol](https://hmt.ai/). It represents the evolution of Audino (found in the `master` branch) and offers a range of powerful features, including transcription and labeling capabilities. These features make Audino v2 an ideal choice for various tasks, such as Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition, and more.
 
 🚀 *Note*: Audino v2 is actively under development. In the future, we plan to migrate from Audino to Audino v2 entirely. If you encounter any issues or have feedback, please don't hesitate to open an [issue](https://github.com/midas-research/audino/issues). Your input is valuable in helping us make Audino v2 even better!
 
