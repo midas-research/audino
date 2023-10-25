@@ -9,7 +9,7 @@
 
 audino is an open source audio annotation tool. It provides features such as transcription and labeling which enables annotation for Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition tasks and more.
 
-🚀 [Update]: We have released [audino v2](https://github.com/midas-research/audino/tree/main) in branch `main`. Consider checking it out and feel free to contribute. 
+🚀 [Update]: We have released [audino v2.0](https://github.com/midas-research/audino/tree/main) in branch `main`. Consider checking it out and feel free to contribute. 
 
 
 ## Features
