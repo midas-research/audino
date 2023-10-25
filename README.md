@@ -7,26 +7,28 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/midas-research/audino/blob/master/LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./docs/getting-started.md#development)
 
-audino v2(`main` branch) is an open source audio annotation tool sponsored by [Human Protocol](https://hmt.ai/) which is the continuation of audino (`master` branch). It provides features such as transcription and labeling which enables annotation for Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition tasks and more.
+Audino v2 (`main` branch) is an open-source audio annotation tool sponsored by [Human Protocol](https://hmt.ai/). It represents the evolution of Audino (found in the `master` branch) and offers a range of powerful features, including transcription and labeling capabilities. These features make Audino v2 an ideal choice for various tasks, such as Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition, and more.
 
-❗️Audino v2 is still in development and in future we will migrate v1 to v2 entirely. If you encounter any problems please feel free to raise an [issue](https://github.com/midas-research/audino/issues).
+🚀 *Note*: Audino v2 is actively under development. In the future, we plan to migrate from Audino to Audino v2 entirely. If you encounter any issues or have feedback, please don't hesitate to open an [issue](https://github.com/midas-research/audino/issues). Your input is valuable in helping us make Audino v2 even better!
 
 ## Partners ❤️
 
 [Human Protocol](https://hmt.ai/) uses Audino as a way of adding annotation service to the Human Protocol.
 
 ## Features 🤘
+Current Features:
 
-Current features of the tool include:
+1. Multi-Language Support: Audino v2 offers multi-language support, making it versatile for diverse linguistic needs.
 
-1. Multi-language support
-2. Emoji support
-3. User-level Projects, Tasks, and Jobs
-4. Flexibility in label creation
-5. Download the annotated data in json format
+2. Emoji Support: Enhance your annotations with emoji support, adding expressiveness to your data.
 
+3. User-Level Projects, Tasks, and Jobs: Easily manage your annotation projects, tasks, and jobs at the user level for improved organization and efficiency.
 
-## Tutorials
+4. Flexible Label Creation: Enjoy flexibility in creating and customizing labels, adapting to your specific annotation requirements.
+
+5. Export in JSON Format: Download annotated data in JSON format for seamless integration with other tools and platforms.
+
+## Tutorials 🔍
 
 We provide a set of [tutorials](./docs/tutorials.md) to guide users to achieve certain tasks. If you feel something is missing and should be included, please open an [issue](https://github.com/midas-research/audino/issues).
 
