@@ -3,13 +3,13 @@
 </h1>
 
 
-# audino v2
+# audino v2.0
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/midas-research/audino/blob/master/LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/midas-research/audino/issues)
 
-Audino v2 (`main` branch) is an open-source audo annotation tool sponsored by [Human Protocol](https://hmt.ai/). It represents the evolution of Audino (found in the `master` branch) and offers a range of powerful features, including transcription and labeling capabilities. These features make Audino v2 an ideal choice for various tasks, such as Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition, and more.
+Audino v2.0 (`main` branch) is an open-source audo annotation tool sponsored by [Human Protocol](https://hmt.ai/). It represents the evolution of Audino (found in the `master` branch) and offers a range of powerful features, including transcription and labeling capabilities. These features make Audino v2.0 an ideal choice for various tasks, such as Voice Activity Detection (VAD), Diarization, Speaker Identification, Automated Speech Recognition, Emotion Recognition, and more.
 
-🚀 *Note*: Audino v2 is actively under development. In the future, we plan to migrate from Audino to Audino v2 entirely. If you encounter any issues or have feedback, please don't hesitate to open an [issue](https://github.com/midas-research/audino/issues). Your input is valuable in helping us make Audino v2 even better!
+🚀 *Note*: Audino v2.0 is actively under development. In the future, we plan to migrate from Audino to Audino v2.0 entirely. If you encounter any issues or have feedback, please don't hesitate to open an [issue](https://github.com/midas-research/audino/issues). Your input is valuable in helping us make Audino v2.0 even better!
 
 ## Partners ❤️
 
@@ -18,7 +18,7 @@ Audino v2 (`main` branch) is an open-source audo annotation tool sponsored by [H
 ## Features 🤘
 Current Features:
 
-1. Multi-Language Support: Audino v2 offers multi-language support, making it versatile for diverse linguistic needs.
+1. Multi-Language Support: Audino v2.0 offers multi-language support, making it versatile for diverse linguistic needs.
 
 2. Emoji Support: Enhance your annotations with emoji support, adding expressiveness to your data.
 
@@ -40,7 +40,7 @@ We provide a set of [tutorials](./docs/tutorials.md) to guide users to achieve c
 
 Please install the following dependencies to run `audino` on your system:
 
-1. [git](https://git-scm.com/) *[tested on v2.39.2]*
+1. [git](https://git-scm.com/) *[tested on .39.2]*
 2. [docker](https://www.docker.com/) *[Docker version 24.0.2, build cb74dfc]* 
 3. [docker-compose](https://docs.docker.com/compose/) *[Docker Compose version v2.19.1]* 
 
