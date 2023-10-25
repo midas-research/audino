@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=audino
+    ports:
+      - '5432:5432'
+    volumes: 
+      - ./postgres:/var/lib/postgresql/data
+  app:
+    build: ./
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/audino-app
+    depends_on:
+      - db
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - ./.env.run
+
+  web:
+    build: ./audino_frontend/
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
+    env_file:
+      - ./audino_frontend/prod.env
