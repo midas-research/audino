@@ -80,7 +80,7 @@ $ docker-compose -f docker-compose.prod.yml down
 ## Contribute to project
 
 ### Postgres Setup
-Download and setup postgres on use the credentials for any postgres service on the cloud. Update the postgres configuration in `.env.run` and `docker-compose.yml` file. 
+Download and setup postgres on your machine or use the credentials for any postgres service on the cloud. Update the postgres configuration in `.env`.
 
 ### Backend Setup
 Create and activate a virtual environment in python using the following steps :-
@@ -97,12 +97,17 @@ $ pip install virtualenv
 $ source <env_name>/bin/activate
 ```
 
-3. Download all the dependencies in the python environment
+4. Download all the dependencies in the python environment
 ```sh
 $ pip install -r requirements.txt
 ```
 
-4. Migrate and sync postgres database based on the code.
+5. Download psycopg2-binary package for connecting to postgresql easily.
+```sh
+$ pip install psycopg2-binary
+```
+
+6. Migrate and sync postgres database based on the code.
 ```sh
 $ python3 manage.py migrate
 ```
@@ -112,12 +117,12 @@ $ python3 manage.py migrate
 $ python manage.py makemigrations
 ```
 
-Finally, run the server on port 8000
+7. Finally, run the server on port 8000
 ```sh
 $ python manage.py runserver
 ```
 
-Create superuser account and add the credentials
+8. Create superuser account and add the credentials
 ```sh
 $ python manage.py createsuperuser
 ```
