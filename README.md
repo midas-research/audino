@@ -69,6 +69,10 @@ $ docker-compose -f docker-compose.yml build
 $ docker-compose -f docker-compose.yml up
 ```
 
+```sh
+$ docker-compose exec app python manage.py migrate
+```
+
 Then, in browser, go to [http://localhost:3000/](http://localhost:3000/) to view the application.
 
 **To bring down the services, run:**
