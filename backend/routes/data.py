@@ -1,6 +1,7 @@
 import json
 import sqlalchemy as sa
 import uuid
+import requests
 
 from pathlib import Path
 
@@ -25,8 +26,7 @@ def send_audio_file(file_name):
 
 
 def validate_segmentation(segment):
-    """Validate the segmentation before accepting the annotation's upload from users
-    """
+    """Validate the segmentation before accepting the annotation's upload from users"""
     required_key = {"start_time", "end_time", "transcription"}
 
     if set(required_key).issubset(segment.keys()):
@@ -44,8 +44,7 @@ def generate_segmentation(
     data_id,
     segmentation_id=None,
 ):
-    """Generate a Segmentation from the required segment information
-    """
+    """Generate a Segmentation from the required segment information"""
     if segmentation_id is None:
         segmentation = Segmentation(
             data_id=data_id,
@@ -144,6 +143,101 @@ def add_data():
 
     file_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
     audio_file.save(file_path.as_posix())
+
+    data = Data(
+        project_id=project.id,
+        filename=filename,
+        original_filename=original_filename,
+        reference_transcription=reference_transcription,
+        is_marked_for_review=is_marked_for_review,
+        assigned_user_id=user.id,
+    )
+    db.session.add(data)
+    db.session.flush()
+
+    segmentations = json.loads(segmentations)
+
+    new_segmentations = []
+
+    for segment in segmentations:
+        validated = validate_segmentation(segment)
+
+        if not validated:
+            raise BadRequest(description=f"Segmentations have missing keys.")
+
+        new_segment = generate_segmentation(
+            data_id=data.id,
+            project_id=project.id,
+            end_time=float(segment["end_time"]),
+            start_time=float(segment["start_time"]),
+            annotations=segment.get("annotations", {}),
+            transcription=segment["transcription"],
+        )
+
+        new_segmentations.append(new_segment)
+
+    data.set_segmentations(new_segmentations)
+
+    db.session.commit()
+    db.session.refresh(data)
+
+    return (
+        jsonify(
+            data_id=data.id,
+            message=f"Data uploaded, created and assigned successfully",
+            type="DATA_CREATED",
+        ),
+        201,
+    )
+
+
+def download_file(url, save_path=None):
+    local_filename = url.split("/")[-1] if save_path is None else save_path
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_filename, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+    return local_filename
+
+
+@api.route("/dataWithUrl", methods=["POST"])
+def add_data_from_url():
+    api_key = request.headers.get("Authorization", None)
+
+    if not api_key:
+        raise BadRequest(description="API Key missing from `Authorization` Header")
+
+    project = Project.query.filter_by(api_key=api_key).first()
+
+    if not project:
+        raise NotFound(description="No project exist with given API Key")
+
+    username = request.form.get("username", None)
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        raise NotFound(description="No user found with given username")
+
+    segmentations = request.form.get("segmentations", "[]")
+    reference_transcription = request.form.get("reference_transcription", None)
+    data_url = request.form.get("data_url", None)
+    is_marked_for_review = bool(request.form.get("is_marked_for_review", False))
+
+    if data_url is None:
+        return 404
+
+    original_filename = secure_filename(data_url.split("/")[-1])
+
+    extension = Path(original_filename).suffix.lower()
+
+    if len(extension) > 1 and extension[1:] not in ALLOWED_EXTENSIONS:
+        raise BadRequest(description="File format is not supported")
+
+    filename = f"{str(uuid.uuid4().hex)}{extension}"
+
+    file_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
+    download_file(data_url, file_path.as_posix())
 
     data = Data(
         project_id=project.id,
