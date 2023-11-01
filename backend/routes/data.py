@@ -68,10 +68,12 @@ def generate_segmentation(
     values = []
 
     for label_name, val in annotations.items():
-        label = Label.query.filter_by(name=label_name, project_id=project_id).first()
+        label = Label.query.filter_by(
+            name=label_name, project_id=project_id).first()
 
         if label is None:
-            raise NotFound(description=f"Label not found with name: `{label_name}`")
+            raise NotFound(
+                description=f"Label not found with name: `{label_name}`")
 
         if "values" not in val:
             raise BadRequest(
@@ -116,7 +118,8 @@ def add_data():
     api_key = request.headers.get("Authorization", None)
 
     if not api_key:
-        raise BadRequest(description="API Key missing from `Authorization` Header")
+        raise BadRequest(
+            description="API Key missing from `Authorization` Header")
 
     project = Project.query.filter_by(api_key=api_key).first()
 
@@ -131,7 +134,8 @@ def add_data():
 
     segmentations = request.form.get("segmentations", "[]")
     reference_transcription = request.form.get("reference_transcription", None)
-    is_marked_for_review = bool(request.form.get("is_marked_for_review", False))
+    is_marked_for_review = bool(
+        request.form.get("is_marked_for_review", False))
     audio_file = request.files["audio_file"]
     original_filename = secure_filename(audio_file.filename)
 

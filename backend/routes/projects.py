@@ -517,6 +517,92 @@ def update_data(project_id, data_id):
     )
 
 
+@api.route("/projects/<int:project_id>/neighbours/<int:data_id>", methods=["GET"])
+@jwt_required
+def neighbours_data(project_id, data_id):
+    """
+    Returns dataId s for the next and previous data
+    """
+    identity = get_jwt_identity()
+
+    try:
+        request_user = User.query.filter_by(
+            username=identity["username"]).first()
+        project = Project.query.get(project_id)
+
+        if request_user not in project.users:
+            return jsonify(message="Unauthorized access!"), 401
+
+        currdata = Data.query.filter_by(
+            id=data_id, project_id=project_id).first()
+
+        if currdata.segmentations:
+           pagetype = "Annotated"
+        else:
+           pagetype = "Yet To annotate"
+
+        # if currdata.is_marked_for_review:
+        #    pagetype = "Review"
+
+
+        if pagetype == "Review":
+            data = (
+                db.session.query(Data)
+                .filter(Data.project_id == project_id)
+                .filter(Data.is_marked_for_review)
+                .distinct()
+                .order_by(Data.created_at.desc()))
+
+        elif pagetype == "Annotated":
+            segmentations = db.session.query(
+                Segmentation.data_id).distinct().subquery()
+            data = (
+                db.session.query(Data)
+                .filter(Data.project_id == project_id)
+                .filter(Data.id.in_(segmentations))
+                .distinct()
+                .order_by(Data.created_at.desc()))
+
+        elif pagetype == "Yet To annotate":
+            data = (
+                db.session.query(Data)
+                .filter(Data.project_id == project_id)
+                .distinct()
+                )
+
+        else:
+            raise  Exception("This is not the right way of using this API")
+
+        if currdata.id == data[-1].id:
+        # if currdata.id == data[0].id or currdata.id == data[-1].id:
+            index = list(data).index(currdata)
+            before, after = data[index-1], data[0]
+        else:
+            index = list(data).index(currdata)
+            before, after = data[index-1], data[index+1]
+
+        app.logger.info(f"The nieghbours are: {before, after}")
+
+    except Exception as e:
+        app.logger.error(f"Error searching data")
+        app.logger.error(e)
+        return (
+            jsonify(message=f"Error searching data",
+                    type="DATA_SEARCHED_FAILED"),
+            500,
+        )
+
+    return (
+        jsonify(
+            after_id=after.id,
+            before_id=before.id,
+            message=f"Data Searched",
+            type="DATA_SEARCHED",
+        ),
+        200,
+    )
+
+
 @api.route(
     "/projects/<int:project_id>/data/<int:data_id>/segmentations", methods=["POST"]
 )
