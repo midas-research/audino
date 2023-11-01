@@ -9,6 +9,7 @@ import EditLabelForm from "./forms/editLabelForm";
 import ManageUsersProjectForm from "./forms/manageUsersProjectForm";
 import CreateLabelValueForm from "./forms/createLabelValuelForm";
 import EditLabelValueForm from "./forms/editLabelValueForm";
+import ResetPassword from "./forms/resetPasswordForm";
 
 const FormModal = (props) => {
   return (
@@ -27,6 +28,7 @@ const FormModal = (props) => {
       </Modal.Header>
       <Modal.Body>
         {props.formType === "NEW_USER" ? <CreateUserForm /> : null}
+        {props.formType === "RESET_USER" ? <ResetPassword /> : null}
         {props.formType === "NEW_PROJECT" ? <CreateProjectForm /> : null}
         {props.formType === "EDIT_USER" ? (
           <EditUserForm userId={props.userId} />

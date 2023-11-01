@@ -8,7 +8,7 @@ from flask_jwt_extended import (
 )
 from werkzeug.urls import url_parse
 
-from backend import app, jwt, redis_client
+from backend import app, db, jwt, redis_client
 from backend.models import User
 
 from . import auth
@@ -115,3 +115,42 @@ def logout():
     jti = get_raw_jwt()["jti"]
     redis_client.set(jti, "true", app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.2)
     return jsonify(message="User logged out", type="LOGGED_OUT"), 200
+
+
+@auth.route("/reset", methods=["PATCH"])
+@jwt_required
+def reset_password():
+    identity = get_jwt_identity()
+    request_user = User.query.filter_by(username=identity["username"]).first()
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    old_password = request.json.get("oldpassword", None)
+    new_password = request.json.get("newpassword", None)
+
+    if request_user is None or not request_user.check_password(old_password):
+        return (
+            jsonify(
+                message="Incorrect password!", type="INCORRECT_CREDENTIALS"
+            ),
+            401,
+        )
+
+    if new_password is None or new_password is "":
+        return (
+            jsonify(
+                message="New password field is blank!"
+            ),
+            400,
+        )
+
+    try:
+        request_user.set_password(new_password)
+        db.session.commit()
+    except Exception as e:
+        app.logger.error("Error resetting the user password")
+        app.logger.error(e)
+        return jsonify(message="Error resetting the user password!"), 500
+
+    return jsonify(user_id=request_user.id, message="User password has been reset!"), 200
