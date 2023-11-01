@@ -14,10 +14,12 @@ import {
   faForward,
   faPlayCircle,
   faPauseCircle,
+  faTrashAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import Alert from "../components/alert";
 import { IconButton, Button } from "../components/button";
 import Loader from "../components/loader";
+import FormModal from "../containers/modal";
 
 class Annotate extends React.Component {
   constructor(props) {
@@ -37,6 +39,7 @@ class Annotate extends React.Component {
       isDataLoading: false,
       wavesurfer: null,
       zoom: 100,
+      modalShow: false,
       referenceTranscription: null,
       isMarkedForReview: false,
       selectedSegment: null,
@@ -143,6 +146,10 @@ class Annotate extends React.Component {
           isDataLoading: false,
         });
       });
+  }
+
+  setModalShow(modalShow) {
+    this.setState({ modalShow });
   }
 
   loadRegions(regions) {
@@ -347,11 +354,18 @@ class Annotate extends React.Component {
     });
   }
 
+  handleDeleteData(e, dataId) {
+    this.setModalShow(true);
+  }
+
   render() {
     const {
       zoom,
       isPlaying,
       labels,
+      modalShow,
+      dataId,
+      projectId,
       isDataLoading,
       isMarkedForReview,
       referenceTranscription,
@@ -433,6 +447,14 @@ class Annotate extends React.Component {
                       }}
                     />
                   </div>
+                  <div className="col-1">
+                    <IconButton
+                      icon={faTrashAlt}
+                      size="2x"
+                      title="Remove Data"
+                      onClick={(e) => this.handleDeleteData(e, dataId)}
+                    />
+                  </div>
                 </div>
                 <div className="row justify-content-center">
                   <div className="col-1">
@@ -510,7 +532,7 @@ class Annotate extends React.Component {
                                   selectedSegment.data.annotations &&
                                   selectedSegment.data.annotations[key] &&
                                   selectedSegment.data.annotations[key][
-                                  "values"
+                                    "values"
                                   ]) ||
                                 (value["type"] === "multiselect" ? [] : "")
                               }
@@ -578,6 +600,17 @@ class Annotate extends React.Component {
                   </div>
                 </div>
               </div>
+            ) : null}
+            {modalShow ? (
+              <FormModal
+                onExited={() => this.refreshPage()}
+                formType="DELETE_DATA"
+                title="Deleting data"
+                dataId={dataId}
+                projectId={projectId}
+                show={modalShow}
+                onHide={() => this.setModalShow(false)}
+              />
             ) : null}
           </div>
         </div>

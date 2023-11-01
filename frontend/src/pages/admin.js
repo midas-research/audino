@@ -9,6 +9,7 @@ import {
   faUserPlus,
   faTags,
   faDownload,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
@@ -85,6 +86,17 @@ class Admin extends React.Component {
     this.setModalShow(true);
     this.setState({ formType: "EDIT_USER", title: "Edit User", userId });
   }
+
+  handleRemoveUser(e, user) {
+    console.log("We are removing the user: ", user);
+    this.setModalShow(true);
+    this.setState({
+      formType: "DELETE_USER",
+      title: "Deleting user",
+      user: user,
+    });
+  }
+
 
   handleAddLabelsToProject(e, projectId) {
     const { history } = this.props;
@@ -165,6 +177,31 @@ class Admin extends React.Component {
       });
   }
 
+  handleDeleteProject(e, projectId) {
+    console.log("will delete: ", projectId);
+    axios({
+      method: "post",
+      url: "/api/rmprojects",
+      data: {
+        projectId,
+      },
+    })
+      .then((response) => {
+        if (response.status === 201) {
+          this.setState({ successMessage: response.data.message });
+        }
+        this.refreshPage();
+      })
+      .catch((error) => {
+        console.log(error.response);
+        this.setState({
+          errorMessage: error.response.data.message,
+          successMessage: "",
+          isSubmitting: false,
+        });
+      });
+  }
+
   setModalShow(modalShow) {
     this.setState({ modalShow });
   }
@@ -180,6 +217,7 @@ class Admin extends React.Component {
       formType,
       userId,
       projectId,
+      user,
     } = this.state;
 
     return (
@@ -194,6 +232,7 @@ class Admin extends React.Component {
             title={title}
             show={modalShow}
             userId={userId}
+            user={user}
             projectId={projectId}
             onHide={() => this.setModalShow(false)}
           />
@@ -272,6 +311,17 @@ class Admin extends React.Component {
                                 )
                               }
                             />
+                            <IconButton
+                              icon={faTrash}
+                              size="sm"
+                              title={"Delete Project"}
+                              onClick={(e) =>
+                                this.handleDeleteProject(
+                                  e,
+                                  project["project_id"]
+                                )
+                              }
+                            />
                           </td>
                         </tr>
                       );
@@ -328,6 +378,14 @@ class Admin extends React.Component {
                               title={"Edit user"}
                               onClick={(e) =>
                                 this.handleEditUser(e, user["user_id"])
+                              }
+                            />
+                            <IconButton
+                              icon={faTrash}
+                              size="sm"
+                              title={"Remove user"}
+                              onClick={(e) =>
+                                this.handleRemoveUser(e, user)
                               }
                             />
                             {/* <IconButton
