@@ -107,6 +107,7 @@ class Annotate extends React.Component {
           reference_transcription,
           is_marked_for_review,
           segmentations,
+          original_filename,
           filename,
         } = response[1].data;
 
@@ -126,6 +127,7 @@ class Annotate extends React.Component {
           isDataLoading: false,
           referenceTranscription: reference_transcription,
           isMarkedForReview: is_marked_for_review,
+          original_filename,
           filename,
         });
 
@@ -353,6 +355,7 @@ class Annotate extends React.Component {
       isPlaying,
       labels,
       isDataLoading,
+      original_filename,
       isMarkedForReview,
       referenceTranscription,
       selectedSegment,
@@ -367,6 +370,11 @@ class Annotate extends React.Component {
           <title>Annotate</title>
         </Helmet>
         <div className="container h-100">
+          {!isDataLoading ? (
+            <div className="row justify-content-md-center my-4 font-weight-bold h4">
+              {original_filename}
+            </div>
+          ) : null}
           <div className="h-100 mt-5 text-center">
             {errorMessage ? (
               <Alert
