@@ -109,7 +109,6 @@ def show_current_user(request, format=None):
 
     if request.method == "PATCH":
         data = JSONParser().parse(request)
-        print(data)
         serializer = UserSerializer(auth_user, data=data)
         if serializer.is_valid():
             serializer.save()
