@@ -45,16 +45,10 @@ class UserSignUpSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "first_name", "last_name")
+        fields = ("id", "username", "first_name", "last_name", "email", "is_active")
 
 
 class GetUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
-
-
-class CurrentUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("id", "username", "first_name", "last_name", "email", "is_active")

@@ -1,3 +1,4 @@
+from core.utils import get_paginator
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -11,7 +12,6 @@ from rest_framework.response import Response
 
 from .manager import TokenAuthentication
 from .models import User
-from .serializers import CurrentUserSerializer
 from .serializers import GetUserSerializer
 from .serializers import UserSerializer
 from .serializers import UserSignUpSerializer
@@ -95,10 +95,10 @@ def edit_details(request, format=None):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def show_current_users(request, format=None):
+def show_current_user(request, format=None):
     try:
         auth_user = User.objects.get(email=request.user.email)
     except User.DoesNotExist:
@@ -107,7 +107,16 @@ def show_current_users(request, format=None):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    serializer = CurrentUserSerializer(auth_user)
+    if request.method == "PATCH":
+        data = JSONParser().parse(request)
+        print(data)
+        serializer = UserSerializer(auth_user, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = UserSerializer(auth_user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -115,12 +124,14 @@ def show_current_users(request, format=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def show_users(request, format=None):
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 1)
+    paginator = get_paginator(page, page_size)
+
     all_users = User.objects.all()
-    serialized_data = CurrentUserSerializer(all_users, many=True)
-    return Response(
-        {"results": serialized_data.data, "next": None, "prev": None},
-        status=status.HTTP_200_OK,
-    )
+    results = paginator.paginate_queryset(all_users, request)
+    serialized_data = UserSerializer(results, many=True)
+    return paginator.get_paginated_response(serialized_data.data)
 
 
 @api_view(["GET", "DELETE"])
