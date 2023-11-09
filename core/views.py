@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from users.manager import TokenAuthentication
 
 from .models import Annotation as AnnotationModel
+from .models import AnnotationData as AnnotationDataModel
 from .models import AnnotationAttribute as AnnotationAttributeModel
 from .models import Attribute as AttributeModel
 from .models import Data as DataModel
@@ -490,6 +491,7 @@ def get_task_by_id(request, task_id, format=None):
 @permission_classes([IsAuthenticated])
 def add_data(request, task_id, format=None):
     if request.method == "POST":
+        print(request.data)
         file_data = {
             "task": task_id,
             "filename": request.data["file"].name,
@@ -530,26 +532,36 @@ def job_annotation(request, job_id, format=None):
         data["job"] = job_id
 
         if "id" in data:
-            annotation = AnnotationModel.objects.get(id=id)
+            print("Old")
+            annotation = AnnotationModel.objects.get(id=data["id"])
             serializer = PostAnnotationSerializer(annotation, data=data)
             if serializer.is_valid():
                 ann = serializer.save()
                 for each_label in data["label"]:
+                    if "id" in each_label:
+                        label = AnnotationDataModel.objects.get(label=each_label["id"])
+                        label_serializer = AnnotationDataSerializer(
+                            label, data=each_label
+                        )
+                    else:
+                        label_serializer = AnnotationDataSerializer(data=each_label)
+                    if label_serializer.is_valid(): label_serializer.save()
+                    else: return Response(label_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
                     for each_attri in each_label["attributes"]:
-                        attri_obj = AnnotationAttributeModel.objects.get(
-                            id=each_attri["id"]
-                        )
                         each_attri["values"] = str(each_attri["values"])
-                        ann_attribute_serializer = AnnotationAttributeSerializer(
-                            attri_obj, data=each_attri
-                        )
-                        if ann_attribute_serializer.is_valid():
-                            ann_attribute_serializer.save()
-                        else:
-                            return Response(
-                                ann_attribute_serializer.errors,
-                                status=status.HTTP_400_BAD_REQUEST,
+                        if "id" in each_attri:
+                            attri_obj = AnnotationAttributeModel.objects.get(
+                                attribute=each_attri["id"]
                             )
+                            ann_attribute_serializer = AnnotationAttributeSerializer(
+                                attri_obj, data=each_attri
+                            )
+                        else:
+                            ann_attribute_serializer = AnnotationAttributeSerializer(data=each_attri)
+
+                        if ann_attribute_serializer.is_valid(): ann_attribute_serializer.save()
+                        else: return Response(ann_attribute_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
                 final_data = dict(GetAnnotationSerializer(ann).data)
                 final_data = convert_string_lists_to_lists(final_data)
@@ -557,6 +569,7 @@ def job_annotation(request, job_id, format=None):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        print("New")
         serializer = PostAnnotationSerializer(data=data)
         if serializer.is_valid():
             annotation_obj = serializer.save()

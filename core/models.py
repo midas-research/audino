@@ -22,10 +22,10 @@ class Storage(models.Model):
 class Project(models.Model):
     name = models.CharField(max_length=255)
     source_storage = models.ForeignKey(
-        Storage, on_delete=models.SET_NULL, null=True, related_name="source"
+        Storage, on_delete=models.CASCADE, null=True, related_name="source"
     )
     target_storage = models.ForeignKey(
-        Storage, on_delete=models.SET_NULL, null=True, related_name="target"
+        Storage, on_delete=models.CASCADE, null=True, related_name="target"
     )
     owner = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="owner"
@@ -45,7 +45,7 @@ class Label(models.Model):
     project = models.ForeignKey(
         Project,
         verbose_name="Projects",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name="labels",
     )
@@ -66,7 +66,7 @@ class Label(models.Model):
 
 class Attribute(models.Model):
     INPUT_CHOICES = (("select", "select"), ("radio", "radio"))
-    label = models.ForeignKey(Label, on_delete=models.SET_NULL, default=None, null=True)
+    label = models.ForeignKey(Label, on_delete=models.CASCADE, default=None, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
     mutable = models.BooleanField(default=False)
     input_type = models.CharField(
@@ -86,7 +86,7 @@ class Task(models.Model):
         ("Validation", "Validation"),
     )
     name = models.CharField(max_length=200, null=True, blank=True)
-    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     subset = models.CharField(max_length=64, choices=SUBSET_CHOICES, default="train")
     assignee = models.ForeignKey(
@@ -98,13 +98,13 @@ class Task(models.Model):
     labels = models.ManyToManyField(Label, default=None, blank=True)
     source_storage = models.ForeignKey(
         Storage,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name="source_stg",
     )
     target_storage = models.ForeignKey(
         Storage,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name="target_stg",
     )
@@ -118,7 +118,7 @@ class Task(models.Model):
 class Data(models.Model):
     task = models.ForeignKey(
         Task,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         related_name="associated_task",
     )
@@ -144,8 +144,8 @@ class Job(models.Model):
         ("validation", "validation"),
         ("acceptance", "acceptance"),
     )
-    task_id = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
-    project_id = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
+    task_id = models.ForeignKey(Task, on_delete=models.CASCADE, null=True)
+    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     assignee = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -168,7 +168,7 @@ class Job(models.Model):
 
 class AnnotationAttribute(models.Model):
     attribute = models.ForeignKey(
-        Attribute, on_delete=models.SET_NULL, blank=True, null=True
+        Attribute, on_delete=models.CASCADE, blank=True, null=True
     )
     values = models.CharField(max_length=200, blank=True, null=True)
 
@@ -178,7 +178,7 @@ class AnnotationAttribute(models.Model):
 
 class AnnotationData(models.Model):
     label = models.ForeignKey(
-        Label, on_delete=models.SET_NULL, null=True, related_name="annotation_label"
+        Label, on_delete=models.CASCADE, null=True, related_name="annotation_label"
     )
     name = models.CharField(max_length=200, blank=True, null=True)
     attributes = models.ManyToManyField(
@@ -192,7 +192,7 @@ class AnnotationData(models.Model):
 class Annotation(models.Model):
     job = models.ForeignKey(
         Job,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="annotation_job",
         null=True,
     )
