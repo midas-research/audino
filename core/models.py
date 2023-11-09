@@ -22,16 +22,16 @@ class Storage(models.Model):
 class Project(models.Model):
     name = models.CharField(max_length=255)
     source_storage = models.ForeignKey(
-        Storage, on_delete=models.CASCADE, null=True, blank=True, related_name="source"
+        Storage, on_delete=models.CASCADE, null=True, related_name="source"
     )
     target_storage = models.ForeignKey(
-        Storage, on_delete=models.CASCADE, null=True, blank=True, related_name="target"
+        Storage, on_delete=models.CASCADE, null=True, related_name="target"
     )
     owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, null=True, blank=True, related_name="owner"
+        User, on_delete=models.SET_NULL, null=True, related_name="owner"
     )
     assignee = models.ForeignKey(
-        User, on_delete=models.CASCADE, null=True, blank=True, related_name="assignee"
+        User, on_delete=models.SET_NULL, null=True, related_name="assignee"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,7 +47,6 @@ class Label(models.Model):
         verbose_name="Projects",
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
         related_name="labels",
     )
     name = models.CharField(max_length=65, blank=True, null=True)
@@ -62,14 +61,12 @@ class Label(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.project.name
+        return str(self.id)
 
 
 class Attribute(models.Model):
     INPUT_CHOICES = (("select", "select"), ("radio", "radio"))
-    label = models.ForeignKey(
-        Label, on_delete=models.DO_NOTHING, default=None, blank=True, null=True
-    )
+    label = models.ForeignKey(Label, on_delete=models.CASCADE, default=None, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
     mutable = models.BooleanField(default=False)
     input_type = models.CharField(
@@ -79,7 +76,7 @@ class Attribute(models.Model):
     values = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.label.name
+        return str(self.id)
 
 
 class Task(models.Model):
@@ -89,16 +86,13 @@ class Task(models.Model):
         ("Validation", "Validation"),
     )
     name = models.CharField(max_length=200, null=True, blank=True)
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, null=True, blank=True
-    )
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     subset = models.CharField(max_length=64, choices=SUBSET_CHOICES, default="train")
     assignee = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
-        blank=True,
         related_name="task_assignee",
     )
     labels = models.ManyToManyField(Label, default=None, blank=True)
@@ -106,14 +100,12 @@ class Task(models.Model):
         Storage,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
         related_name="source_stg",
     )
     target_storage = models.ForeignKey(
         Storage,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
         related_name="target_stg",
     )
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
@@ -127,7 +119,6 @@ class Data(models.Model):
     task = models.ForeignKey(
         Task,
         on_delete=models.CASCADE,
-        blank=True,
         null=True,
         related_name="associated_task",
     )
@@ -153,19 +144,16 @@ class Job(models.Model):
         ("validation", "validation"),
         ("acceptance", "acceptance"),
     )
-    task_id = models.ForeignKey(Task, on_delete=models.CASCADE, blank=True, null=True)
-    project_id = models.ForeignKey(
-        Project, on_delete=models.CASCADE, blank=True, null=True
-    )
+    task_id = models.ForeignKey(Task, on_delete=models.CASCADE, null=True)
+    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     assignee = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
-        blank=True,
+        on_delete=models.SET_NULL,
         null=True,
         related_name="job_assignee",
     )
     guide_id = models.ForeignKey(
-        User, on_delete=models.CASCADE, blank=True, null=True, related_name="guide"
+        User, on_delete=models.SET_NULL, null=True, related_name="guide"
     )
     state = models.CharField(max_length=100, choices=STATE_CHOICES, default="new")
     stage = models.CharField(
@@ -175,22 +163,22 @@ class Job(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.project_id.name
+        return str(self.id)
 
 
 class AnnotationAttribute(models.Model):
     attribute = models.ForeignKey(
-        Attribute, on_delete=models.DO_NOTHING, blank=True, null=True
+        Attribute, on_delete=models.CASCADE, blank=True, null=True
     )
     values = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
-        return self.attribute.name
+        return str(self.id)
 
 
 class AnnotationData(models.Model):
     label = models.ForeignKey(
-        Label, on_delete=models.CASCADE, blank=True, related_name="annotation_label"
+        Label, on_delete=models.CASCADE, null=True, related_name="annotation_label"
     )
     name = models.CharField(max_length=200, blank=True, null=True)
     attributes = models.ManyToManyField(
@@ -198,7 +186,7 @@ class AnnotationData(models.Model):
     )
 
     def __str__(self):
-        return self.label.name
+        return str(self.id)
 
 
 class Annotation(models.Model):
@@ -206,7 +194,6 @@ class Annotation(models.Model):
         Job,
         on_delete=models.CASCADE,
         related_name="annotation_job",
-        blank=True,
         null=True,
     )
     start = models.CharField(max_length=200, blank=True, null=True)
@@ -217,6 +204,8 @@ class Annotation(models.Model):
     labels = models.ManyToManyField(
         AnnotationData, blank=True, related_name="annotation_data"
     )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.name
