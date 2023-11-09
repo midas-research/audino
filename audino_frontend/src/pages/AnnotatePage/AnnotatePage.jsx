@@ -30,6 +30,7 @@ import { MagnifyingGlassPlusIcon } from "@heroicons/react/20/solid";
 import { createAnnotationRequest } from "../../store/Actions/annotateAction";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  deleteAnnotationAPi,
   fetchAllAnnotationApi,
   fetchAnnotationDataApi,
   fetchJobDetailApi,
@@ -285,12 +286,42 @@ export default function AnnotatePage({}) {
     nextRegions.pop();
 
     setRegions(nextRegions);
+    setSelectedSegment(null);
   }, [regions]);
 
-  const removeCurrentRegion = useCallback(() => {
-    setRegions((prevRegions) => prevRegions.filter((reg) => reg.id !== selectedSegment.id));
-    setSelectedSegment(null);
-  }, [regions, selectedSegment]);
+  // remove annotation data
+  const removeAnnotationMutation = useMutation({
+    mutationFn: deleteAnnotationAPi,
+    onSuccess: (data, { id, index }) => {
+      console.log("data", data);
+      toast.success(`Annotation deleted successfully`);
+      // Update the regions
+      setRegions((prevRegions) =>
+        prevRegions.filter((reg) => reg.id !== selectedSegment.id)
+      );
+      setSelectedSegment(null);
+    },
+  });
+
+  const removeCurrentRegion = () => {
+    if (selectedSegment?.id) {
+      const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
+      if (!hasWavesurfer) {
+        removeAnnotationMutation.mutate({
+          data: {},
+          jobId,
+          annotationId: selectedSegment.id,
+        });
+      } else {
+        setRegions((prevRegions) =>
+          prevRegions.filter((reg) => reg.id !== selectedSegment.id)
+        );
+        setSelectedSegment(null);
+      }
+    } else {
+      toast.error("Please select a segment to delete");
+    }
+  };
 
   const removeLastMarker = useCallback(() => {
     let nextMarkers = [...markers];
@@ -355,7 +386,8 @@ export default function AnnotatePage({}) {
           updatedRegion[regionIndex].start = region.start.toFixed(2);
           updatedRegion[regionIndex].end = region.end.toFixed(2);
           updatedRegion[regionIndex].color = `rgba(${r}, ${g}, ${b}, 0.5)`;
-          updatedRegion[regionIndex].attributes.label = "#"+r.toString().slice(0, 2);
+          updatedRegion[regionIndex].attributes.label =
+            "#" + r.toString().slice(0, 2);
           updatedRegion[regionIndex].data.transcription = "";
           updatedRegion[regionIndex].data.labels = getLabelsForRegion();
         } else {
@@ -363,6 +395,7 @@ export default function AnnotatePage({}) {
           updatedRegion[regionIndex].start = region.start.toFixed(2);
           updatedRegion[regionIndex].end = region.end.toFixed(2);
         }
+        updatedRegion[regionIndex].data.isSaved = false;
         setRegions(updatedRegion);
         setSelectedSegment(updatedRegion[regionIndex]);
       }
@@ -524,6 +557,7 @@ export default function AnnotatePage({}) {
             label: item.name,
           },
           data: {
+            isSaved: true,
             transcription: item.transcription,
             systemRegionId: item.id,
             labels:
@@ -668,6 +702,7 @@ export default function AnnotatePage({}) {
             label: "#" + r.toString().slice(0, 2),
           },
           data: {
+            isSaved: false,
             transcription: "",
             labels: labels,
           },
@@ -684,9 +719,13 @@ export default function AnnotatePage({}) {
       toast.success(`Annotation ${data.name} saved successfully`);
       // Update the region object with backend id
       const updatedRegion = [...regions];
-      const regionIndex = regions.findIndex((reg) => reg.id === selectedSegment.id);
-      updatedRegion[regionIndex].id= data.id;
-      setRegions(updatedRegion)
+      const regionIndex = regions.findIndex(
+        (reg) => reg.id === selectedSegment.id
+      );
+      updatedRegion[regionIndex].id = data.id;
+      updatedRegion[regionIndex].data.isSaved = true;
+      setRegions(updatedRegion);
+      setSelectedSegment(updatedRegion[regionIndex]);
     },
   });
   const handleSave = () => {
@@ -793,14 +832,25 @@ export default function AnnotatePage({}) {
                     cursorColor="transparent"
                     waveColor="#65B892"
                   >
-                    {regions.map((regionProps) => (
-                      <Region
-                        onUpdateEnd={handleRegionUpdate}
-                        className="text-base font-semibold leading-6 text-gray-900"
-                        key={regionProps.id}
-                        {...regionProps}
-                      />
-                    ))}
+                    {regions.map((regionProps) => {
+                      const tempRegion = { ...regionProps };
+                      const attributes = tempRegion.attributes;
+                      delete tempRegion.attributes;
+                      console.log("tempRegion", tempRegion, attributes);
+                      return (
+                        <Region
+                          onUpdateEnd={handleRegionUpdate}
+                          className="text-base font-semibold leading-6 text-gray-900 "
+                          key={tempRegion.id}
+                          attributes={{
+                            label: `${attributes?.label} ${
+                              tempRegion.data.isSaved ? " (saved)" : " (unsaved)"
+                            }`,
+                          }}
+                          {...tempRegion}
+                        />
+                      );
+                    })}
                     {markers.map((marker, index) => {
                       return (
                         <Marker
@@ -840,10 +890,13 @@ export default function AnnotatePage({}) {
                       {/* <PrimaryButton onClick={generateMarker}>
                         Generte Marker
                       </PrimaryButton> */}
-                      <PrimaryButton onClick={removeLastRegion}>
+                      {/* <PrimaryButton onClick={removeLastRegion}>
                         Remove last region
-                      </PrimaryButton>
-                      <PrimaryButton onClick={removeCurrentRegion}>
+                      </PrimaryButton> */}
+                      <PrimaryButton
+                        onClick={removeCurrentRegion}
+                        loading={removeAnnotationMutation.isLoading}
+                      >
                         Remove current region
                       </PrimaryButton>
                       {/* <PrimaryButton onClick={removeLastMarker}>
@@ -925,7 +978,7 @@ export default function AnnotatePage({}) {
                     <dl className="divide-y divide-gray-100">
                       <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt className="text-sm font-medium leading-6 text-gray-900">
-                          Segment name 
+                          Segment name
                         </dt>
                         <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                           {selectedSegment.attributes.label}
@@ -1032,9 +1085,12 @@ export default function AnnotatePage({}) {
                       <button
                         type="button"
                         className="rounded-md bg-white px-3 py-2 text-sm font-medium text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
-                        onClick={() => null}
+                        onClick={removeCurrentRegion}
+                        disabled={removeAnnotationMutation.isLoading}
                       >
-                        Delete
+                        {removeAnnotationMutation.isLoading
+                          ? "Deleting..."
+                          : "Delete"}
                       </button>
                       <PrimaryButton
                         onClick={() => handleSave()}
@@ -1046,8 +1102,6 @@ export default function AnnotatePage({}) {
                   </div>
                 </div>
               ) : null}
-
-
             </>
           }
         </div>

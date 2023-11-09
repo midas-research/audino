@@ -103,3 +103,18 @@ export const getAllAnnotationApi = async ({data, jobId}) => {
   }
 };
 
+
+export const deleteAnnotationAPi = async ({data, jobId, annotationId}) => {
+  try {
+    const res = await axios.delete(BASE_URL + "/jobs/" + jobId + "/annotation/" + annotationId, {
+      params: {
+        org: data?.org,
+      },
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (e) {
+    throw Error(e.response?.data?.msg ?? "Something went wrong");
+  }
+};
+

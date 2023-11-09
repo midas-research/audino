@@ -117,7 +117,7 @@ export default function AddProjectPage() {
       ...labels_obj,
       results: [
         ...labels_obj.results,
-        { name: "", type: "any", attributes: [] },
+        { name: "", label_type: "any", attributes: [] },
       ],
     });
     setShowEmojiList((prev) => [...prev, false]);
