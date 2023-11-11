@@ -20,5 +20,6 @@ ENV POSTGRES_PASSWORD=AQYjs5IzN8Ld
 ENV POSTGRES_DB=audino
 ENV POSTGRES_HOST="ep-solitary-resonance-25353924.eu-central-1.aws.neon.tech"
 
+EXPOSE 8000 
 RUN python manage.py migrate
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
