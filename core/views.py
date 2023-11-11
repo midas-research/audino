@@ -360,7 +360,7 @@ def tasks(request, format=None):
         if serializer.is_valid():
             task_obj = serializer.save()
             job_data = {
-                "assignee": task_obj.assignee.id,
+                "assignee": task_obj.assignee.id if task_obj.assignee else None,
                 "stage": "annotation",
                 "state": "new",
                 "project_id": task_obj.project.id,
@@ -601,11 +601,18 @@ def annotations(request, job_id, a_id, format=None):
     if request.method == "PATCH":
         data = JSONParser().parse(request)
 
+        labels = annotation.labels.values()
+        for each_label in labels:
+            label_obj = AnnotationDataModel.objects.get(id=each_label['id'])
+            for each_annotation in label_obj.attributes.values():
+                AnnotationAttributeModel.objects.get(id=each_annotation['id']).delete()
+
+            label_obj.delete()
+
         serializer = PostAnnotationSerializer(annotation, data=data)
         if serializer.is_valid():
             ann = serializer.save()
             for each_label in data["label"]:
-                AnnotationDataModel.objects.filter(label=each_label['id']).delete()
                 ann_data = {
                     "label": each_label["id"],
                     "name": LabelModel.objects.get(id=each_label["id"]).name,
@@ -616,7 +623,6 @@ def annotations(request, job_id, a_id, format=None):
                     ann.labels.add(ann_obj)
 
                     for each_attri in each_label["attributes"]:
-                        AnnotationAttributeModel.objects.filter(attribute=each_attri['id']).delete()
                         ann_attribute_data = {
                             "attribute": each_attri["id"],
                             "values": str(each_attri["values"]),
@@ -636,22 +642,6 @@ def annotations(request, job_id, a_id, format=None):
                     return Response(
                         ann_data_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
-
-                # for each_attri in each_label["attributes"]:
-                #     attri_obj = AnnotationAttributeModel.objects.get(
-                #         id=each_attri["id"]
-                #     )
-                #     each_attri["values"] = str(each_attri["values"])
-                #     ann_attribute_serializer = AnnotationAttributeSerializer(
-                #         attri_obj, data=each_attri
-                #     )
-                #     if ann_attribute_serializer.is_valid():
-                #         ann_attribute_serializer.save()
-                #     else:
-                #         return Response(
-                #             ann_attribute_serializer.errors,
-                #             status=status.HTTP_400_BAD_REQUEST,
-                #         )
 
             final_data = dict(GetAnnotationSerializer(ann).data)
             final_data = convert_string_lists_to_lists(final_data)
