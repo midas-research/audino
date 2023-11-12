@@ -1,5 +1,4 @@
 import requests
-import ast
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -13,6 +12,7 @@ from rest_framework.response import Response
 from users.manager import TokenAuthentication
 
 from .models import Annotation as AnnotationModel
+from .models import AnnotationData as AnnotationDataModel
 from .models import AnnotationAttribute as AnnotationAttributeModel
 from .models import Attribute as AttributeModel
 from .models import Data as DataModel
@@ -37,6 +37,7 @@ from .serializers import PostTaskSerializer
 from .serializers import StorageSerializer
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
+
 
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
@@ -64,7 +65,7 @@ def get_add_project(request, format=None):
                     label_obj = {
                         "project": project_obj.id,
                         "name": each_label["name"],
-                        "label_type": each_label["type"],
+                        "label_type": each_label["label_type"],
                     }
                     label_serializer = PostLabelSerializer(data=label_obj)
                     if label_serializer.is_valid():
@@ -96,14 +97,16 @@ def get_add_project(request, format=None):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    search_query = request.GET.get("search")
-    page = request.GET.get("page")
-    page_size = request.GET.get("page_size")
-    projects = ProjectModel.objects.all().order_by("-created_at")
+    search_query = request.GET.get("search", None)
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 1)
+    projects = ProjectModel.objects.filter(
+        Q(owner=request.user) | Q(assignee=request.user)
+    ).order_by("created_at")
 
-    if(search_query != None):
+    if search_query:
         projects = projects.filter(Q(name__icontains=search_query))
-     
+
     paginator = get_paginator(page, page_size)
     result = paginator.paginate_queryset(projects, request)
     serializer = GetProjectSerializer(result, many=True)
@@ -122,10 +125,9 @@ def update_project(request, id, format=None):
         )
 
     if request.method == "DELETE":
+        serializer = GetProjectSerializer(project)
         project.delete()
-        return Response(
-            {"message": "Project Deleted Successfully !"}, status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     if request.method == "PATCH":
         data = JSONParser().parse(request)
@@ -212,14 +214,8 @@ def get_labels(request, format=None):
     ).order_by("-created_at")
 
     serializer = GetLabelSerializer(labels, many=True)
-    temp_serializer = serializer.data
-
-    for each_serializer in temp_serializer:
-        each_serializer = dict(each_serializer)
-        for i, each_attribute in enumerate(each_serializer['attributes']):
-            each_serializer['attributes'][i] = dict(each_attribute)
-            each_serializer['attributes'][i]['values'] = ast.literal_eval(each_serializer['attributes'][i]['values'])
-
+    temp_serializer = convert_string_lists_to_lists(serializer.data)
+  
     return Response(temp_serializer, status=status.HTTP_200_OK)
 
 
@@ -235,10 +231,10 @@ def get_label_by_id(request, id, format=None):
         )
 
     if request.method == "DELETE":
+        serializer = GetLabelSerializer(label)
+        temp_serializer = convert_string_lists_to_lists(serializer.data)
         label.delete()
-        return Response(
-            {"message": "Label Deleted Successfully !"}, status=status.HTTP_200_OK
-        )
+        return Response(temp_serializer, status=status.HTTP_200_OK)
 
     if request.method == "PATCH":
         data = JSONParser().parse(request)
@@ -295,14 +291,16 @@ def jobs(request, format=None):
             return Response(job_serializer.data, status=status.HTTP_201_CREATED)
         return Response(job_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    search_query = request.GET.get("search")
-    page = request.GET.get("page")
-    page_size = request.GET.get("page_size")
-    jobs = JobModel.objects.all().order_by("-created_at")
+    search_query = request.GET.get("search", None)
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 1)
+    jobs = JobModel.objects.filter(
+        Q(guide_id=request.user) | Q(assignee=request.user)
+    ).order_by("created_at")
 
-    if(search_query != None):
+    if search_query:
         jobs = jobs.filter(Q(task_id__name__icontains=search_query))
-     
+
     paginator = get_paginator(page, page_size)
     result = paginator.paginate_queryset(jobs, request)
     serializer = GetJobSerializer(result, many=True)
@@ -321,10 +319,9 @@ def get_job_by_id(request, job_id, format=None):
         )
 
     if request.method == "DELETE":
+        serializer = GetJobSerializer(job)
         job.delete()
-        return Response(
-            {"message": "Job deleted successfully"}, status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     if request.method == "PATCH":
         data = JSONParser().parse(request)
@@ -362,7 +359,7 @@ def tasks(request, format=None):
         if serializer.is_valid():
             task_obj = serializer.save()
             job_data = {
-                "assignee": task_obj.assignee.id,
+                "assignee": task_obj.assignee.id if task_obj.assignee else None,
                 "stage": "annotation",
                 "state": "new",
                 "project_id": task_obj.project.id,
@@ -392,17 +389,17 @@ def tasks(request, format=None):
             return Response(final_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    search_query = request.GET.get("search")
-    page = request.GET.get("page")
-    page_size = request.GET.get("page_size")
+    search_query = request.GET.get("search", None)
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 1)
 
-    tasks = TaskModel.objects.all().order_by("-created_at")
+    tasks = TaskModel.objects.filter(
+        Q(owner=request.user) | Q(assignee=request.user)
+    ).order_by("created_at")
 
     if search_query:
-            tasks = tasks.filter(
-                Q(name__icontains=search_query)  
-            )
-            
+        tasks = tasks.filter(Q(name__icontains=search_query))
+
     paginator = get_paginator(page, page_size)
     temp = paginator.paginate_queryset(tasks, request)
 
@@ -443,10 +440,9 @@ def get_task_by_id(request, task_id, format=None):
         )
 
     if request.method == "DELETE":
+        serializer = GetTaskSerializer(task)
         task.delete()
-        return Response(
-            {"message": "Task deleted successfully"}, status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     if request.method == "PATCH":
         data = JSONParser().parse(request)
@@ -470,15 +466,6 @@ def get_task_by_id(request, task_id, format=None):
         serializer = PostTaskSerializer(task, data=data)
         if serializer.is_valid():
             serializer.save()
-            # for each_label in data['labels']:
-            #     if 'id' in each_label:
-            #         label_object = LabelModel.objects.get(id=each_label['id'])
-            #         label_serializer = PostLabelSerializer(label_object, data=each_label)
-
-            #         if label_serializer.is_valid():
-            #             label_serializer.save()
-            #         else: return Response(label_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -517,20 +504,18 @@ def add_data(request, task_id, format=None):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == "DELETE":
-        data = DataModel.objects.filter(task=task_id)
+        data = DataModel.objects.filter(task=task_id).first()
         if len(data) == 0:
             return Response(
                 {"message": "No data are associated with this task."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        serializer = DataSerializer(data)
         for each_data in data:
             each_data.delete()
 
-        return Response(
-            {"message": f"Data for task id {task_id} has been deleted successfully."},
-            status=status.HTTP_200_OK,
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     task_data = DataModel.objects.filter(task=task_id).first()
     serializer = DataSerializer(task_data)
@@ -582,26 +567,15 @@ def job_annotation(request, job_id, format=None):
             final_data = dict(GetAnnotationSerializer(annotation_obj).data)
             final_data = convert_string_lists_to_lists(final_data)
             return Response(final_data, status=status.HTTP_201_CREATED)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     annotations = AnnotationModel.objects.filter(job=job_id)
     if len(annotations) == 0:
         return Response([], status=status.HTTP_200_OK)
-    
+
     serializer = GetAnnotationSerializer(annotations, many=True)
-    temp_serializer = serializer.data
-    result = []
-    for each_serializer in temp_serializer:
-        each_serializer = dict(each_serializer)
-        for each_attribute in each_serializer['labels']:
-            each_attribute = dict(each_attribute)
-            for each_att in each_attribute['attributes']:
-                each_att['values'] = ast.literal_eval(each_att['values'])
-
-        result.append(each_serializer)
-
-    return Response(result, status=status.HTTP_200_OK)
+    temp_serializer = convert_string_lists_to_lists(serializer.data)
+    return Response(temp_serializer, status=status.HTTP_200_OK)
 
 
 @api_view(["GET", "DELETE", "PATCH"])
@@ -626,25 +600,47 @@ def annotations(request, job_id, a_id, format=None):
     if request.method == "PATCH":
         data = JSONParser().parse(request)
 
+        labels = annotation.labels.values()
+        for each_label in labels:
+            label_obj = AnnotationDataModel.objects.get(id=each_label['id'])
+            for each_annotation in label_obj.attributes.values():
+                AnnotationAttributeModel.objects.get(id=each_annotation['id']).delete()
+
+            label_obj.delete()
+
         serializer = PostAnnotationSerializer(annotation, data=data)
         if serializer.is_valid():
             ann = serializer.save()
             for each_label in data["label"]:
-                for each_attri in each_label["attributes"]:
-                    attri_obj = AnnotationAttributeModel.objects.get(
-                        id=each_attri["id"]
-                    )
-                    each_attri["values"] = str(each_attri["values"])
-                    ann_attribute_serializer = AnnotationAttributeSerializer(
-                        attri_obj, data=each_attri
-                    )
-                    if ann_attribute_serializer.is_valid():
-                        ann_attribute_serializer.save()
-                    else:
-                        return Response(
-                            ann_attribute_serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST,
+                ann_data = {
+                    "label": each_label["id"],
+                    "name": LabelModel.objects.get(id=each_label["id"]).name,
+                }
+                ann_data_serializer = AnnotationDataSerializer(data=ann_data)
+                if ann_data_serializer.is_valid():
+                    ann_obj = ann_data_serializer.save()
+                    ann.labels.add(ann_obj)
+
+                    for each_attri in each_label["attributes"]:
+                        ann_attribute_data = {
+                            "attribute": each_attri["id"],
+                            "values": str(each_attri["values"]),
+                        }
+                        ann_attribute_serializer = AnnotationAttributeSerializer(
+                            data=ann_attribute_data
                         )
+                        if ann_attribute_serializer.is_valid():
+                            ann_att_obj = ann_attribute_serializer.save()
+                            ann_obj.attributes.add(ann_att_obj)
+                        else:
+                            return Response(
+                                ann_attribute_serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+                else:
+                    return Response(
+                        ann_data_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
 
             final_data = dict(GetAnnotationSerializer(ann).data)
             final_data = convert_string_lists_to_lists(final_data)

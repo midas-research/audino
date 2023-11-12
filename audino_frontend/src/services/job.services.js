@@ -89,9 +89,42 @@ export const postAnnotationApi = async ({data, jobId}) => {
   }
 };
 
+export const putAnnotationApi = async ({data, jobId}) => {
+  try {
+    const res = await axios.patch(
+      BASE_URL + "/jobs/" + jobId + "/annotation/" + data.id,
+      data,
+      {
+        params: {
+          org: data?.org,
+        },
+        headers: { ...authHeader() },
+      }
+    );
+    return res.data;
+  } catch (e) {
+    throw Error(e.response?.data?.msg ?? "Something went wrong");
+  }
+};
+
 export const getAllAnnotationApi = async ({data, jobId}) => {
   try {
     const res = await axios.get(BASE_URL + "/jobs/" + jobId + "/annotation", {
+      params: {
+        org: data?.org,
+      },
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (e) {
+    throw Error(e.response?.data?.msg ?? "Something went wrong");
+  }
+};
+
+
+export const deleteAnnotationAPi = async ({data, jobId, annotationId}) => {
+  try {
+    const res = await axios.delete(BASE_URL + "/jobs/" + jobId + "/annotation/" + annotationId, {
       params: {
         org: data?.org,
       },

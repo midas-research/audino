@@ -38,7 +38,7 @@ export default function Root() {
           }
         />
         <Route
-          path="/annotate/:id"
+          path="/annotate/:taskId/:id"
           element={
             <Suspense fallback={<>Loading...</>}>
               <AnnotatePage />

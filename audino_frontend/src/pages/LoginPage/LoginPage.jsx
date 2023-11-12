@@ -145,20 +145,20 @@ function LoginPage({ }) {
                   </label>
                 </div>
 
-                <div className="text-sm leading-6">
+                {/* <div className="text-sm leading-6">
                   <NavLink
                     to="/"
                     className="font-semibold text-audino-primary hover:text-audino-primary-dark"
                   >
                     Forgot password?
                   </NavLink>
-                </div>
+                </div> */}
               </div>
 
               <PrimaryButton type="submit" loading={loginState.isLoginLoading} className="w-full">Sign in</PrimaryButton>
             </form>
 
-            <div>
+            {/* <div>
               <div className="relative mt-10">
                 <div
                   className="absolute inset-0 flex items-center"
@@ -215,7 +215,7 @@ function LoginPage({ }) {
                   </span>
                 </NavLink>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <p className="mt-10 text-center text-sm text-gray-500">
