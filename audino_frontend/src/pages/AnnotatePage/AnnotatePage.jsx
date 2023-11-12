@@ -35,6 +35,7 @@ import {
   fetchAnnotationDataApi,
   fetchJobDetailApi,
   postAnnotationApi,
+  putAnnotationApi,
 } from "../../services/job.services";
 import { fetchLabelsApi } from "../../services/project.services";
 import { toast } from "react-hot-toast";
@@ -65,6 +66,7 @@ function generateTwoNumsWithDistance(distance, min, max) {
 }
 
 export default function AnnotatePage({}) {
+  const { taskId: taskId } = useParams();
   const { id: jobId } = useParams();
   const dispatch = useDispatch();
   const { task, isTaskLoading } = useSelector((state) => state.taskReducer);
@@ -243,9 +245,9 @@ export default function AnnotatePage({}) {
           r.play();
         });
 
-        wavesurferRef.current.on("pause", (r, e) => {
-          setIsPlaying(false);
-        });
+        // wavesurferRef.current.on("pause", (r, e) => {
+        //   setIsPlaying(false);
+        // });
 
         if (window) {
           window.surferidze = wavesurferRef.current;
@@ -527,7 +529,7 @@ export default function AnnotatePage({}) {
     staleTime: Infinity,
     queryFn: () =>
       fetchAnnotationDataApi({
-        id: jobId,
+        id: taskId,
         org: "",
       }),
     onSuccess: (data) =>
@@ -726,8 +728,28 @@ export default function AnnotatePage({}) {
       updatedRegion[regionIndex].data.isSaved = true;
       setRegions(updatedRegion);
       setSelectedSegment(updatedRegion[regionIndex]);
+      getAllAnnotations.data.push(updatedRegion[regionIndex]);
     },
   });
+
+    // put annotation data
+    const putAnnotationMutation = useMutation({
+      mutationFn: putAnnotationApi,
+      onSuccess: (data, { id, index }) => {
+        console.log("data", data);
+        toast.success(`Annotation ${data.name} edited successfully`);
+        // Update the region object with backend id
+        const updatedRegion = [...regions];
+        const regionIndex = regions.findIndex(
+          (reg) => reg.id === selectedSegment.id
+        );
+        updatedRegion[regionIndex].id = data.id;
+        updatedRegion[regionIndex].data.isSaved = true;
+        setRegions(updatedRegion);
+        setSelectedSegment(updatedRegion[regionIndex]);
+      },
+    });
+
   const handleSave = () => {
     // Initialize an empty payload object
     const tempLabels = [];
@@ -755,8 +777,14 @@ export default function AnnotatePage({}) {
       // Add the label payload to the overall payload
       tempLabels.push(labelPayload);
     }
-
+    console.log("selectedSegment", selectedSegment.id);
+    console.log("getAllAnnotations.data", getAllAnnotations.data);
+    // check if the region is already saved or not
+    const regionIndex = getAllAnnotations.data.findIndex(
+      (reg) => reg.id === selectedSegment.id
+    );
     const payload = {
+      id: selectedSegment.id,
       name: selectedSegment.attributes.label,
       start: selectedSegment.start,
       end: selectedSegment.end,
@@ -764,7 +792,12 @@ export default function AnnotatePage({}) {
       transcription: selectedSegment.data.transcription,
       label: tempLabels,
     };
-    postAnnotationMutation.mutate({ data: payload, jobId: jobId });
+    if (regionIndex < 0) {
+      postAnnotationMutation.mutate({ data: payload, jobId: jobId });
+    } else {
+      console.log("editing....");
+      putAnnotationMutation.mutate({ data: payload, jobId: jobId });
+    }
     // console.log(regions, selectedSegment.data);
     // const regionIndex = regions.findIndex(
     //   (reg) => reg.id === selectedSegment.id
@@ -787,7 +820,8 @@ export default function AnnotatePage({}) {
     return regions[regionIndex].data.transcription;
   };
 
-  console.log("regions --->>> ", regions, selectedSegment);
+  console.log("regions --->>> ", regions);
+  console.log("selectedsegment --->>> ", selectedSegment);
   return (
     <>
       <AppBar>
@@ -834,19 +868,20 @@ export default function AnnotatePage({}) {
                   >
                     {regions.map((regionProps) => {
                       const tempRegion = { ...regionProps };
-                      const attributes = tempRegion.attributes;
-                      delete tempRegion.attributes;
-                      console.log("tempRegion", tempRegion, attributes);
+                      // const attributes = tempRegion.attributes;
+                      // delete tempRegion.attributes;
+
+                      // const labelSuffix = tempRegion.data.isSaved ? " (saved)" : " (unsaved)";
+                      // const updatedLabel = `${attributes?.label}${labelSuffix}`;
+                      // console.log("tempRegion", tempRegion, attributes);
                       return (
                         <Region
                           onUpdateEnd={handleRegionUpdate}
                           className="text-base font-semibold leading-6 text-gray-900 "
                           key={tempRegion.id}
-                          attributes={{
-                            label: `${attributes?.label} ${
-                              tempRegion.data.isSaved ? " (saved)" : " (unsaved)"
-                            }`,
-                          }}
+                          // attributes={{
+                          //   label: updatedLabel,
+                          // }}
                           {...tempRegion}
                         />
                       );
@@ -1033,7 +1068,7 @@ export default function AnnotatePage({}) {
                   <div className="mt-6 border-t border-gray-100">
                     <dl className="divide-y divide-gray-100">
                       {getLabelsQuery?.data.map((label, index) => (
-                        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0" key={`alllabels-${index}`}>
                           <dt className="text-sm font-medium leading-6 text-gray-900">
                             {label.name}
                           </dt>

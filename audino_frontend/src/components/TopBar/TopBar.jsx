@@ -98,7 +98,7 @@ export default function TopBar({
                 </div>
 
                 {/* Filters */}
-                <form className="mt-4">
+                {/* <form className="mt-4">
                   {filters.map((section) => (
                     <Disclosure
                       as="div"
@@ -161,7 +161,7 @@ export default function TopBar({
                       )}
                     </Disclosure>
                   ))}
-                </form>
+                </form> */}
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -236,7 +236,7 @@ export default function TopBar({
                       </Menu.Items>
                     </Transition>
                   </Menu> */}
-              <button
+              {/* <button
                 type="button"
                 className="inline-flex text-sm font-medium text-gray-700 hover:text-gray-900 sm:hidden"
                 onClick={() => setOpen(true)}
@@ -319,7 +319,7 @@ export default function TopBar({
                   ))}
                 </Popover.Group>
                 {children}
-              </div>
+              </div> */}
             </div>
           </div>
         </section>
