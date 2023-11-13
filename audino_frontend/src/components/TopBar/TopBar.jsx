@@ -247,9 +247,9 @@ export default function TopBar({
                     {appliedFilters.length}
                   </span>
                 ) : null}
-              </button>
+              </button> */}
               <div className="flex gap-5">
-                <Popover.Group className="hidden sm:flex sm:items-baseline sm:space-x-8">
+                {/* <Popover.Group className="hidden sm:flex sm:items-baseline sm:space-x-8">
                   {filters.map((section, sectionIdx) => (
                     <Popover
                       as="div"
@@ -317,9 +317,9 @@ export default function TopBar({
                       </Transition>
                     </Popover>
                   ))}
-                </Popover.Group>
+                </Popover.Group> */}
                 {children}
-              </div> */}
+              </div>
             </div>
           </div>
         </section>
