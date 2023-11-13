@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-buster-slim
 
 ENV NODE_ENV production
 
@@ -8,7 +8,7 @@ WORKDIR /audino-frontend
 
 COPY . .
 
-RUN npm install --production
+RUN npm install
 
 RUN npm run build
 
