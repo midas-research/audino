@@ -366,8 +366,10 @@ def tasks(request, format=None):
                 "guide_id": task_obj.owner.id,
                 "task_id": task_obj.id,
             }
+            print("JOB URL - ")
+            print(f"{request.build_absolute_uri('/')}api/jobs")
             resp = requests.post(
-                f"{request.build_absolute_uri('/')}api/jobs",
+                "https://app-api.audino.in/api/jobs",
                 data=job_data,
                 headers=header,
             )

@@ -28,9 +28,11 @@ SECRET_KEY = "django-insecure-blf-=2iis_y6%3*1_q(08v$o-#*6ote5!0wcxn!0*!c+elt_wv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost:3000', "localhost"]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost:3000', "localhost", "*"]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    "https://audino-frontend-qsuua57v7q-ue.a.run.app",
+    "https://app.audino.in",
+    "https://*"
 ]
 
 INSTALLED_APPS = [

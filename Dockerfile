@@ -12,14 +12,9 @@ RUN apt-get update && apt-get install -y postgresql-client gcc libffi-dev libc-d
 RUN pip install psycopg2-binary
 RUN pip install -r requirements.txt
 
-RUN adduser --disabled-password --gecos '' user
-USER user
-
-ENV POSTGRES_USER=contact
-ENV POSTGRES_PASSWORD=AQYjs5IzN8Ld
-ENV POSTGRES_DB=audino
-ENV POSTGRES_HOST="ep-solitary-resonance-25353924.eu-central-1.aws.neon.tech"
-
 EXPOSE 8000 
-RUN python manage.py migrate
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
