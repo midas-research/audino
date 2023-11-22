@@ -369,7 +369,7 @@ def tasks(request, format=None):
             print("JOB URL - ")
             print(f"{request.build_absolute_uri('/')}api/jobs")
             resp = requests.post(
-                "https://app-api.audino.in/api/jobs",
+                "http://localhost:8000/api/jobs",
                 data=job_data,
                 headers=header,
             )

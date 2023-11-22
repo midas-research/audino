@@ -78,6 +78,12 @@ const CustomToast = () => {
             color: "#b91c1c",
           },
         },
+        custom:{
+          style:{
+            background:'#fff',
+            color:'#000',
+          }
+        }
       }}
     />,
     document.getElementById("alert-modal")
