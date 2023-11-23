@@ -80,7 +80,8 @@ export default function AnnotatePage({}) {
 
   const [timelineVis, setTimelineVis] = useState(true);
   const [currentJob, setCurrentJob] = useState(null);
-  const [zoom, setZoom] = useState(0);
+  const [horizontalZoom, setHorizontalZoom] = useState(1);
+  const [verticalHeight, setVerticalHeight] = useState(1);
   const [verticalScroll, setVerticalScroll] = useState(0);
   const initialVerticalHeight = 1;
 
@@ -443,18 +444,19 @@ export default function AnnotatePage({}) {
     [regions]
   );
 
-  const handleZoomChange = (event) => {
+  const handleHorizontalZoomChange = (event) => {
     const newZoom = event.target.value;
-    setZoom(newZoom);
-
-    // Update horizontal zoom
+    setHorizontalZoom(newZoom);
     wavesurferRef.current.zoom(newZoom);
+  };
 
-    const verticalScalingFactor = 0.05;
+  const handleVerticalHeightChange = (event) => {
+    const newHeight = event.target.value;
+    setVerticalHeight(newHeight);
+    const verticalScalingFactor = 0.2;
     wavesurferRef.current.params.barHeight =
-      initialVerticalHeight + newZoom * verticalScalingFactor;
+      initialVerticalHeight + newHeight * verticalScalingFactor;
 
-    // Redraw the waveform
     wavesurferRef.current.drawBuffer();
   };
 
@@ -1037,8 +1039,23 @@ export default function AnnotatePage({}) {
                         type="range"
                         min="0"
                         max="200"
-                        value={zoom}
-                        onChange={handleZoomChange}
+                        value={horizontalZoom}
+                        onChange={handleHorizontalZoomChange}
+                        className="h-6 w-24 mx-2"
+                      />
+
+                      <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                    </div>
+
+                    <div className="flex items-center gap-2 justify-center mx-auto mt-4">
+                      <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={verticalHeight}
+                        onChange={handleVerticalHeightChange}
                         className="h-6 w-24 mx-2"
                       />
 
