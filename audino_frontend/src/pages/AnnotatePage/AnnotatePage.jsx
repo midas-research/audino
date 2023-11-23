@@ -81,6 +81,8 @@ export default function AnnotatePage({}) {
   const [timelineVis, setTimelineVis] = useState(true);
   const [currentJob, setCurrentJob] = useState(null);
   const [zoom, setZoom] = useState(0);
+  const [verticalScroll, setVerticalScroll] = useState(0);
+  const initialVerticalHeight = 1;
 
   const [markers, setMarkers] = useState([
     // {
@@ -225,6 +227,12 @@ export default function AnnotatePage({}) {
 
         wavesurferRef.current.on("ready", () => {
           console.log("WaveSurfer is ready");
+
+          // Set initial bar height
+          wavesurferRef.current.params.barHeight = initialVerticalHeight; // Replace initialBarHeight with your desired initial value
+          wavesurferRef.current.params.zoom(1); // Replace initialBarHeight with your desired initial value
+          wavesurferRef.current.params.scrollParent = true;
+          wavesurferRef.current.drawBuffer();
         });
 
         wavesurferRef.current.on("region-removed", (region) => {
@@ -438,7 +446,16 @@ export default function AnnotatePage({}) {
   const handleZoomChange = (event) => {
     const newZoom = event.target.value;
     setZoom(newZoom);
+
+    // Update horizontal zoom
     wavesurferRef.current.zoom(newZoom);
+
+    const verticalScalingFactor = 0.05;
+    wavesurferRef.current.params.barHeight =
+      initialVerticalHeight + newZoom * verticalScalingFactor;
+
+    // Redraw the waveform
+    wavesurferRef.current.drawBuffer();
   };
 
   const handleForward = useCallback(() => {
@@ -1024,6 +1041,7 @@ export default function AnnotatePage({}) {
                         onChange={handleZoomChange}
                         className="h-6 w-24 mx-2"
                       />
+
                       <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
                     </div>
                   </>
