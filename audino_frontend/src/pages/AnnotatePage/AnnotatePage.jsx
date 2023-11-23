@@ -295,51 +295,27 @@ export default function AnnotatePage({}) {
   // remove annotation data
   const removeAnnotationMutation = useMutation({
     mutationFn: deleteAnnotationAPi,
-    onSuccess: (data, { id, index }) => {
+    onSuccess: (data, { annotationId }) => {
       console.log("data", data);
       toast.success(`Annotation deleted successfully`);
       // Update the regions
       setRegions((prevRegions) =>
-        prevRegions.filter((reg) => reg.id !== selectedSegment.id)
+        prevRegions.filter((reg) => reg?.id !== annotationId)
       );
       setSelectedSegment(null);
     },
   });
 
-  // const removeCurrentRegion = () => {
-  //   if (selectedSegment?.id) {
-  //     const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
-
-  //     // const onClose = () => {
-  //     //   toast.dismiss();
-  //     // };
-
-  //     if (!hasWavesurfer) {
-
-  //       // toast.custom(() => <UndoToast onClose={onClose} />);
-  //       // setTimeout(() => {
-  //       //   // Backend call after 5 seconds if the user doesn't click "Undo"
-  //       //   // removeAnnotationMutation.mutate({
-  //       //   //   data: {},
-  //       //   //   jobId,
-  //       //   //   annotationId: selectedSegment.id,
-  //       //   // });
-  //       //   onClose(); // Dismiss the toast after the backend call
-  //       // }, 5000);
-  //     } else {
-  //       setRegions((prevRegions) =>
-  //         prevRegions.filter((reg) => reg.id !== selectedSegment.id)
-  //       );
-  //       setSelectedSegment(null);
-  //     }
-  //   } else {
-  //     toast.error("Please select a segment to delete");
-  //   }
-  // };
   const undoClickedRef = useRef(false);
 
+  const resetUndoClickedRef = () => {
+    undoClickedRef.current = false;
+  };
+
   const removeCurrentRegion = () => {
+    resetUndoClickedRef();
     if (selectedSegment?.id) {
+      const currentSegmentId = selectedSegment.id;
       const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
 
       const onClose = () => {
@@ -363,14 +339,14 @@ export default function AnnotatePage({}) {
             removeAnnotationMutation.mutate({
               data: {},
               jobId,
-              annotationId: selectedSegment.id,
+              annotationId: currentSegmentId,
             });
             onClose(); // Dismiss the toast after the backend call
           }
         }, 5000);
       } else {
         setRegions((prevRegions) =>
-          prevRegions.filter((reg) => reg.id !== selectedSegment.id)
+          prevRegions.filter((reg) => reg.id !== currentSegmentId)
         );
         setSelectedSegment(null);
       }

@@ -15,9 +15,11 @@ const SimpleUndoToast = ({ onClose, regionName }) => {
     <div className="max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 relative">
       <div className="w-full flex flex-row justify-between items-center p-2">
         <div className="p-1">
-          <p className="text-xs font-medium text-gray-500">Section Label: {regionName}</p>
+          <p className="text-xs font-medium text-gray-500">
+            Section Label: {regionName}
+          </p>
           <p className="text-sm font-medium text-gray-900">
-            region will get deleted in 5 seconds
+            Hold on! Deleting the selected region...
           </p>
         </div>
         <button
