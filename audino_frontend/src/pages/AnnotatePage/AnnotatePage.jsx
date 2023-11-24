@@ -315,44 +315,25 @@ export default function AnnotatePage({}) {
     },
   });
 
-  const undoClickedRef = useRef(false);
-
-  const resetUndoClickedRef = () => {
-    undoClickedRef.current = false;
-  };
-
   const removeCurrentRegion = () => {
-    resetUndoClickedRef();
     if (selectedSegment?.id) {
       const currentSegmentId = selectedSegment.id;
       const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
-
-      const onClose = () => {
-        toast.dismiss();
-      };
+      let undoTimer = null;
 
       if (!hasWavesurfer) {
-        toast.custom((t) => (
-          <UndoToast
-            onClose={() => {
-              onClose();
-              undoClickedRef.current = true; // Set flag to true on "Undo" click
-            }}
-            regionName={selectedSegment.attributes.label}
-          />
-        ));
-
-        setTimeout(() => {
-          if (!undoClickedRef.current) {
-            // Backend call after 5 seconds if the user doesn't click "Undo"
-            removeAnnotationMutation.mutate({
-              data: {},
-              jobId,
-              annotationId: currentSegmentId,
-            });
-            onClose(); // Dismiss the toast after the backend call
-          }
+        // Backend call after 5 seconds if the user doesn't click "Undo"
+        undoTimer = setTimeout(() => {
+          removeAnnotationMutation.mutate({
+            data: {},
+            jobId,
+            annotationId: currentSegmentId,
+          });
         }, 5000);
+
+        toast.custom((t) => (
+          <UndoToast t={t} regionName={selectedSegment.attributes.label} undoTimer={undoTimer} />
+        ));
       } else {
         setRegions((prevRegions) =>
           prevRegions.filter((reg) => reg.id !== currentSegmentId)
