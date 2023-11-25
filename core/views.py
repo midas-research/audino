@@ -342,7 +342,6 @@ def get_job_by_id(request, job_id, format=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def tasks(request, format=None):
-    header = {"Authorization": request.META["HTTP_AUTHORIZATION"]}
     if request.method == "POST":
         data = JSONParser().parse(request)
 

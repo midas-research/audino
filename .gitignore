@@ -99,6 +99,7 @@ celerybeat-schedule.*
 # Environments
 .venv
 env/
+.env/
 venv/
 ENV/
 env.bak/
@@ -141,3 +142,5 @@ postgres/
 # Frontend #
 audino_frontend/node_modules/
 audino_frontend/build/
+
+audino-env

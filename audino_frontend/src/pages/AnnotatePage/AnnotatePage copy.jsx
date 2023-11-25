@@ -38,8 +38,7 @@ import {
   putAnnotationApi,
 } from "../../services/job.services";
 import { fetchLabelsApi } from "../../services/project.services";
-import { toast } from "react-hot-toast";
-import UndoToast from "../../components/UndoToast/UndoToast";
+import { toast, Toaster } from "react-hot-toast";
 
 /**
  * @param min
@@ -82,20 +81,7 @@ export default function AnnotatePage({}) {
   const [currentJob, setCurrentJob] = useState(null);
   const [zoom, setZoom] = useState(0);
 
-  const [markers, setMarkers] = useState([
-    // {
-    //   time: 5.5,
-    //   label: "V1",
-    //   color: "#FACC15",
-    //   draggable: true,
-    // },
-    // {
-    //   time: 10,
-    //   label: "V2",
-    //   color: "#FACC15",
-    //   position: "top",
-    // },
-  ]);
+  const [markers, setMarkers] = useState([]);
 
   const plugins = useMemo(() => {
     return [
@@ -125,65 +111,11 @@ export default function AnnotatePage({}) {
     setTimelineVis(!timelineVis);
   }, [timelineVis]);
 
-  const [regions, setRegions] = useState([
-    // {
-    //   id: "region-1",
-    //   start: 0.5,
-    //   end: 2,
-    //   color: "rgb(254, 202, 202, .5)",
-    //   attributes: {
-    //     label: 'Region Name1'
-    //   },
-    //   data: {
-    //     transcription: "31"
-    //   }
-    // },
-    // {
-    //   id: "region-1",
-    //   start: 3,
-    //   end: 5,
-    //   color: "rgb(190, 242, 100, 0.5)",
-    //   attributes: {
-    //     label: "region1",
-    //   },
-    //   data: {
-    //     transcription: "32",
-    //     systemRegionId: 32,
-    //     labels: [
-    //       {
-    //         id: "1",
-    //         name: "label 1",
-    //         attributes: [
-    //           {
-    //             id: "1",
-    //             name: "attr1",
-    //             values: ["val 1", "val 2"],
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // },
-    // {
-    //   id: "region-3",
-    //   start: 6,
-    //   end: 10,
-    //   color: "rgb(147, 197, 253, .5)",
-    //   attributes: {
-    //     label: "region3",
-    //   },
-    //   data: {
-    //     transcription: "33",
-    //     systemRegionId: 33,
-    //   },
-    // },
-  ]);
+  const [regions, setRegions] = useState([]);
   const [isWaveformLoading, setIsWaveformLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedSegment, setSelectedSegment] = useState(null);
 
-  // use regions ref to pass it inside useCallback
-  // so it will use always the most fresh version of regions list
   const regionsRef = useRef(regions);
 
   useEffect(() => {
@@ -219,8 +151,6 @@ export default function AnnotatePage({}) {
       wavesurferRef.current = waveSurfer;
 
       if (wavesurferRef.current) {
-        // wavesurferRef.current.load(require('../../assets/audio/audio.wav'));
-        // wavesurferRef.current.load(task?.files[currentJob]);
         wavesurferRef.current.on("region-created", regionCreatedHandler);
 
         wavesurferRef.current.on("ready", () => {
@@ -245,10 +175,6 @@ export default function AnnotatePage({}) {
           setSelectedSegment(r);
           r.play();
         });
-
-        // wavesurferRef.current.on("pause", (r, e) => {
-        //   setIsPlaying(false);
-        // });
 
         if (window) {
           window.surferidze = wavesurferRef.current;
@@ -306,68 +232,15 @@ export default function AnnotatePage({}) {
     },
   });
 
-  // const removeCurrentRegion = () => {
-  //   if (selectedSegment?.id) {
-  //     const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
-
-  //     // const onClose = () => {
-  //     //   toast.dismiss();
-  //     // };
-
-  //     if (!hasWavesurfer) {
-
-  //       // toast.custom(() => <UndoToast onClose={onClose} />);
-  //       // setTimeout(() => {
-  //       //   // Backend call after 5 seconds if the user doesn't click "Undo"
-  //       //   // removeAnnotationMutation.mutate({
-  //       //   //   data: {},
-  //       //   //   jobId,
-  //       //   //   annotationId: selectedSegment.id,
-  //       //   // });
-  //       //   onClose(); // Dismiss the toast after the backend call
-  //       // }, 5000);
-  //     } else {
-  //       setRegions((prevRegions) =>
-  //         prevRegions.filter((reg) => reg.id !== selectedSegment.id)
-  //       );
-  //       setSelectedSegment(null);
-  //     }
-  //   } else {
-  //     toast.error("Please select a segment to delete");
-  //   }
-  // };
-  const undoClickedRef = useRef(false);
-
   const removeCurrentRegion = () => {
     if (selectedSegment?.id) {
       const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
-
-      const onClose = () => {
-        toast.dismiss();
-      };
-
       if (!hasWavesurfer) {
-        toast.custom((t) => (
-          <UndoToast
-            onClose={() => {
-              onClose();
-              undoClickedRef.current = true; // Set flag to true on "Undo" click
-            }}
-            regionName={selectedSegment.attributes.label}
-          />
-        ));
-
-        setTimeout(() => {
-          if (!undoClickedRef.current) {
-            // Backend call after 5 seconds if the user doesn't click "Undo"
-            removeAnnotationMutation.mutate({
-              data: {},
-              jobId,
-              annotationId: selectedSegment.id,
-            });
-            onClose(); // Dismiss the toast after the backend call
-          }
-        }, 5000);
+        removeAnnotationMutation.mutate({
+          data: {},
+          jobId,
+          annotationId: selectedSegment.id,
+        });
       } else {
         setRegions((prevRegions) =>
           prevRegions.filter((reg) => reg.id !== selectedSegment.id)
@@ -379,6 +252,7 @@ export default function AnnotatePage({}) {
     }
   };
 
+  
   const removeLastMarker = useCallback(() => {
     let nextMarkers = [...markers];
 
@@ -422,13 +296,7 @@ export default function AnnotatePage({}) {
       const regionIndex = updatedRegion.findIndex(
         (reg) => reg.id === region.id
       );
-      // console.log(
-      //   "updatedRegion",
-      //   updatedRegion,
-      //   regionIndex,
-      //   region.start,
-      //   region.end
-      // );
+
       if (regionIndex >= 0) {
         // region created using drag selection
         if (
@@ -633,53 +501,11 @@ export default function AnnotatePage({}) {
                     }),
                 };
               }),
-
-            // [
-            //   {
-            //     id: "1",
-            //     name: "label 1",
-            //     attributes: [
-            //       {
-            //         id: "1",
-            //         name: "attr1",
-            //         values: ["val 1", "val 2"],
-            //       },
-            //     ],
-            //   },
-            // ],
           },
         };
       });
       setRegions(updatedData);
-      // setRegions((prev) => [
-      //   ...prev,
-      //   {
-      //     id: "region-3",
-      //     start: data[0].start,
-      //     end: data[0].end,
-      //     color: data[0].color,
-      //     attributes: {
-      //       label: data[0].name,
-      //     },
-      //     data: {
-      //       transcription: data[0].transcription,
-      //       systemRegionId: 33,
-      //       labels: [
-      //         {
-      //           id: "1",
-      //           name: "label 1",
-      //           attributes: [
-      //             {
-      //               id: "1",
-      //               name: "attr1",
-      //               values: ["val 1", "val 2"],
-      //             },
-      //           ],
-      //         },
-      //       ],
-      //     },
-      //   },
-      // ]);
+
       console.log("all annotations", data);
     },
   });
@@ -750,7 +576,7 @@ export default function AnnotatePage({}) {
       setRegions([
         ...regions,
         {
-          id: `wavesurfer-${generateNum(0, 9999)}`,
+          id: `custom-${generateNum(0, 9999)}`,
           start: min.toFixed(2),
           end: max.toFixed(2),
           color: `rgba(${r}, ${g}, ${b}, 0.5)`,
@@ -852,19 +678,6 @@ export default function AnnotatePage({}) {
       console.log("editing....");
       putAnnotationMutation.mutate({ data: payload, jobId: jobId });
     }
-    // console.log(regions, selectedSegment.data);
-    // const regionIndex = regions.findIndex(
-    //   (reg) => reg.id === selectedSegment.id
-    // );
-    // const currentRegion = regions[regionIndex];
-
-    // const labelEntries = Object.entries(currentRegion.data).splice(
-    //   currentRegion.data.length - 2,
-    //   2
-    // );
-
-    // console.log(payload, labelEntries);
-    // dispatch(createAnnotationRequest({ payload }));
   };
 
   const textAreaValue = () => {
@@ -922,12 +735,7 @@ export default function AnnotatePage({}) {
                   >
                     {regions.map((regionProps) => {
                       const tempRegion = { ...regionProps };
-                      // const attributes = tempRegion.attributes;
-                      // delete tempRegion.attributes;
 
-                      // const labelSuffix = tempRegion.data.isSaved ? " (saved)" : " (unsaved)";
-                      // const updatedLabel = `${attributes?.label}${labelSuffix}`;
-                      // console.log("tempRegion", tempRegion, attributes);
                       return (
                         <Region
                           onUpdateEnd={handleRegionUpdate}
