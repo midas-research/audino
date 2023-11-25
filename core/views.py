@@ -156,7 +156,8 @@ def update_project(request, id, format=None):
                 }
                 if "id" in each_label:
                     label = LabelModel.objects.get(id=each_label["id"])
-                    label_serializer = PostLabelSerializer(label, data=label_object)
+                    label_serializer = PostLabelSerializer(
+                        label, data=label_object)
                 else:
                     label_serializer = PostLabelSerializer(data=label_object)
 
@@ -215,7 +216,7 @@ def get_labels(request, format=None):
 
     serializer = GetLabelSerializer(labels, many=True)
     temp_serializer = convert_string_lists_to_lists(serializer.data)
-  
+
     return Response(temp_serializer, status=status.HTTP_200_OK)
 
 
@@ -257,12 +258,14 @@ def get_label_by_id(request, id, format=None):
                     "values": str(each_attribute["values"]),
                 }
                 if "id" in each_attribute:
-                    attribute = AttributeModel.objects.get(id=each_attribute["id"])
+                    attribute = AttributeModel.objects.get(
+                        id=each_attribute["id"])
                     attribute_serializer = AttributeSerializer(
                         attribute, data=attribute_obj
                     )
                 else:
-                    attribute_serializer = AttributeSerializer(data=attribute_obj)
+                    attribute_serializer = AttributeSerializer(
+                        data=attribute_obj)
 
                 if attribute_serializer.is_valid():
                     attribute_obj = attribute_serializer.save()
@@ -366,23 +369,25 @@ def tasks(request, format=None):
                 "guide_id": task_obj.owner.id,
                 "task_id": task_obj.id,
             }
-            print("JOB URL - ")
-            print(f"{request.build_absolute_uri('/')}api/jobs")
-            resp = requests.post(
-                "https://app-api.audino.in/api/jobs",
-                data=job_data,
-                headers=header,
-            )
+
+            # creating job for the task created
+            job_serializer = PostJobSerializer(data=job_data)
+            if job_serializer.is_valid():
+                job_serializer.save()
+
             job_data = {
                 "count": len(JobModel.objects.filter(task_id=task_obj.id)),
                 "completed": len(
-                    JobModel.objects.filter(task_id=task_obj.id, state="completed")
+                    JobModel.objects.filter(
+                        task_id=task_obj.id, state="completed")
                 ),
                 "validation": len(
-                    JobModel.objects.filter(task_id=task_obj.id, stage="validation")
+                    JobModel.objects.filter(
+                        task_id=task_obj.id, stage="validation")
                 ),
             }
-            project_labels = LabelModel.objects.filter(project=task_obj.project.id)
+            project_labels = LabelModel.objects.filter(
+                project=task_obj.project.id)
             for each_project_label in project_labels:
                 task_obj.labels.add(each_project_label)
 
@@ -476,10 +481,12 @@ def get_task_by_id(request, task_id, format=None):
     job_data = {
         "count": len(JobModel.objects.filter(task_id=temp_serializer["id"])),
         "completed": len(
-            JobModel.objects.filter(task_id=temp_serializer["id"], state="completed")
+            JobModel.objects.filter(
+                task_id=temp_serializer["id"], state="completed")
         ),
         "validation": len(
-            JobModel.objects.filter(task_id=temp_serializer["id"], stage="validation")
+            JobModel.objects.filter(
+                task_id=temp_serializer["id"], stage="validation")
         ),
     }
     temp_serializer["jobs"] = job_data
@@ -606,7 +613,8 @@ def annotations(request, job_id, a_id, format=None):
         for each_label in labels:
             label_obj = AnnotationDataModel.objects.get(id=each_label['id'])
             for each_annotation in label_obj.attributes.values():
-                AnnotationAttributeModel.objects.get(id=each_annotation['id']).delete()
+                AnnotationAttributeModel.objects.get(
+                    id=each_annotation['id']).delete()
 
             label_obj.delete()
 
