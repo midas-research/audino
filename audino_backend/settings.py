@@ -30,6 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost:3000', "localhost", "*"]
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
     "https://audino-frontend-qsuua57v7q-ue.a.run.app",
     "https://app.audino.in",
     "https://*"
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -57,7 +59,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 INTERNAL_IPS = {"127.0.0.1"}
@@ -117,7 +118,7 @@ DATABASES = {
         'USER': os.environ.get("POSTGRES_USER"),
         'PASSWORD': os.environ.get("POSTGRES_PASSWORD"),
         'HOST': os.environ.get("POSTGRES_HOST"),
-        'PORT': '',
+        'PORT': os.environ.get("POSTGRES_PORT"),
     }
 }
 

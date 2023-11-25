@@ -39,6 +39,8 @@ import {
 } from "../../services/job.services";
 import { fetchLabelsApi } from "../../services/project.services";
 import { toast } from "react-hot-toast";
+import UndoToast from "../../components/UndoToast/UndoToast";
+import { v4 as uuid } from "uuid";
 
 /**
  * @param min
@@ -68,6 +70,7 @@ function generateTwoNumsWithDistance(distance, min, max) {
 export default function AnnotatePage({}) {
   const { taskId: taskId } = useParams();
   const { id: jobId } = useParams();
+
   const dispatch = useDispatch();
   const { task, isTaskLoading } = useSelector((state) => state.taskReducer);
   const { project, isProjectLoading } = useSelector(
@@ -79,7 +82,12 @@ export default function AnnotatePage({}) {
 
   const [timelineVis, setTimelineVis] = useState(true);
   const [currentJob, setCurrentJob] = useState(null);
-  const [zoom, setZoom] = useState(0);
+  const [horizontalZoom, setHorizontalZoom] = useState(1);
+  const [verticalZoom, setVerticalZoom] = useState(1);
+  const [volume, setVolume] = useState(50);
+  const initialVerticalZoom = 1;
+  const initialVerticalHeight = 130;
+  const unique_id = uuid();
 
   const [markers, setMarkers] = useState([
     // {
@@ -224,6 +232,13 @@ export default function AnnotatePage({}) {
 
         wavesurferRef.current.on("ready", () => {
           console.log("WaveSurfer is ready");
+
+          wavesurferRef.current.params.scrollParent = true;
+          wavesurferRef.current.zoom(horizontalZoom);
+          wavesurferRef.current.barHeight(initialVerticalZoom);
+          wavesurferRef.current.setHeight(initialVerticalHeight);
+          wavesurferRef.current.setVolume(volume);
+          wavesurferRef.current.drawBuffer();
         });
 
         wavesurferRef.current.on("region-removed", (region) => {
@@ -243,6 +258,9 @@ export default function AnnotatePage({}) {
           setIsPlaying(true);
           setSelectedSegment(r);
           r.play();
+        });
+        wavesurferRef.current.on("finish", () => {
+          setIsPlaying(false);
         });
 
         // wavesurferRef.current.on("pause", (r, e) => {
@@ -294,12 +312,12 @@ export default function AnnotatePage({}) {
   // remove annotation data
   const removeAnnotationMutation = useMutation({
     mutationFn: deleteAnnotationAPi,
-    onSuccess: (data, { id, index }) => {
+    onSuccess: (data, { annotationId }) => {
       console.log("data", data);
       toast.success(`Annotation deleted successfully`);
       // Update the regions
       setRegions((prevRegions) =>
-        prevRegions.filter((reg) => reg.id !== selectedSegment.id)
+        prevRegions.filter((reg) => reg?.id !== annotationId)
       );
       setSelectedSegment(null);
     },
@@ -307,16 +325,30 @@ export default function AnnotatePage({}) {
 
   const removeCurrentRegion = () => {
     if (selectedSegment?.id) {
+      const currentSegmentId = selectedSegment.id;
       const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
+      let undoTimer = null;
+
       if (!hasWavesurfer) {
-        removeAnnotationMutation.mutate({
-          data: {},
-          jobId,
-          annotationId: selectedSegment.id,
-        });
+        // Backend call after 5 seconds if the user doesn't click "Undo"
+        undoTimer = setTimeout(() => {
+          removeAnnotationMutation.mutate({
+            data: {},
+            jobId,
+            annotationId: currentSegmentId,
+          });
+        }, 5000);
+
+        toast.custom((t) => (
+          <UndoToast
+            t={t}
+            regionName={selectedSegment.attributes.label}
+            undoTimer={undoTimer}
+          />
+        ));
       } else {
         setRegions((prevRegions) =>
-          prevRegions.filter((reg) => reg.id !== selectedSegment.id)
+          prevRegions.filter((reg) => reg.id !== currentSegmentId)
         );
         setSelectedSegment(null);
       }
@@ -389,7 +421,7 @@ export default function AnnotatePage({}) {
           updatedRegion[regionIndex].end = region.end.toFixed(2);
           updatedRegion[regionIndex].color = `rgba(${r}, ${g}, ${b}, 0.5)`;
           updatedRegion[regionIndex].attributes.label =
-            "#" + r.toString().slice(0, 2);
+            "#" + unique_id.slice(0, 3);
           updatedRegion[regionIndex].data.transcription = "";
           updatedRegion[regionIndex].data.labels = getLabelsForRegion();
         } else {
@@ -405,10 +437,30 @@ export default function AnnotatePage({}) {
     [regions]
   );
 
-  const handleZoomChange = (event) => {
+  const handleHorizontalZoomChange = (event) => {
     const newZoom = event.target.value;
-    setZoom(newZoom);
+    setHorizontalZoom(newZoom);
     wavesurferRef.current.zoom(newZoom);
+  };
+
+  const handleVerticalZoomChange = (event) => {
+    const newZoom = event.target.value;
+    setVerticalZoom(newZoom);
+    const verticalZoomFactor = 0.02;
+    const verticalHeightFactor = 1;
+    wavesurferRef.current.setHeight(
+      initialVerticalHeight + newZoom * verticalHeightFactor
+    );
+    wavesurferRef.current.params.barHeight =
+      initialVerticalZoom + newZoom * verticalZoomFactor;
+
+    wavesurferRef.current.drawBuffer();
+  };
+
+  const handleVoulmeChange = (event) => {
+    const newVolume = event.target.value;
+    setVolume(newVolume);
+    wavesurferRef.current.setVolume(newVolume);
   };
 
   const handleForward = useCallback(() => {
@@ -691,17 +743,18 @@ export default function AnnotatePage({}) {
     const r = generateNum(0, 255);
     const g = generateNum(0, 255);
     const b = generateNum(0, 255);
+
     if (getLabelsQuery?.data?.length > 0) {
       const labels = getLabelsForRegion();
       setRegions([
         ...regions,
         {
-          id: `custom-${generateNum(0, 9999)}`,
+          id: `wavesurfer-${generateNum(0, 9999)}`,
           start: min.toFixed(2),
           end: max.toFixed(2),
           color: `rgba(${r}, ${g}, ${b}, 0.5)`,
           attributes: {
-            label: "#" + r.toString().slice(0, 2),
+            label: "#" + unique_id.slice(0, 3),
           },
           data: {
             isSaved: false,
@@ -732,23 +785,23 @@ export default function AnnotatePage({}) {
     },
   });
 
-    // put annotation data
-    const putAnnotationMutation = useMutation({
-      mutationFn: putAnnotationApi,
-      onSuccess: (data, { id, index }) => {
-        console.log("data", data);
-        toast.success(`Annotation ${data.name} edited successfully`);
-        // Update the region object with backend id
-        const updatedRegion = [...regions];
-        const regionIndex = regions.findIndex(
-          (reg) => reg.id === selectedSegment.id
-        );
-        updatedRegion[regionIndex].id = data.id;
-        updatedRegion[regionIndex].data.isSaved = true;
-        setRegions(updatedRegion);
-        setSelectedSegment(updatedRegion[regionIndex]);
-      },
-    });
+  // put annotation data
+  const putAnnotationMutation = useMutation({
+    mutationFn: putAnnotationApi,
+    onSuccess: (data, { id, index }) => {
+      console.log("data", data);
+      toast.success(`Annotation ${data.name} edited successfully`);
+      // Update the region object with backend id
+      const updatedRegion = [...regions];
+      const regionIndex = regions.findIndex(
+        (reg) => reg.id === selectedSegment.id
+      );
+      updatedRegion[regionIndex].id = data.id;
+      updatedRegion[regionIndex].data.isSaved = true;
+      setRegions(updatedRegion);
+      setSelectedSegment(updatedRegion[regionIndex]);
+    },
+  });
 
   const handleSave = () => {
     // Initialize an empty payload object
@@ -918,7 +971,7 @@ export default function AnnotatePage({}) {
                   </div>
                 ) : (
                   <>
-                    <div className="mt-6 flex gap-2 mx-auto justify-center">
+                    <div className="mt-6 flex gap-3 mx-auto justify-center">
                       <PrimaryButton onClick={generateRegion}>
                         Generate random region
                       </PrimaryButton>
@@ -944,7 +997,7 @@ export default function AnnotatePage({}) {
                         Toggle timeline
                       </PrimaryButton>
                     </div>
-                    <div className="isolate flex justify-center mx-auto mt-8">
+                    <div className="isolate flex justify-center mx-auto pl-14 mt-8">
                       <button
                         type="button"
                         className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
@@ -984,17 +1037,51 @@ export default function AnnotatePage({}) {
                       </button>
                     </div>
                     {/* zoom slider */}
-                    <div className="flex items-center gap-2 justify-center mx-auto mt-4">
-                      <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
-                      <input
-                        type="range"
-                        min="0"
-                        max="200"
-                        value={zoom}
-                        onChange={handleZoomChange}
-                        className="h-6 w-24 mx-2"
-                      />
-                      <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                    <div className=" flex py-8 justify-between items-center">
+                      <div className="flex items-center gap-2 justify-center  mt-4">
+                        <label htmlFor="">Horizontal Zoom:{"  "} </label>
+                        <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          value={horizontalZoom}
+                          onChange={handleHorizontalZoomChange}
+                          className="h-6 w-24 mx-2"
+                        />
+
+                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      </div>
+
+                      <div className="flex items-center gap-2 justify-center  mt-4">
+                        <label htmlFor="">Vertical Zoom:{"  "} </label>
+                        <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={verticalZoom}
+                          onChange={handleVerticalZoomChange}
+                          className="h-6 w-24 mx-2"
+                        />
+
+                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      </div>
+
+                      <div className="flex items-center gap-2 justify-center  mt-4">
+                        <label htmlFor="">Volume:{"  "} </label>
+                        <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={volume}
+                          onChange={handleVoulmeChange}
+                          className="h-6 w-24 mx-2"
+                        />
+
+                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      </div>
                     </div>
                   </>
                 )}
@@ -1068,7 +1155,10 @@ export default function AnnotatePage({}) {
                   <div className="mt-6 border-t border-gray-100">
                     <dl className="divide-y divide-gray-100">
                       {getLabelsQuery?.data.map((label, index) => (
-                        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0" key={`alllabels-${index}`}>
+                        <div
+                          className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                          key={`alllabels-${index}`}
+                        >
                           <dt className="text-sm font-medium leading-6 text-gray-900">
                             {label.name}
                           </dt>

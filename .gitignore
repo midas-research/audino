@@ -141,3 +141,5 @@ postgres/
 # Frontend #
 audino_frontend/node_modules/
 audino_frontend/build/
+
+audino-env
