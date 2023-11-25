@@ -40,6 +40,7 @@ import {
 import { fetchLabelsApi } from "../../services/project.services";
 import { toast } from "react-hot-toast";
 import UndoToast from "../../components/UndoToast/UndoToast";
+import { v4 as uuid } from "uuid";
 
 /**
  * @param min
@@ -69,6 +70,7 @@ function generateTwoNumsWithDistance(distance, min, max) {
 export default function AnnotatePage({}) {
   const { taskId: taskId } = useParams();
   const { id: jobId } = useParams();
+
   const dispatch = useDispatch();
   const { task, isTaskLoading } = useSelector((state) => state.taskReducer);
   const { project, isProjectLoading } = useSelector(
@@ -81,9 +83,12 @@ export default function AnnotatePage({}) {
   const [timelineVis, setTimelineVis] = useState(true);
   const [currentJob, setCurrentJob] = useState(null);
   const [horizontalZoom, setHorizontalZoom] = useState(1);
+  const [verticalZoom, setVerticalZoom] = useState(1);
+  const [volume, setVolume] = useState(1);
   const [verticalHeight, setVerticalHeight] = useState(1);
-  const [verticalScroll, setVerticalScroll] = useState(0);
-  const initialVerticalHeight = 1;
+  const initialVerticalZoom = 1;
+  const initialVerticalHeight = 130;
+  const unique_id = uuid();
 
   const [markers, setMarkers] = useState([
     // {
@@ -230,8 +235,9 @@ export default function AnnotatePage({}) {
           console.log("WaveSurfer is ready");
 
           // Set initial bar height
-          wavesurferRef.current.params.barHeight = initialVerticalHeight; // Replace initialBarHeight with your desired initial value
-          wavesurferRef.current.params.zoom(1); // Replace initialBarHeight with your desired initial value
+          wavesurferRef.current.params.zoom(horizontalZoom);
+          wavesurferRef.current.params.barHeight(initialVerticalZoom);
+          wavesurferRef.current.params.setHeight(initialVerticalHeight);
           wavesurferRef.current.params.scrollParent = true;
           wavesurferRef.current.drawBuffer();
         });
@@ -253,6 +259,9 @@ export default function AnnotatePage({}) {
           setIsPlaying(true);
           setSelectedSegment(r);
           r.play();
+        });
+        wavesurferRef.current.on("finish", () => {
+          setIsPlaying(false);
         });
 
         // wavesurferRef.current.on("pause", (r, e) => {
@@ -332,7 +341,11 @@ export default function AnnotatePage({}) {
         }, 5000);
 
         toast.custom((t) => (
-          <UndoToast t={t} regionName={selectedSegment.attributes.label} undoTimer={undoTimer} />
+          <UndoToast
+            t={t}
+            regionName={selectedSegment.attributes.label}
+            undoTimer={undoTimer}
+          />
         ));
       } else {
         setRegions((prevRegions) =>
@@ -409,7 +422,7 @@ export default function AnnotatePage({}) {
           updatedRegion[regionIndex].end = region.end.toFixed(2);
           updatedRegion[regionIndex].color = `rgba(${r}, ${g}, ${b}, 0.5)`;
           updatedRegion[regionIndex].attributes.label =
-            "#" + r.toString().slice(0, 2);
+            "#" + unique_id.slice(0, 3);
           updatedRegion[regionIndex].data.transcription = "";
           updatedRegion[regionIndex].data.labels = getLabelsForRegion();
         } else {
@@ -431,14 +444,25 @@ export default function AnnotatePage({}) {
     wavesurferRef.current.zoom(newZoom);
   };
 
-  const handleVerticalHeightChange = (event) => {
-    const newHeight = event.target.value;
-    setVerticalHeight(newHeight);
-    const verticalScalingFactor = 0.2;
+  const handleVerticalZoomChange = (event) => {
+    const newZoom = event.target.value;
+    setVerticalZoom(newZoom);
+    setVerticalHeight(newZoom);
+    const verticalZoomFactor = 0.02;
+    const verticalHeightFactor = 1;
+    wavesurferRef.current.setHeight(
+      initialVerticalHeight + newZoom * verticalHeightFactor
+    );
     wavesurferRef.current.params.barHeight =
-      initialVerticalHeight + newHeight * verticalScalingFactor;
+      initialVerticalZoom + newZoom * verticalZoomFactor;
 
     wavesurferRef.current.drawBuffer();
+  };
+
+  const handleVoulmeChange = (event) => {
+    const newVolume = event.target.value;
+    setVolume(newVolume);
+    wavesurferRef.current.setVolume(newVolume);
   };
 
   const handleForward = useCallback(() => {
@@ -721,6 +745,7 @@ export default function AnnotatePage({}) {
     const r = generateNum(0, 255);
     const g = generateNum(0, 255);
     const b = generateNum(0, 255);
+
     if (getLabelsQuery?.data?.length > 0) {
       const labels = getLabelsForRegion();
       setRegions([
@@ -731,7 +756,7 @@ export default function AnnotatePage({}) {
           end: max.toFixed(2),
           color: `rgba(${r}, ${g}, ${b}, 0.5)`,
           attributes: {
-            label: "#" + r.toString().slice(0, 2),
+            label: "#" + unique_id.slice(0, 3),
           },
           data: {
             isSaved: false,
@@ -948,7 +973,7 @@ export default function AnnotatePage({}) {
                   </div>
                 ) : (
                   <>
-                    <div className="mt-6 flex gap-2 mx-auto justify-center">
+                    <div className="mt-6 flex gap-3 mx-auto justify-center">
                       <PrimaryButton onClick={generateRegion}>
                         Generate random region
                       </PrimaryButton>
@@ -974,7 +999,7 @@ export default function AnnotatePage({}) {
                         Toggle timeline
                       </PrimaryButton>
                     </div>
-                    <div className="isolate flex justify-center mx-auto mt-8">
+                    <div className="isolate flex justify-center mx-auto pl-14 mt-8">
                       <button
                         type="button"
                         className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
@@ -1014,33 +1039,51 @@ export default function AnnotatePage({}) {
                       </button>
                     </div>
                     {/* zoom slider */}
-                    <div className="flex items-center gap-2 justify-center mx-auto mt-4">
-                      <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
-                      <input
-                        type="range"
-                        min="0"
-                        max="200"
-                        value={horizontalZoom}
-                        onChange={handleHorizontalZoomChange}
-                        className="h-6 w-24 mx-2"
-                      />
+                    <div className=" flex py-8 justify-between items-center">
+                      <div className="flex items-center gap-2 justify-center  mt-4">
+                        <label htmlFor="">Horizontal Zoom:{"  "} </label>
+                        <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          value={horizontalZoom}
+                          onChange={handleHorizontalZoomChange}
+                          className="h-6 w-24 mx-2"
+                        />
 
-                      <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
-                    </div>
+                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      </div>
 
-                    <div className="flex items-center gap-2 justify-center mx-auto mt-4">
-                      <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                      <div className="flex items-center gap-2 justify-center  mt-4">
+                        <label htmlFor="">Vertical Zoom:{"  "} </label>
+                        <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={verticalZoom}
+                          onChange={handleVerticalZoomChange}
+                          className="h-6 w-24 mx-2"
+                        />
 
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={verticalHeight}
-                        onChange={handleVerticalHeightChange}
-                        className="h-6 w-24 mx-2"
-                      />
+                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      </div>
 
-                      <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      <div className="flex items-center gap-2 justify-center  mt-4">
+                        <label htmlFor="">Volume:{"  "} </label>
+                        <MagnifyingGlassMinusIcon className="h-6 w-6 text-audino-primary" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={volume}
+                          onChange={handleVoulmeChange}
+                          className="h-6 w-24 mx-2"
+                        />
+
+                        <MagnifyingGlassPlusIcon className="h-6 w-6 text-audino-primary" />
+                      </div>
                     </div>
                   </>
                 )}
