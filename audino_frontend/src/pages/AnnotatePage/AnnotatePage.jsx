@@ -84,8 +84,7 @@ export default function AnnotatePage({}) {
   const [currentJob, setCurrentJob] = useState(null);
   const [horizontalZoom, setHorizontalZoom] = useState(1);
   const [verticalZoom, setVerticalZoom] = useState(1);
-  const [volume, setVolume] = useState(1);
-  const [verticalHeight, setVerticalHeight] = useState(1);
+  const [volume, setVolume] = useState(50);
   const initialVerticalZoom = 1;
   const initialVerticalHeight = 130;
   const unique_id = uuid();
@@ -234,11 +233,11 @@ export default function AnnotatePage({}) {
         wavesurferRef.current.on("ready", () => {
           console.log("WaveSurfer is ready");
 
-          // Set initial bar height
-          wavesurferRef.current.params.zoom(horizontalZoom);
-          wavesurferRef.current.params.barHeight(initialVerticalZoom);
-          wavesurferRef.current.params.setHeight(initialVerticalHeight);
           wavesurferRef.current.params.scrollParent = true;
+          wavesurferRef.current.zoom(horizontalZoom);
+          wavesurferRef.current.barHeight(initialVerticalZoom);
+          wavesurferRef.current.setHeight(initialVerticalHeight);
+          wavesurferRef.current.setVolume(volume);
           wavesurferRef.current.drawBuffer();
         });
 
@@ -447,7 +446,6 @@ export default function AnnotatePage({}) {
   const handleVerticalZoomChange = (event) => {
     const newZoom = event.target.value;
     setVerticalZoom(newZoom);
-    setVerticalHeight(newZoom);
     const verticalZoomFactor = 0.02;
     const verticalHeightFactor = 1;
     wavesurferRef.current.setHeight(
