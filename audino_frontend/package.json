@@ -25,6 +25,7 @@
     "react-scripts": "5.0.1",
     "redux-saga": "^1.2.3",
     "tus-js-client": "^3.1.1",
+    "uuidv4": "^6.2.13",
     "validatorjs": "^3.22.1",
     "wavesurfer-react": "^2.2.2",
     "web-vitals": "^2.1.4",
