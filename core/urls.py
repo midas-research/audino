@@ -15,5 +15,5 @@ urlpatterns = [
     path("jobs/<job_id>/annotation", job_annotation, name="job_annotation"),
     path("jobs/<job_id>/annotation/<a_id>", annotations, name="annotations"),
     path('organisations/',organisations, name='organisations'),
-    path('organisations/<int:id>/',get_update_delete_organisation_by_id,name='get_update_delete_organisation_by_id'),
+    path('organisations/<int:id>',get_update_delete_organisation_by_id,name='get_update_delete_organisation_by_id'),
 ]
