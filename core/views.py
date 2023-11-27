@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.manager import TokenAuthentication
 
+from .models import *
 from .models import Annotation as AnnotationModel
 from .models import AnnotationData as AnnotationDataModel
 from .models import AnnotationAttribute as AnnotationAttributeModel
@@ -20,21 +21,9 @@ from .models import Job as JobModel
 from .models import Label as LabelModel
 from .models import Project as ProjectModel
 from .models import Task as TaskModel
-from .serializers import AnnotationAttributeSerializer
-from .serializers import AnnotationDataSerializer
-from .serializers import AttributeSerializer
-from .serializers import DataSerializer
-from .serializers import GetAnnotationSerializer
-from .serializers import GetJobSerializer
-from .serializers import GetLabelSerializer
-from .serializers import GetProjectSerializer
-from .serializers import GetTaskSerializer
-from .serializers import PostAnnotationSerializer
-from .serializers import PostJobSerializer
-from .serializers import PostLabelSerializer
-from .serializers import PostProjectSerializer
-from .serializers import PostTaskSerializer
-from .serializers import StorageSerializer
+
+from .serializers import *
+
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
 
@@ -659,3 +648,56 @@ def annotations(request, job_id, a_id, format=None):
     final_data = dict(GetAnnotationSerializer(annotation).data)
     final_data = convert_string_lists_to_lists(final_data)
     return Response(final_data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def organisations(request):
+    if request.method == 'GET':
+        organisations = Organisation.objects.all()
+        serializer = OrganisationSerializer(organisations, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        # print(request.data)
+        serializer = OrganisationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_update_delete_organisation_by_id(request, id):
+    try:
+        organisation = Organisation.objects.get(organisation_id=id)
+    except Organisation.DoesNotExist:
+        return Response(
+            {"detail": "Organisation not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == 'GET':
+        serializer = OrganisationSerializer(organisation)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'PATCH':
+        print
+        serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "DELETE":
+        try:
+            organisation = Organisation.objects.get(organisation_id=id)
+            organisation.delete()
+            return Response({"detail": "Organisation deleted successfully."}, status=status.HTTP_200_OK)
+        except Organisation.DoesNotExist:
+            return Response({"detail": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)
+

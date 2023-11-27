@@ -1,16 +1,7 @@
 from rest_framework import serializers
 from users.serializers import UserSerializer
 
-from .models import Annotation
-from .models import AnnotationAttribute
-from .models import AnnotationData
-from .models import Attribute
-from .models import Data
-from .models import Job
-from .models import Label
-from .models import Project
-from .models import Storage
-from .models import Task
+from .models import *
 
 
 class StorageSerializer(serializers.ModelSerializer):
@@ -135,4 +126,9 @@ class GetAnnotationSerializer(serializers.ModelSerializer):
 class PostAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Annotation
+        fields = "__all__"
+
+class OrganisationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organisation
         fields = "__all__"

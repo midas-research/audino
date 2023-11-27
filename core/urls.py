@@ -1,16 +1,6 @@
 from django.urls import path
 
-from .views import add_data
-from .views import annotations
-from .views import get_add_project
-from .views import get_job_by_id
-from .views import get_label_by_id
-from .views import get_labels
-from .views import get_task_by_id
-from .views import job_annotation
-from .views import jobs
-from .views import tasks
-from .views import update_project
+from .views import *
 
 urlpatterns = [
     path("projects", get_add_project, name="get_add_project"),
@@ -24,4 +14,6 @@ urlpatterns = [
     path("jobs/<job_id>", get_job_by_id, name="get_job_by_id"),
     path("jobs/<job_id>/annotation", job_annotation, name="job_annotation"),
     path("jobs/<job_id>/annotation/<a_id>", annotations, name="annotations"),
+    path('organisations/',organisations, name='organisations'),
+    path('organisations/<int:id>/',get_update_delete_organisation_by_id,name='get_update_delete_organisation_by_id'),
 ]
