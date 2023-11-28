@@ -212,18 +212,28 @@ class Annotation(models.Model):
 
 
 
+class Contact(models.Model):
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+    location = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.email} - {self.phone_number} - {self.location}"
+
 class Organisation(models.Model):
     organisation_id = models.AutoField(primary_key=True)
-    slug = models.SlugField(max_length=100, unique=True,blank=True, null=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True, null=True)
     organisation_name = models.CharField(max_length=255)
     description = models.TextField()
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
+    contact = models.OneToOneField(Contact, on_delete=models.CASCADE, blank=True, null=True)
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def save(self, *args, **kwargs):
-      if not self.slug:
-          self.slug = slugify(self.organisation_name)
-      super(Organisation, self).save(*args, **kwargs)
+        if not self.slug:
+            self.slug = slugify(self.organisation_name)
+        super(Organisation, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.organisation_name

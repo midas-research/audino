@@ -128,7 +128,30 @@ class PostAnnotationSerializer(serializers.ModelSerializer):
         model = Annotation
         fields = "__all__"
 
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = "__all__"
+
 class OrganisationSerializer(serializers.ModelSerializer):
+    contact = ContactSerializer()
+
     class Meta:
         model = Organisation
         fields = "__all__"
+
+    def create(self, validated_data):
+        contact_data = validated_data.pop('contact')
+        contact = Contact.objects.create(**contact_data)
+        organisation = Organisation.objects.create(contact=contact, **validated_data)
+        return organisation
+
+    def update(self, instance, validated_data):
+     contact_data = validated_data.pop('contact', None)
+     if contact_data:
+         contact = instance.contact
+         contact.email = contact_data.get('email', contact.email)
+         contact.phone_number = contact_data.get('phone_number', contact.phone_number)
+         contact.location = contact_data.get('location', contact.location)
+         contact.save()
+     return super().update(instance, validated_data)

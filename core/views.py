@@ -1,5 +1,6 @@
 import requests
 from django.db.models import Q
+from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
@@ -655,18 +656,25 @@ def annotations(request, job_id, a_id, format=None):
 @permission_classes([IsAuthenticated])
 def organisations(request):
     if request.method == 'GET':
+        # sort by timestamp of creation, filter by owner
         organisations = Organisation.objects.all()
         serializer = OrganisationSerializer(organisations, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        # print(request.data)
-        serializer = OrganisationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        try:
+            token_key = request.headers.get('Authorization').split(' ')[1]
+            token = Token.objects.get(key=token_key)
+            user = token.user
+            data = request.data
+            data['owner'] = user.id
+            serializer = OrganisationSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Token.DoesNotExist:
+            raise AuthenticationFailed("Invalid token")
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
