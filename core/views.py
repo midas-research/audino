@@ -12,6 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.manager import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import PermissionDenied
+
 
 from .models import *
 from .models import Annotation as AnnotationModel
@@ -698,7 +700,9 @@ def get_update_delete_organisation_by_id(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'PATCH':
-        print
+        if request.user != organisation.owner:
+            raise PermissionDenied("You do not have permission to perform this action.")
+
         serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -706,10 +710,11 @@ def get_update_delete_organisation_by_id(request, id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == "DELETE":
+        if request.user != organisation.owner:
+            raise PermissionDenied("You do not have permission to perform this action.")
+
         try:
-            organisation = Organisation.objects.get(organisation_id=id)
             organisation.delete()
             return Response({"detail": "Organisation deleted successfully."}, status=status.HTTP_200_OK)
         except Organisation.DoesNotExist:
             return Response({"detail": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)
-
