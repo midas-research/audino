@@ -132,18 +132,44 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = "__all__"
+        extra_kwargs = {
+        'email': {'required': False},
+        'phone_number': {'required': False},
+        'location': {'required': False},
+        }
 
 class OrganisationSerializer(serializers.ModelSerializer):
-    contact = ContactSerializer()
+    contact = ContactSerializer(allow_null=True, required=False)
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    owner_info = serializers.SerializerMethodField() 
 
     class Meta:
         model = Organisation
         fields = "__all__"
 
+    def get_owner_info(self, obj):
+        owner = obj.owner
+        owner_info = {
+            'id': owner.id,
+            'username': owner.username,
+            'first_name': owner.first_name,
+            'last_name': owner.last_name
+        }
+        return owner_info
+
     def create(self, validated_data):
-        contact_data = validated_data.pop('contact')
-        contact = Contact.objects.create(**contact_data)
-        organisation = Organisation.objects.create(contact=contact, **validated_data)
+        contact_data = validated_data.pop('contact', None)
+
+        if contact_data and not any(contact_data.values()):
+            validated_data.pop('contact')
+
+        organisation = Organisation.objects.create(**validated_data)
+
+        if contact_data and any(contact_data.values()):
+            contact = Contact.objects.create(organisation=organisation, **contact_data)
+            organisation.contact = contact
+            organisation.save()
+
         return organisation
 
     def update(self, instance, validated_data):

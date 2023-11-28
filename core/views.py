@@ -11,6 +11,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.manager import TokenAuthentication
+from rest_framework.pagination import PageNumberPagination
 
 from .models import *
 from .models import Annotation as AnnotationModel
@@ -656,19 +657,22 @@ def annotations(request, job_id, a_id, format=None):
 @permission_classes([IsAuthenticated])
 def organisations(request):
     if request.method == 'GET':
-        # sort by timestamp of creation, filter by owner
-        organisations = Organisation.objects.all()
-        serializer = OrganisationSerializer(organisations, many=True)
-        return Response(serializer.data)
+
+        user = request.user
+        organisations = Organisation.objects.filter(owner=user).order_by('created_date')
+
+        paginator = PageNumberPagination()
+        page_size = request.GET.get('page_size', 10)
+        paginator.page_size = page_size
+
+        result_page = paginator.paginate_queryset(organisations, request)
+        serializer = OrganisationSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     elif request.method == 'POST':
         try:
-            token_key = request.headers.get('Authorization').split(' ')[1]
-            token = Token.objects.get(key=token_key)
-            user = token.user
             data = request.data
-            data['owner'] = user.id
-            serializer = OrganisationSerializer(data=data)
+            serializer = OrganisationSerializer(data=request.data, context={'request': request})
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)

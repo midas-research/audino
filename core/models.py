@@ -211,7 +211,6 @@ class Annotation(models.Model):
         return self.name
 
 
-
 class Contact(models.Model):
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
@@ -234,6 +233,11 @@ class Organisation(models.Model):
         if not self.slug:
             self.slug = slugify(self.organisation_name)
         super(Organisation, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.contact:
+            self.contact.delete()
+        super(Organisation, self).delete(*args, **kwargs)
 
     def __str__(self):
         return self.organisation_name
