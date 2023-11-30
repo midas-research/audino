@@ -654,67 +654,67 @@ def annotations(request, job_id, a_id, format=None):
     return Response(final_data, status=status.HTTP_200_OK)
 
 
-@api_view(['GET', 'POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def organisations(request):
-    if request.method == 'GET':
+# @api_view(['GET', 'POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+# def organisations(request):
+#     if request.method == 'GET':
 
-        user = request.user
-        organisations = Organisation.objects.filter(owner=user).order_by('created_date')
+#         user = request.user
+#         organisations = Organisation.objects.filter(owner=user).order_by('created_date')
 
-        paginator = PageNumberPagination()
-        page_size = request.GET.get('page_size', 10)
-        paginator.page_size = page_size
+#         paginator = PageNumberPagination()
+#         page_size = request.GET.get('page_size', 10)
+#         paginator.page_size = page_size
 
-        result_page = paginator.paginate_queryset(organisations, request)
-        serializer = OrganisationSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+#         result_page = paginator.paginate_queryset(organisations, request)
+#         serializer = OrganisationSerializer(result_page, many=True)
+#         return paginator.get_paginated_response(serializer.data)
 
-    elif request.method == 'POST':
-        try:
-            data = request.data
-            serializer = OrganisationSerializer(data=request.data, context={'request': request})
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Token.DoesNotExist:
-            raise AuthenticationFailed("Invalid token")
+#     elif request.method == 'POST':
+#         try:
+#             data = request.data
+#             serializer = OrganisationSerializer(data=request.data, context={'request': request})
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Token.DoesNotExist:
+#             raise AuthenticationFailed("Invalid token")
 
 
-@api_view(['GET', 'PATCH', 'DELETE'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def get_update_delete_organisation_by_id(request, id):
-    try:
-        organisation = Organisation.objects.get(organisation_id=id)
-    except Organisation.DoesNotExist:
-        return Response(
-            {"detail": "Organisation not found."},
-            status=status.HTTP_404_NOT_FOUND
-        )
+# @api_view(['GET', 'PATCH', 'DELETE'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+# def get_update_delete_organisation_by_id(request, id):
+#     try:
+#         organisation = Organisation.objects.get(organisation_id=id)
+#     except Organisation.DoesNotExist:
+#         return Response(
+#             {"detail": "Organisation not found."},
+#             status=status.HTTP_404_NOT_FOUND
+#         )
 
-    if request.method == 'GET':
-        serializer = OrganisationSerializer(organisation)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+#     if request.method == 'GET':
+#         serializer = OrganisationSerializer(organisation)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    elif request.method == 'PATCH':
-        if request.user != organisation.owner:
-            raise PermissionDenied("You do not have permission to perform this action.")
+#     elif request.method == 'PATCH':
+#         if request.user != organisation.owner:
+#             raise PermissionDenied("You do not have permission to perform this action.")
 
-        serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == "DELETE":
-        if request.user != organisation.owner:
-            raise PermissionDenied("You do not have permission to perform this action.")
+#     elif request.method == "DELETE":
+#         if request.user != organisation.owner:
+#             raise PermissionDenied("You do not have permission to perform this action.")
 
-        try:
-            organisation.delete()
-            return Response({"detail": "Organisation deleted successfully."}, status=status.HTTP_200_OK)
-        except Organisation.DoesNotExist:
-            return Response({"detail": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)
+#         try:
+#             organisation.delete()
+#             return Response({"detail": "Organisation deleted successfully."}, status=status.HTTP_200_OK)
+#         except Organisation.DoesNotExist:
+#             return Response({"detail": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)
