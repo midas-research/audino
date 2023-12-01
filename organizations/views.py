@@ -3,22 +3,21 @@ from django.db import transaction
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework import permissions
 from rest_framework.generics import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-
 from rest_framework import mixins, viewsets, status
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiParameter
-
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from .throttle import ResendOrganizationInvitationThrottle
 from .mixins import PartialUpdateModelMixin
-
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.pagination import PageNumberPagination
+
+class ResendOrganizationInvitationThrottle(UserRateThrottle):
+    rate = '5/hour'
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
@@ -74,13 +73,13 @@ ORGANIZATION_OPEN_API_PARAMETERS = [
         summary='Methods does a partial update of chosen fields in an organization',
         request=OrganizationWriteSerializer(partial=True),
         responses={
-            '200': OrganizationReadSerializer, # check OrganizationWriteSerializer.to_representation
+            '200': OrganizationReadSerializer, 
         }),
     create=extend_schema(
         summary='Method creates an organization',
         request=OrganizationWriteSerializer,
         responses={
-            '201': OrganizationReadSerializer, # check OrganizationWriteSerializer.to_representation
+            '201': OrganizationReadSerializer,
         }),
     destroy=extend_schema(
         summary='Method deletes an organization',
@@ -102,9 +101,6 @@ class OrganizationViewSet(viewsets.GenericViewSet,
     simple_filters = list(search_fields)
 
     pagination_class = CustomPagination
-
-    # lookup_fields = {'owner': 'owner__username'}
-
     ordering_fields = list(filter_fields)
     ordering = '-id'
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
@@ -148,7 +144,7 @@ class OrganizationViewSet(viewsets.GenericViewSet,
         summary='Methods does a partial update of chosen fields in a membership',
         request=MembershipWriteSerializer(partial=True),
         responses={
-            '200': MembershipReadSerializer, # check MembershipWriteSerializer.to_representation
+            '200': MembershipReadSerializer,
         }),
     destroy=extend_schema(
         summary='Method deletes a membership',
@@ -168,10 +164,6 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
     ordering_fields = list(filter_fields)
 
     pagination_class = CustomPagination
-    
-    # lookup_fields = {'user': 'user__username'}
-    # iam_organization_field = 'organization'
-
     permission_classes = [permissions.IsAuthenticated] 
 
     def get_serializer_class(self):
@@ -206,14 +198,14 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
         summary='Methods does a partial update of chosen fields in an invitation',
         request=InvitationWriteSerializer(partial=True),
         responses={
-            '200': InvitationReadSerializer, # check InvitationWriteSerializer.to_representation
+            '200': InvitationReadSerializer, 
         }),
     create=extend_schema(
         summary='Method creates an invitation',
         request=InvitationWriteSerializer,
         parameters=ORGANIZATION_OPEN_API_PARAMETERS,
         responses={
-            '201': InvitationReadSerializer, # check InvitationWriteSerializer.to_representation
+            '201': InvitationReadSerializer,
         }),
     destroy=extend_schema(
         summary='Method deletes an invitation',
@@ -241,20 +233,17 @@ class InvitationViewSet(viewsets.GenericViewSet,
                    mixins.RetrieveModelMixin,
                    mixins.ListModelMixin,
                    PartialUpdateModelMixin,
-                #    mixins.UpdateModelMixin,
                    mixins.CreateModelMixin,
                    mixins.DestroyModelMixin,
     ):
     queryset = Invitation.objects.all()
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
-    # iam_organization_field = 'membership__organization'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ('owner__username', 'key', 'id')
     filter_fields = list(search_fields)
     simple_filters = list(search_fields)
     ordering_fields = list(filter_fields) + ['created_date']
     ordering = '-created_date'
-    # lookup_fields = {'owner': 'owner__username'}
 
     pagination_class = CustomPagination
 
@@ -281,40 +270,20 @@ class InvitationViewSet(viewsets.GenericViewSet,
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
-        # print("perform creeate",self.request)
         serializer.save(
             owner=self.request.user,
             key=get_random_string(length=64),
-
+            
             # changed to get organization from request
-
             organization=Organization.objects.get(id=int(self.request.headers.get('organization'))),
             request=self.request,
         )
 
-    # def partial_update(self, request, pk=None):
-    #     instance = get_object_or_404(Invitation, pk=pk)
-    #     serializer = self.get_serializer(instance, data=request.data, partial=True)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-
-    #     return Response(serializer.data)
-
-
     def perform_update(self, serializer):
-        # print("perform update",self.request)
-        # request = serializer.context.get('request')
-
-        # serializer.save(request=self.request)
         if 'accepted' in self.request.query_params:
             serializer.instance.accept()
         else:
-            # print(serializer.context.get('request'))
 
-            # this serializer is not having request field
-            # print(serializer)
-
-            # serializer.save(request=self.request)
             super().perform_update(serializer)
 
 

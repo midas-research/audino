@@ -7,12 +7,14 @@ from django.utils.crypto import get_random_string
 from django.db import transaction
 from users.models import User
 
-
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 from distutils.util import strtobool
 from .models import Invitation, Membership, Organization
+from rest_framework.throttling import UserRateThrottle
 
+class ResendOrganizationInvitationThrottle(UserRateThrottle):
+    rate = '5/hour'
 
 class RegisterSerializerEx(RegisterSerializer):
     first_name = serializers.CharField(required=False)
@@ -44,9 +46,6 @@ class BasicUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ( 'id', 'username', 'first_name', 'last_name')
-
-
-
 
 class OrganizationReadSerializer(serializers.ModelSerializer):
     owner = BasicUserSerializer(allow_null=True)
@@ -111,7 +110,6 @@ class InvitationWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        # print("validating data--", validated_data)
         membership_data = validated_data.pop('membership')
         organization = validated_data.pop('organization')
         try:
@@ -123,10 +121,6 @@ class InvitationWriteSerializer(serializers.ModelSerializer):
             user = User.objects.create_user(username=user_email, password=get_random_string(length=32),
                 email=user_email)
             user.set_unusable_password()
-
-            # we dont have any email address  object in our database
-            # email = EmailAddress.objects.create(user=user, email=user_email, primary=True, verified=False)
-            # email.save()
 
             user.save()
             del membership_data['user']
@@ -164,7 +158,7 @@ class MembershipReadSerializer(serializers.ModelSerializer):
         read_only_fields = fields
         extra_kwargs = {
             'invitation': {
-                'allow_null': True, # owner of an organization does not have an invitation
+                'allow_null': True,
             }
         }
 
