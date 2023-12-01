@@ -1,16 +1,6 @@
 from django.urls import path
-
-from .views import add_data
-from .views import annotations
-from .views import get_add_project
-from .views import get_job_by_id
-from .views import get_label_by_id
-from .views import get_labels
-from .views import get_task_by_id
-from .views import job_annotation
-from .views import jobs
-from .views import tasks
-from .views import update_project
+from django.urls.conf import include
+from .views import *
 
 urlpatterns = [
     path("projects", get_add_project, name="get_add_project"),

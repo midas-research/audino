@@ -1,5 +1,6 @@
 import requests
 from django.db.models import Q
+from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
@@ -10,7 +11,11 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.manager import TokenAuthentication
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import PermissionDenied
 
+
+from .models import *
 from .models import Annotation as AnnotationModel
 from .models import AnnotationData as AnnotationDataModel
 from .models import AnnotationAttribute as AnnotationAttributeModel
@@ -20,21 +25,9 @@ from .models import Job as JobModel
 from .models import Label as LabelModel
 from .models import Project as ProjectModel
 from .models import Task as TaskModel
-from .serializers import AnnotationAttributeSerializer
-from .serializers import AnnotationDataSerializer
-from .serializers import AttributeSerializer
-from .serializers import DataSerializer
-from .serializers import GetAnnotationSerializer
-from .serializers import GetJobSerializer
-from .serializers import GetLabelSerializer
-from .serializers import GetProjectSerializer
-from .serializers import GetTaskSerializer
-from .serializers import PostAnnotationSerializer
-from .serializers import PostJobSerializer
-from .serializers import PostLabelSerializer
-from .serializers import PostProjectSerializer
-from .serializers import PostTaskSerializer
-from .serializers import StorageSerializer
+
+from .serializers import *
+
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
 
@@ -659,3 +652,69 @@ def annotations(request, job_id, a_id, format=None):
     final_data = dict(GetAnnotationSerializer(annotation).data)
     final_data = convert_string_lists_to_lists(final_data)
     return Response(final_data, status=status.HTTP_200_OK)
+
+
+# @api_view(['GET', 'POST'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+# def organisations(request):
+#     if request.method == 'GET':
+
+#         user = request.user
+#         organisations = Organisation.objects.filter(owner=user).order_by('created_date')
+
+#         paginator = PageNumberPagination()
+#         page_size = request.GET.get('page_size', 10)
+#         paginator.page_size = page_size
+
+#         result_page = paginator.paginate_queryset(organisations, request)
+#         serializer = OrganisationSerializer(result_page, many=True)
+#         return paginator.get_paginated_response(serializer.data)
+
+#     elif request.method == 'POST':
+#         try:
+#             data = request.data
+#             serializer = OrganisationSerializer(data=request.data, context={'request': request})
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Token.DoesNotExist:
+#             raise AuthenticationFailed("Invalid token")
+
+
+# @api_view(['GET', 'PATCH', 'DELETE'])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+# def get_update_delete_organisation_by_id(request, id):
+#     try:
+#         organisation = Organisation.objects.get(organisation_id=id)
+#     except Organisation.DoesNotExist:
+#         return Response(
+#             {"detail": "Organisation not found."},
+#             status=status.HTTP_404_NOT_FOUND
+#         )
+
+#     if request.method == 'GET':
+#         serializer = OrganisationSerializer(organisation)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+#     elif request.method == 'PATCH':
+#         if request.user != organisation.owner:
+#             raise PermissionDenied("You do not have permission to perform this action.")
+
+#         serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     elif request.method == "DELETE":
+#         if request.user != organisation.owner:
+#             raise PermissionDenied("You do not have permission to perform this action.")
+
+#         try:
+#             organisation.delete()
+#             return Response({"detail": "Organisation deleted successfully."}, status=status.HTTP_200_OK)
+#         except Organisation.DoesNotExist:
+#             return Response({"detail": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)

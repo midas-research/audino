@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "users",
     "core",
+    "organizations",
+    'allauth',
 ]
 
 MIDDLEWARE = [
@@ -166,3 +168,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Media Handling Configuration
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# ORG SETTINGS
+ORG_INVITATION_CONFIRM = 'No' #automatically accept invitations
+ORG_INVITATION_EXPIRY_DAYS = 7

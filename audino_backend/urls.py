@@ -23,10 +23,12 @@ from django.urls import path
 admin.site.site_header = "Audino Admin"
 admin.site.index_title = "Super Admin"
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("core.urls")),
     path("api/", include("users.urls")),
+    path("api/", include("organizations.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
