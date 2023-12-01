@@ -79,25 +79,7 @@ class Invitation(models.Model):
         return self.membership.organization.slug
 
     def send(self, request):
-        # if settings.EMAIL_BACKEND is None:
-        #     raise ImproperlyConfigured("Email backend is not configured")
-
         target_email = self.membership.user.email
-        # current_site = get_current_site(request)
-        # site_name = current_site.name
-        # domain = current_site.domain
-        # context = {
-        #         'email': target_email,
-        #         'invitation_key': self.key,
-        #         'domain': domain,
-        #         'site_name': site_name,
-        #         'invitation_owner': self.owner.get_username(),
-        #         'organization_name': self.membership.organization.slug,
-        #         'protocol': 'https' if request.is_secure() else 'http',
-        # }
-
-        # get_adapter(request).send_mail('invitation/invitation', target_email, context)
-
         self.sent_date = timezone.now()
         self.save()
 
