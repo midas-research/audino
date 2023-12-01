@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "../pages/HomePage/HomePage";
 import PageNotFound from "./page-not-found";
 import { Suspense } from "react";
-import Organization from "../pages/Organization/Organization";
 import { useSelector } from "react-redux";
 import AnnotatePage from "../pages/AnnotatePage/AnnotatePage";
 import ProjectPage from "../pages/ProjectPage/ProjectPage";
@@ -10,6 +9,8 @@ import AddProjectPage from "../pages/AddProjectPage/AddProjectPage";
 import TaskPage from "../pages/TaskPage/TaskPage";
 import AddTaskPage from "../pages/AddTaskPage/AddTaskPage";
 import JobPage from "../pages/JobPage/JobPage";
+import OrganizationsPage from "../pages/OrganizationPage/OrganizationPage";
+import AddOrganizationPage from "../pages/AddOrganizationPage/AddOrganizationPage";
 
 export default function Root() {
   const loginState = useSelector((state) => state.loginReducer);
@@ -30,10 +31,27 @@ export default function Root() {
           }
         />
         <Route
-          path="/organization"
+          path="/organizations"
           element={
             <Suspense fallback={<>Loading...</>}>
-              <Organization />
+              <OrganizationsPage />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/organizations/create"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+              <AddOrganizationPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/organizations/:id"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+              <AddOrganizationPage />
             </Suspense>
           }
         />
@@ -93,7 +111,7 @@ export default function Root() {
             </Suspense>
           }
         />
-         <Route
+        <Route
           path="/jobs"
           element={
             <Suspense fallback={<>Loading...</>}>

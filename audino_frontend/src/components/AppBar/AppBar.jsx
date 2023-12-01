@@ -20,7 +20,7 @@ const navigation = [
 ];
 const userNavigation = [
   // { name: "Your Profile", href: "/profile" },
-  // { name: "Organization", href: "/organization" },
+  { name: "Organization", href: "/organizations?page=1" },
   // { name: "Settings", href: "/setting" },
   { name: "Sign out", href: "/login" },
 ];
@@ -32,13 +32,13 @@ function classNames(...classes) {
 export default function AppBar({ children }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const {audinoUserData} = useSelector((state) => state.loginReducer);
+  const { audinoUserData } = useSelector((state) => state.loginReducer);
 
-  const {username, first_name, last_name, email} = audinoUserData;
-  const routeChange = () =>{ 
-    let path = `https://github.com/midas-research/audino/tree/main`; 
+  const { username, first_name, last_name, email } = audinoUserData;
+  const routeChange = () => {
+    let path = `https://github.com/midas-research/audino/tree/main`;
     window.location.href = path;
-  }
+  };
   return (
     <div className="min-h-full pb-32 bg-audino-primary">
       <Disclosure as="nav" className="bg-white shadow-sm">

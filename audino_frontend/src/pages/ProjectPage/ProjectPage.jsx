@@ -21,7 +21,7 @@ import useUrlQuery from "../../hooks/useUrlQuery";
 import TopBar from "../../components/TopBar/TopBar";
 import Pagination from "../../components/Pagination/Pagination";
 
-const pageSize = 11;
+const pageSize = 1;
 
 export default function ProjectPage() {
   const navigate = useNavigate();
@@ -32,13 +32,12 @@ export default function ProjectPage() {
   const [deleteModal, setDeleteModal] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState(null);
   const [appliedFilters, setAppliedFilters] = useState([]);
-  const [searchValue, setSearchValue] = useState("")
+  const [searchValue, setSearchValue] = useState("");
 
   const currentPage = parseInt(urlQuery.get("page"));
 
   const projects_obj = useProjectsStore((state) => state.projects_obj);
   const setProjects = useProjectsStore((state) => state.setProjects);
-
 
   const getProjectsQuery = useQuery({
     queryKey: ["projects", currentPage, pageSize, appliedFilters, searchValue],
@@ -92,7 +91,7 @@ export default function ProjectPage() {
     }
   };
 
-  console.log(searchValue)
+  console.log(searchValue);
   return (
     <>
       <AppBar>
@@ -212,6 +211,7 @@ export default function ProjectPage() {
             currentPage={currentPage}
             page="projects"
           />
+          {console.log(projects_obj)}
         </div>
 
         {/* confirmation modal */}

@@ -1,4 +1,4 @@
-import { DEFAULT_USER_TYPE } from "../../constants/constants";
+import { DEFAULT_USER_TYPE, ADMIN_USER_TYPE } from "../../constants/constants";
 import {
   LOGIN_REQUEST,
   LOGIN_REQUEST_SUCCESS,
@@ -37,12 +37,20 @@ export const loginReducer = (state = initialState, action) => {
 
     case LOGIN_REQUEST_SUCCESS: {
       const { data, userData } = action.payload;
+      // localStorage.setItem("audino-key", data.key);
+      // localStorage.setItem("audino-user", JSON.stringify(userData));
+
+      // ----------Ask what is the logic to check whether user is admin or not
+      const userType = userData.is_active ? ADMIN_USER_TYPE : DEFAULT_USER_TYPE;
       localStorage.setItem("audino-key", data.key);
-      localStorage.setItem("audino-user", JSON.stringify(userData));
+      localStorage.setItem(
+        "audino-user",
+        JSON.stringify({ ...userData, userType })
+      );
       return {
         ...state,
         audinoKey: data.key,
-        audinoUserData: userData,
+        audinoUserData: { ...userData, userType },
         isLoginLoading: false,
       };
     }
