@@ -1,7 +1,3 @@
-# Copyright (C) 2021-2022 Intel Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from django.core import signing
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication

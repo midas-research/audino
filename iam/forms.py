@@ -1,7 +1,3 @@
-# Copyright (C) 2022 CVAT.ai Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import get_user_model
 

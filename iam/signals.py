@@ -40,10 +40,6 @@ elif settings.IAM_TYPE == 'LDAP':
                         user.is_staff = user.is_superuser = True
                     break
 
-        # It is important to save the user before adding groups. Please read
-        # https://django-auth-ldap.readthedocs.io/en/latest/users.html#populating-users
-        # The user instance will be saved automatically after the signal handler
-        # is run.
         user.save()
         user.groups.set(user_groups)
 

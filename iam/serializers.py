@@ -1,8 +1,3 @@
-# Copyright (C) 2022 Intel Corporation
-# Copyright (C) 2022-2023 CVAT.ai Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.serializers import PasswordResetSerializer, LoginSerializer
 from rest_framework.exceptions import ValidationError

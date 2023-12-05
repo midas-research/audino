@@ -1,7 +1,3 @@
-# Copyright (C) 2021-2022 Intel Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.admin import GroupAdmin, UserAdmin

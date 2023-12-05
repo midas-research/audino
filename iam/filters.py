@@ -1,7 +1,3 @@
-# Copyright (C) 2021-2022 Intel Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from rest_framework.filters import BaseFilterBackend
 from django.db.models import Q
 from collections.abc import Iterable

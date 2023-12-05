@@ -1,8 +1,3 @@
-# Copyright (C) 2021-2022 Intel Corporation
-# Copyright (C) 2022-2023 CVAT.ai Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from django.urls import path, re_path
 from django.conf import settings
 from django.urls.conf import include

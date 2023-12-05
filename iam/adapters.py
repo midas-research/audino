@@ -1,7 +1,3 @@
-# Copyright (C) 2022-2023 CVAT.ai Corporation
-#
-# SPDX-License-Identifier: MIT
-
 from django.http import HttpResponseRedirect
 from django.conf import settings
 
