@@ -16,6 +16,9 @@ from .mixins import PartialUpdateModelMixin
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.pagination import PageNumberPagination
 
+from iam.permissions import (
+    InvitationPermission, MembershipPermission, OrganizationPermission)
+
 class ResendOrganizationInvitationThrottle(UserRateThrottle):
     rate = '5/hour'
 
@@ -273,9 +276,7 @@ class InvitationViewSet(viewsets.GenericViewSet,
         serializer.save(
             owner=self.request.user,
             key=get_random_string(length=64),
-            
-            # changed to get organization from request
-            organization=Organization.objects.get(id=int(self.request.headers.get('organization'))),
+            organization=self.request.iam_context['organization'],
             request=self.request,
         )
 
