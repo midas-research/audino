@@ -111,9 +111,8 @@ class OrganizationViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        user = self.request.user
-        queryset = queryset.filter(members__user=user)
-        return queryset
+        permission = OrganizationPermission.create_scope_list(self.request)
+        return permission.filter(queryset)
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -179,9 +178,8 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
         queryset = super().get_queryset()
 
         if self.action == 'list':
-            user = self.request.user
-            queryset = queryset.filter(user=user)
-            queryset = queryset
+            permission = MembershipPermission.create_scope_list(self.request)
+            queryset = permission.filter(queryset)
 
         return queryset
 
@@ -257,10 +255,8 @@ class InvitationViewSet(viewsets.GenericViewSet,
             return InvitationWriteSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        user = self.request.user
-        queryset = queryset.filter(owner=user)
-        return queryset
+        permission = InvitationPermission.create_scope_list(self.request)
+        return permission.filter(queryset)
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)

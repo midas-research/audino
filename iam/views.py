@@ -1,6 +1,5 @@
 import functools
 import hashlib
-
 from django.utils.functional import SimpleLazyObject
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from rest_framework import views, serializers
@@ -10,19 +9,10 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.http import etag as django_etag
 from rest_framework.response import Response
-from dj_rest_auth.registration.views import RegisterView
-from dj_rest_auth.views import LoginView
-from allauth.account import app_settings as allauth_settings
-from allauth.account.views import ConfirmEmailView
-from allauth.account.utils import has_verified_email, send_email_confirmation
-
 from furl import furl
-
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer, extend_schema_view
 from drf_spectacular.contrib.rest_auth import get_token_serializer_class
-
-from .authentication import Signer
 
 def get_organization(request):
     from organizations.models import Organization
@@ -31,7 +21,6 @@ def get_organization(request):
     groups = list(request.user.groups.filter(name__in=list(IAM_ROLES.keys())))
     groups.sort(key=lambda group: IAM_ROLES[group.name])
     privilege = groups[0] if groups else None
-
     organization = None
 
     try:
@@ -58,7 +47,7 @@ def get_organization(request):
 
     context = {
         "organization": organization,
-        "privilege": getattr(privilege, 'name', None)
+         "privilege": getattr(privilege, 'name', None)
     }
 
     return context
@@ -73,3 +62,46 @@ class ContextMiddleware:
         request.iam_context = SimpleLazyObject(lambda: get_organization(request))
 
         return self.get_response(request)
+
+
+def _etag(etag_func):
+    """
+    Decorator to support conditional retrieval (or change)
+    for a Django Rest Framework's ViewSet.
+    It calls Django's original decorator but pass correct request object to it.
+    Django's original decorator doesn't work with DRF request object.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(obj_self, request, *args, **kwargs):
+            drf_request = request
+            wsgi_request = request._request
+
+            @django_etag(etag_func=etag_func)
+            def patched_viewset_method(*_args, **_kwargs):
+                """Call original viewset method with correct type of request"""
+                return func(obj_self, drf_request, *args, **kwargs)
+
+            return patched_viewset_method(wsgi_request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+class RulesView(views.APIView):
+    serializer_class = None
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    iam_organization_field = None
+
+    @staticmethod
+    def _get_bundle_path():
+        return settings.IAM_OPA_BUNDLE_PATH
+
+    @staticmethod
+    def _etag_func(file_path):
+        with open(file_path, 'rb') as f:
+            return hashlib.blake2b(f.read()).hexdigest()
+
+    @_etag(lambda _: RulesView._etag_func(RulesView._get_bundle_path()))
+    def get(self, request):
+        file_obj = open(self._get_bundle_path() ,"rb")
+        return HttpResponse(file_obj, content_type='application/x-tar')

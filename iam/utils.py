@@ -8,7 +8,7 @@ def create_opa_bundle():
     if bundle_path.is_file():
         bundle_path.unlink()
 
-    rules_paths = [Path(settings.BASE_DIR) / 'cvat/apps/iam/rules']
+    rules_paths = [Path(settings.BASE_DIR) / 'iam/rules']
     # FIXME: Let's have OPA_RULES_PATH instead for the list of directories.
     if getattr(settings, 'EXTRA_RULES_PATHS', None):
         rules_paths.extend([Path(settings.BASE_DIR) / p for p in settings.EXTRA_RULES_PATHS])
@@ -31,22 +31,19 @@ def build_iam_context(request, organization, membership):
     }
 
 
+from django.conf import settings
 
-
-# Copyright (C) 2023 Intel Corporation
-#
-# SPDX-License-Identifier: MIT
-
-# from django.conf import settings
-
-# import requests
-# import requests.utils
+import requests
+import requests.utils
 
 # from cvat import __version__
 
-# _CVAT_USER_AGENT = f"CVAT/1.1 {requests.utils.default_user_agent()}"
+_CVAT_USER_AGENT = f"CVAT {requests.utils.default_user_agent()}"
 
-# def make_requests_session() -> requests.Session:
-#     session = requests.Session()
-#     session.headers['User-Agent'] = _CVAT_USER_AGENT
-#     return session
+def make_requests_session() -> requests.Session:
+    session = requests.Session()
+    # print(session.headers)
+    # print(_CVAT_USER_AGENT)
+    # print(vars(session))
+    session.headers['User-Agent'] = _CVAT_USER_AGENT
+    return session

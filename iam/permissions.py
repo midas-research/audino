@@ -17,7 +17,7 @@ from rest_framework.permissions import BasePermission
 from organizations.models import Membership, Organization
 # from cvat.apps.quality_control.models import AnnotationConflict, QualityReport, QualitySettings
 # from cvat.apps.webhooks.models import WebhookTypeChoice
-# from cvat.utils.http import make_requests_session
+from .utils import make_requests_session
 
 
 class StrEnum(str, Enum):
@@ -42,10 +42,10 @@ class StrEnum(str, Enum):
 #     return d
 
 
-# @define
-# class PermissionResult:
-#     allow: bool
-#     reasons: List[str] = field(factory=list)
+@define
+class PermissionResult:
+    allow: bool
+    reasons: List[str] = field(factory=list)
 
 def get_organization(request, obj):
     # Try to get organization from an object otherwise, return the organization that is specified in query parameters
@@ -116,6 +116,7 @@ class OpenPolicyAgentPermission(metaclass=ABCMeta):
     def create_base_perm(cls, request, view, scope, iam_context, obj=None, **kwargs):
         if not iam_context and request:
             iam_context = get_iam_context(request, obj)
+
         return cls(
             scope=scope,
             obj=obj,
@@ -125,6 +126,7 @@ class OpenPolicyAgentPermission(metaclass=ABCMeta):
     def create_scope_list(cls, request, iam_context=None):
         if not iam_context and request:
             iam_context = get_iam_context(request, None)
+
         return cls(**iam_context, scope='list')
 
     def __init__(self, **kwargs):
@@ -177,6 +179,7 @@ class OpenPolicyAgentPermission(metaclass=ABCMeta):
         return PermissionResult(allow=allow, reasons=reasons)
 
     def filter(self, queryset):
+
         url = self.url.replace('/allow', '/filter')
 
         with make_requests_session() as session:
@@ -1990,42 +1993,42 @@ class MembershipPermission(OpenPolicyAgentPermission):
 #         return data
 
 
-# class PolicyEnforcer(BasePermission):
-#     # pylint: disable=no-self-use
-#     def check_permission(self, request, view, obj):
-#         permissions: List[OpenPolicyAgentPermission] = []
+class PolicyEnforcer(BasePermission):
+    # pylint: disable=no-self-use
+    def check_permission(self, request, view, obj):
+        permissions: List[OpenPolicyAgentPermission] = []
 
-#         iam_context = get_iam_context(request, obj)
+        iam_context = get_iam_context(request, obj)
 
-#         # DRF can send OPTIONS request. Internally it will try to get
-#         # information about serializers for PUT and POST requests (clone
-#         # request and replace the http method). To avoid handling
-#         # ('POST', 'metadata') and ('PUT', 'metadata') in every request,
-#         # the condition below is enough.
-#         if not self.is_metadata_request(request, view):
-#             for perm in OpenPolicyAgentPermission.__subclasses__():
-#                 permissions.extend(perm.create(request, view, obj, iam_context))
+        # DRF can send OPTIONS request. Internally it will try to get
+        # information about serializers for PUT and POST requests (clone
+        # request and replace the http method). To avoid handling
+        # ('POST', 'metadata') and ('PUT', 'metadata') in every request,
+        # the condition below is enough.
+        if not self.is_metadata_request(request, view):
+            for perm in OpenPolicyAgentPermission.__subclasses__():
+                permissions.extend(perm.create(request, view, obj, iam_context))
 
-#         allow = True
-#         for perm in permissions:
-#             result = perm.check_access()
-#             allow &= result.allow
+        allow = True
+        for perm in permissions:
+            result = perm.check_access()
+            allow &= result.allow
 
-#         return allow
+        return allow
 
-#     def has_permission(self, request, view):
-#         if not view.detail:
-#             return self.check_permission(request, view, None)
-#         else:
-#             return True # has_object_permission will be called later
+    def has_permission(self, request, view):
+        if not view.detail:
+            return self.check_permission(request, view, None)
+        else:
+            return True # has_object_permission will be called later
 
-#     def has_object_permission(self, request, view, obj):
-#         return self.check_permission(request, view, obj)
+    def has_object_permission(self, request, view, obj):
+        return self.check_permission(request, view, obj)
 
-#     @staticmethod
-#     def is_metadata_request(request, view):
-#         return request.method == 'OPTIONS' \
-#             or (request.method == 'POST' and view.action == 'metadata' and len(request.data) == 0)
+    @staticmethod
+    def is_metadata_request(request, view):
+        return request.method == 'OPTIONS' \
+            or (request.method == 'POST' and view.action == 'metadata' and len(request.data) == 0)
 
 # class AnalyticsReportPermission(OpenPolicyAgentPermission):
 #     class Scopes(StrEnum):

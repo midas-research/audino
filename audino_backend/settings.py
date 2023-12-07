@@ -59,6 +59,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    'django.middleware.gzip.GZipMiddleware',
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -104,8 +105,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
         "rest_framework.permissions.IsAuthenticated",
+        'iam.permissions.PolicyEnforcer',
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    'DEFAULT_SCHEMA_CLASS': 'iam.schema.CustomAutoSchema',
 }
 
 # Database
@@ -162,6 +165,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+os.makedirs(STATIC_ROOT, exist_ok=True)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -177,17 +184,30 @@ ORG_INVITATION_EXPIRY_DAYS = 7
 
 
 # IAM SETTINGS
-IAM_CONTEXT_BUILDERS = ['iam.utils.build_iam_context',]
 IAM_TYPE = 'BASIC'
+IAM_BASE_EXCEPTION = None # a class which will be used by IAM to report errors
+
+
+def GET_IAM_DEFAULT_ROLES(user) -> list:
+    return ['user']
+
+
+IAM_CONTEXT_BUILDERS = ['iam.utils.build_iam_context',]
+
 
 IAM_ADMIN_ROLE = 'admin'
 # Index in the list below corresponds to the priority (0 has highest priority)
 IAM_ROLES = [IAM_ADMIN_ROLE, 'business', 'user', 'worker']
 
 
-# IAM_OPA_HOST = 'http://opa:8181'
-# IAM_OPA_DATA_URL = f'{IAM_OPA_HOST}/v1/data'
+IAM_OPA_HOST = 'http://localhost:8181'
+IAM_OPA_DATA_URL = f'{IAM_OPA_HOST}/v1/data'
 # LOGIN_URL = 'rest_login'
 # LOGIN_REDIRECT_URL = '/'
 
 OBJECTS_NOT_RELATED_WITH_ORG = ['user', 'function', 'request', 'server',]
+
+
+
+IAM_OPA_BUNDLE_PATH = os.path.join(STATIC_ROOT, 'opa', 'bundle.tar.gz')
+os.makedirs(Path(IAM_OPA_BUNDLE_PATH).parent, exist_ok=True)
