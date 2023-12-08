@@ -9,7 +9,8 @@ from .models import User
 # Register your models here.
 class UserCreationForm(forms.ModelForm):
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
-    password2 = forms.CharField(label="Confirm Password", widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label="Confirm Password", widget=forms.PasswordInput)
 
     class Meta:
         model = User
@@ -35,7 +36,8 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("username", "email", "password", "first_name", "last_name")
+        fields = ("username", "email", "password",
+                  "first_name", "last_name",)
 
     def clean_password(self):
         return self.initial["password"]
@@ -50,8 +52,9 @@ class UserAdmin(BaseUserAdmin):
         "username",
         "first_name",
         "last_name",
+        "get_groups",
     )
-    list_filter = ("email",)
+    list_filter = ("email","groups",)
     fieldsets = (
         (
             None,
@@ -79,6 +82,7 @@ class UserAdmin(BaseUserAdmin):
                     "is_active",
                     "is_admin",
                     "is_superuser",
+                    "groups",
                 )
             },
         ),
@@ -95,6 +99,7 @@ class UserAdmin(BaseUserAdmin):
                     "last_name",
                     "password1",
                     "password2",
+                    "groups",
                 ),
             },
         ),
@@ -105,7 +110,7 @@ class UserAdmin(BaseUserAdmin):
         "first_name",
     )
     ordering = ("email",)
-    filter_horizontal = ()
+    filter_horizontal = ("groups",)
 
 
 # class UserDetailAdmin(BaseUserAdmin):
@@ -121,6 +126,10 @@ class UserAdmin(BaseUserAdmin):
 #     ordering = ("user",)
 #     filter_horizontal = ()
 
+    def get_groups(self, obj):
+        return ", ".join([group.name for group in obj.groups.all()])
+
+    get_groups.short_description = "Groups" 
 
 admin.site.register(User, UserAdmin)
 # admin.site.register(UserDetail, UserDetailAdmin)

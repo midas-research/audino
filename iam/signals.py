@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save, post_migrate
 
 
@@ -10,17 +10,17 @@ def register_groups(sender, **kwargs):
 
 if settings.IAM_TYPE == 'BASIC':
     def create_user(sender, instance, created, **kwargs):
-        from allauth.account import app_settings as allauth_settings
-        from allauth.account.models import EmailAddress
+        # from allauth.account import app_settings as allauth_settings
+        # from allauth.account.models import EmailAddress
 
         if instance.is_superuser and instance.is_staff:
             db_group = Group.objects.get(name=settings.IAM_ADMIN_ROLE)
             instance.groups.add(db_group)
 
-            # create and verify EmailAddress for superuser accounts
-            if allauth_settings.EMAIL_REQUIRED:
-                EmailAddress.objects.get_or_create(user=instance,
-                    email=instance.email, primary=True, verified=True)
+            # # create and verify EmailAddress for superuser accounts
+            # if allauth_settings.EMAIL_REQUIRED:
+            #     EmailAddress.objects.get_or_create(user=instance,
+            #         email=instance.email, primary=True, verified=True)
         else: # don't need to add default groups for superuser
             if created:
                 for role in settings.GET_IAM_DEFAULT_ROLES(instance):

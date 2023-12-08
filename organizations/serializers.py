@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from allauth.account.models import EmailAddress
+# from allauth.account.models import EmailAddress
 from allauth.account.adapter import get_adapter
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -182,8 +182,11 @@ class AcceptInvitationWriteSerializer(RegisterSerializerEx):
         self.cleaned_data = self.get_cleaned_data()
         user = invitation.membership.user
         user.is_active = True
-        email = EmailAddress.objects.get(email=user.email)
-        get_adapter(request).confirm_email(request, email)
+
+        # we don't have to send confirmation email
+        # email = EmailAddress.objects.get(email=user.email)
+        # get_adapter(request).confirm_email(request, email)
+        
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.username = self.cleaned_data['username']
