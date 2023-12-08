@@ -35,7 +35,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://app.audino.in",
     "https://*"
 ]
-
+CORS_ALLOWED_HEADERS = ['*']    
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

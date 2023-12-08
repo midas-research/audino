@@ -13,10 +13,7 @@ from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import BasePermission
 
-# from cvat.apps.engine.models import CloudStorage, Label, Project, Task, Job, Issue, AnnotationGuide
 from organizations.models import Membership, Organization
-# from cvat.apps.quality_control.models import AnnotationConflict, QualityReport, QualitySettings
-# from cvat.apps.webhooks.models import WebhookTypeChoice
 from .utils import make_requests_session
 
 

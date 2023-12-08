@@ -255,6 +255,7 @@ class InvitationViewSet(viewsets.GenericViewSet,
             return InvitationWriteSerializer
 
     def get_queryset(self):
+        queryset = super().get_queryset()
         permission = InvitationPermission.create_scope_list(self.request)
         return permission.filter(queryset)
 
