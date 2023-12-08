@@ -9,7 +9,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from .manager import TokenAuthentication
 from .models import User
 from .serializers import GetUserSerializer
@@ -145,6 +144,7 @@ def user_by_id(request, user_id, format=None):
         )
 
     if request.method == "DELETE":
+
         user.delete()
         return Response(
             {"message": "User Deleted Successfully!!"}, status=status.HTTP_200_OK

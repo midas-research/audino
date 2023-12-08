@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.db.models.signals import post_save, post_migrate
+from users.models import User
 
 
 def register_groups(sender, **kwargs):
