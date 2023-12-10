@@ -572,7 +572,6 @@ def get_task_by_id(request, task_id, format=None):
 @permission_classes([IsAuthenticated])
 def add_data(request, task_id, format=None):
     if request.method == "POST":
-        print(request.data)
         file_data = {
             "task": task_id,
             "filename": request.data["file"].name,
