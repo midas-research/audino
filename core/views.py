@@ -111,9 +111,8 @@ def get_add_project(request, format=None):
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 100)
-    
-    organization = request.iam_context['organization']
 
+    organization = request.iam_context['organization']
 
     if organization:
         projects = ProjectModel.objects.filter(
@@ -123,7 +122,7 @@ def get_add_project(request, format=None):
         projects = perm.filter(projects)
 
     else:
-        projects = ProjectModel.objects.filter(Q(owner=request.user)|Q(assignee=request.user)).order_by(
+        projects = ProjectModel.objects.filter(Q(owner=request.user) | Q(assignee=request.user)).order_by(
             "created_at"
         )
         perm = ProjectPermission.create_scope_list(request)
@@ -323,28 +322,27 @@ def jobs(request, format=None):
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 1)
 
-
     organization = request.iam_context['organization']
-    if organization:
-        try:
-            jobs = JobModel.objects.filter(
-                organization=organization.id).order_by("created_at")
-            # not using JobPermission as it is not working
-            # perm = JobPermission.create_scope_list(request)
-            # jobs = perm.filter(jobs)
-        except Organization.DoesNotExist:
-            return Response(
-                {"message": "Organization does not exist."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+    # if organization:
+    #     try:
+    #         jobs = JobModel.objects.filter(
+    #             organization=organization.id).order_by("created_at")
+    #         # not using JobPermission as it is not working
+    #         # perm = JobPermission.create_scope_list(request)
+    #         # jobs = perm.filter(jobs)
+    #     except Organization.DoesNotExist:
+    #         return Response(
+    #             {"message": "Organization does not exist."},
+    #             status=status.HTTP_404_NOT_FOUND,
+    #         )
 
-    else:
-        jobs = JobModel.objects.filter(
-            Q(guide_id=request.user) | Q(assignee=request.user)
-        ).order_by("created_at")
-        # not using JobPermission as it is not working
-        # perm = JobPermission.create_scope_list(request)
-        # jobs = perm.filter(jobs)
+    # else:
+    jobs = JobModel.objects.filter(
+        Q(guide_id=request.user) | Q(assignee=request.user)
+    ).order_by("created_at")
+    # not using JobPermission as it is not working
+    # perm = JobPermission.create_scope_list(request)
+    # jobs = perm.filter(jobs)
 
     if search_query:
         jobs = jobs.filter(Q(task_id__name__icontains=search_query))
@@ -399,7 +397,6 @@ def tasks(request, format=None):
                     {"message": "Organization does not exist."},
                     status=status.HTTP_404_NOT_FOUND,
                 )
-
 
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
