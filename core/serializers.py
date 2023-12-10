@@ -11,10 +11,10 @@ class StorageSerializer(serializers.ModelSerializer):
 
 
 class GetProjectSerializer(serializers.ModelSerializer):
-    # source_storage = StorageSerializer()
-    # target_storage = StorageSerializer()
-    # owner = UserSerializer()
-    # assignee = UserSerializer()
+    source_storage = StorageSerializer()
+    target_storage = StorageSerializer()
+    owner = UserSerializer()
+    assignee = UserSerializer()
 
     # class Meta:
     #     model = Project
@@ -80,6 +80,10 @@ class GetTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = "__all__"
+        extra_kwargs = {
+            'organization': { 'allow_null': True },
+            'overlap': { 'allow_null': True },
+        }
 
 
 class PostJobSerializer(serializers.ModelSerializer):

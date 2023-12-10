@@ -30,8 +30,11 @@ from .serializers import *
 
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
+from iam.permissions import *
 
 # api for posting project and getting all projects of the organisation
+
+
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -40,9 +43,19 @@ def get_add_project(request, format=None):
         organization_slug = request.GET.get("org", None)
         data = JSONParser().parse(request)
         if organization_slug:
-            organization = Organization.objects.get(slug=organization_slug).id
-            data["organization"] = organization
-        
+            try:
+                organization = Organization.objects.get(
+                    slug=organization_slug).id
+                data["organization"] = organization
+            except Organization.DoesNotExist:
+                return Response(
+                    {"message": "Organization does not exist."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        else:
+            organization = request.iam_context['organization']
+
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
 
@@ -100,12 +113,22 @@ def get_add_project(request, format=None):
 
     organization_slug = request.GET.get("org", None)
     if organization_slug:
-        organization = Organization.objects.get(slug=organization_slug)
-        projects = ProjectModel.objects.filter(organization=organization.id).order_by( "created_at")
-        print(projects)
- 
+        try:
+            organization = Organization.objects.get(slug=organization_slug)
+            projects = ProjectModel.objects.filter(
+                organization=organization.id).order_by("created_at")
+            perm = ProjectPermission.create_scope_list(request)
+            projects = perm.filter(projects)
+        except Organization.DoesNotExist:
+            return Response(
+                {"message": "Organization does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
     else:
-        projects = ProjectModel.objects.filter(Q(owner=request.user)|Q(assignee=request.user)).order_by( "created_at")
+        projects = ProjectModel.objects.all()
+        perm = ProjectPermission.create_scope_list(request)
+        projects = perm.filter(projects)
 
     if search_query:
         projects = projects.filter(Q(name__icontains=search_query))
@@ -300,9 +323,29 @@ def jobs(request, format=None):
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 1)
-    jobs = JobModel.objects.filter(
-        Q(guide_id=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+
+    organization_slug = request.GET.get("org", None)
+    if organization_slug:
+        try:
+            organization = Organization.objects.get(slug=organization_slug)
+            jobs = JobModel.objects.filter(
+                organization=organization.id).order_by("created_at")
+            # not using JobPermission as it is not working
+            # perm = JobPermission.create_scope_list(request)
+            # jobs = perm.filter(jobs)
+        except Organization.DoesNotExist:
+            return Response(
+                {"message": "Organization does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    else:
+        jobs = JobModel.objects.filter(
+            Q(guide_id=request.user) | Q(assignee=request.user)
+        ).order_by("created_at")
+        # not using JobPermission as it is not working
+        # perm = JobPermission.create_scope_list(request)
+        # jobs = perm.filter(jobs)
 
     if search_query:
         jobs = jobs.filter(Q(task_id__name__icontains=search_query))
@@ -347,6 +390,21 @@ def get_job_by_id(request, job_id, format=None):
 def tasks(request, format=None):
     if request.method == "POST":
         data = JSONParser().parse(request)
+        organization_slug = request.GET.get("org", None)
+
+        if organization_slug:
+            try:
+                organization = Organization.objects.get(
+                    slug=organization_slug).id
+                data["organization"] = organization
+            except Organization.DoesNotExist:
+                return Response(
+                    {"message": "Organization does not exist."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        else:
+            organization = request.iam_context['organization']
 
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
@@ -400,11 +458,30 @@ def tasks(request, format=None):
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
+    page_size = request.GET.get("page_size", 10)
 
-    tasks = TaskModel.objects.filter(
-        Q(owner=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+    organization_slug = request.GET.get("org", None)
+    if organization_slug:
+        try:
+            organization = Organization.objects.get(slug=organization_slug)
+            tasks = TaskModel.objects.filter(
+                Q(owner=request.user) | Q(assignee=request.user) | Q(
+                    organization=organization.id)
+            ).order_by("created_at")
+            perm = TaskPermission.create_scope_list(request)
+            tasks = perm.filter(tasks)
+        except Organization.DoesNotExist:
+            return Response(
+                {"message": "Organization does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    else:
+        tasks = TaskModel.objects.filter(
+            Q(owner=request.user) | Q(assignee=request.user)
+        ).order_by("created_at")
+        perm = TaskPermission.create_scope_list(request)
+        tasks = perm.filter(tasks)
 
     if search_query:
         tasks = tasks.filter(Q(name__icontains=search_query))
@@ -662,69 +739,3 @@ def annotations(request, job_id, a_id, format=None):
     final_data = dict(GetAnnotationSerializer(annotation).data)
     final_data = convert_string_lists_to_lists(final_data)
     return Response(final_data, status=status.HTTP_200_OK)
-
-
-# @api_view(['GET', 'POST'])
-# @authentication_classes([TokenAuthentication])
-# @permission_classes([IsAuthenticated])
-# def organisations(request):
-#     if request.method == 'GET':
-
-#         user = request.user
-#         organisations = Organisation.objects.filter(owner=user).order_by('created_date')
-
-#         paginator = PageNumberPagination()
-#         page_size = request.GET.get('page_size', 10)
-#         paginator.page_size = page_size
-
-#         result_page = paginator.paginate_queryset(organisations, request)
-#         serializer = OrganisationSerializer(result_page, many=True)
-#         return paginator.get_paginated_response(serializer.data)
-
-#     elif request.method == 'POST':
-#         try:
-#             data = request.data
-#             serializer = OrganisationSerializer(data=request.data, context={'request': request})
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#         except Token.DoesNotExist:
-#             raise AuthenticationFailed("Invalid token")
-
-
-# @api_view(['GET', 'PATCH', 'DELETE'])
-# @authentication_classes([TokenAuthentication])
-# @permission_classes([IsAuthenticated])
-# def get_update_delete_organisation_by_id(request, id):
-#     try:
-#         organisation = Organisation.objects.get(organisation_id=id)
-#     except Organisation.DoesNotExist:
-#         return Response(
-#             {"detail": "Organisation not found."},
-#             status=status.HTTP_404_NOT_FOUND
-#         )
-
-#     if request.method == 'GET':
-#         serializer = OrganisationSerializer(organisation)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     elif request.method == 'PATCH':
-#         if request.user != organisation.owner:
-#             raise PermissionDenied("You do not have permission to perform this action.")
-
-#         serializer = OrganisationSerializer(organisation, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     elif request.method == "DELETE":
-#         if request.user != organisation.owner:
-#             raise PermissionDenied("You do not have permission to perform this action.")
-
-#         try:
-#             organisation.delete()
-#             return Response({"detail": "Organisation deleted successfully."}, status=status.HTTP_200_OK)
-#         except Organisation.DoesNotExist:
-#             return Response({"detail": "Organisation not found."}, status=status.HTTP_404_NOT_FOUND)
