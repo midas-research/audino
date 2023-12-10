@@ -37,7 +37,7 @@ from .utils import get_paginator
 @permission_classes([IsAuthenticated])
 def get_add_project(request, format=None):
     if request.method == "POST":
-        organization_slug = request.headers.get('X-Organization',None)
+        organization_slug = request.GET.get("org", None)
         data = JSONParser().parse(request)
         if organization_slug:
             organization = Organization.objects.get(slug=organization_slug).id
@@ -98,10 +98,11 @@ def get_add_project(request, format=None):
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 100)
 
-    organization_slug = request.headers.get('X-Organization', None)
+    organization_slug = request.GET.get("org", None)
     if organization_slug:
         organization = Organization.objects.get(slug=organization_slug)
         projects = ProjectModel.objects.filter(organization=organization.id).order_by( "created_at")
+        print(projects)
  
     else:
         projects = ProjectModel.objects.filter(Q(owner=request.user)|Q(assignee=request.user)).order_by( "created_at")
