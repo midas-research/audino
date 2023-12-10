@@ -7,7 +7,7 @@ from allauth.account.utils import filter_users_by_email
 
 from django.conf import settings
 
-from cvat.apps.iam.forms import ResetPasswordFormEx
+from .forms import ResetPasswordFormEx
 
 class RegisterSerializerEx(RegisterSerializer):
     first_name = serializers.CharField(required=False)

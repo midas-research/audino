@@ -47,7 +47,8 @@ def get_organization(request):
 
     context = {
         "organization": organization,
-         "privilege": getattr(privilege, 'name', None)
+        "privilege": getattr(privilege, 'name', None),
+       
     }
 
     return context

@@ -1,7 +1,6 @@
 from django.contrib.auth.models import BaseUserManager
 from rest_framework import authentication
 
-
 class MyUserManager(BaseUserManager):
     def create_user(self, email, username, password=None):
         if not email:
@@ -21,7 +20,7 @@ class MyUserManager(BaseUserManager):
         user.is_superuser = True
         user.save(using=self._db)
         return user
-
+    
 
 class TokenAuthentication(authentication.TokenAuthentication):
     keyword = "Token"

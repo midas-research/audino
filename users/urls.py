@@ -1,6 +1,5 @@
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
-
 from .views import CustomAuthToken
 from .views import logout_user
 from .views import register
