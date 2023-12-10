@@ -3,6 +3,7 @@ import os
 from django.db import models
 from users.models import User
 from django.utils.text import slugify
+from organizations.models import Organization
 
 def get_upload_path(instance, filename):
     return os.path.join("%s" % instance.task.name, filename)
@@ -30,6 +31,8 @@ class Project(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="owner"
     )
+    organization = models.ForeignKey(Organization, null=True, default=None,
+        blank=True, on_delete=models.SET_NULL, related_name="projects")
     assignee = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="assignee"
     )

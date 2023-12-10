@@ -31,14 +31,18 @@ from .serializers import *
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
 
-
+# api for posting project and getting all projects of the organisation
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_add_project(request, format=None):
     if request.method == "POST":
+        organization_slug = request.headers.get('X-Organization',None)
         data = JSONParser().parse(request)
-
+        if organization_slug:
+            organization = Organization.objects.get(slug=organization_slug).id
+            data["organization"] = organization
+        
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
 
@@ -53,49 +57,54 @@ def get_add_project(request, format=None):
         serializer = PostProjectSerializer(data=data)
         if serializer.is_valid():
             project_obj = serializer.save()
-            if len(data["labels"]) != 0:
-                for each_label in data["labels"]:
-                    label_obj = {
-                        "project": project_obj.id,
-                        "name": each_label["name"],
-                        "label_type": each_label["label_type"],
-                    }
-                    label_serializer = PostLabelSerializer(data=label_obj)
-                    if label_serializer.is_valid():
-                        label_obj = label_serializer.save()
-                        for each_attribute in each_label["attributes"]:
-                            attribute_obj = {
-                                "label": label_obj.id,
-                                "name": each_attribute["name"],
-                                "input_type": each_attribute["input_type"],
-                                "default_value": each_attribute["default_value"],
-                                "values": str(each_attribute["values"]),
-                            }
-                            attribute_serializer = AttributeSerializer(
-                                data=attribute_obj
-                            )
-                            if attribute_serializer.is_valid():
-                                attr_obj = attribute_serializer.save()
-                                label_obj.attributes.add(attr_obj)
-                            else:
-                                return Response(
-                                    attribute_serializer.errors,
-                                    status=status.HTTP_400_BAD_REQUEST,
-                                )
-                    else:
-                        return Response(
-                            label_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            for each_label in data["labels"]:
+                label_object = {
+                    "project": project_obj.id,
+                    "name": each_label["name"],
+                    "label_type": each_label["label_type"],
+                }
+                label_serializer = PostLabelSerializer(data=label_object)
+                if label_serializer.is_valid():
+                    label_obj = label_serializer.save()
+                    for each_attribute in each_label["attributes"]:
+                        attribute_obj = {
+                            "label": label_obj.id,
+                            "name": each_attribute["name"],
+                            "input_type": each_attribute["input_type"],
+                            "default_value": each_attribute["default_value"],
+                            "values": str(each_attribute["values"]),
+                        }
+                        attribute_serializer = AttributeSerializer(
+                            data=attribute_obj
                         )
+                        if attribute_serializer.is_valid():
+                            attribute_obj = attribute_serializer.save()
+                            label_obj.attributes.add(attribute_obj)
+                        else:
+                            return Response(
+                                attribute_serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                else:
+                    return Response(
+                        label_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
-    projects = ProjectModel.objects.filter(
-        Q(owner=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+    page_size = request.GET.get("page_size", 100)
+
+    organization_slug = request.headers.get('X-Organization', None)
+    if organization_slug:
+        organization = Organization.objects.get(slug=organization_slug)
+        projects = ProjectModel.objects.filter(organization=organization.id).order_by( "created_at")
+ 
+    else:
+        projects = ProjectModel.objects.filter(Q(owner=request.user)|Q(assignee=request.user)).order_by( "created_at")
 
     if search_query:
         projects = projects.filter(Q(name__icontains=search_query))
