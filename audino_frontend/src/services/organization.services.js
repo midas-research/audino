@@ -21,33 +21,69 @@ const response = {
 
 export const createOrganizationApi = async ({ data }) => {
   try {
-    /*  const res = await axios.post(BASE_URL + "/organizations", data, {
-          headers: { ...authHeader() },
-        });
-        return res.data; */
-
-    return response;
-  } catch (e) {
-    toast.error(`Unable to load data: ${e.message}`);
-    throw Error(e.response?.data ?? "Something went wrong");
+   
+    const res = await axios.post(BASE_URL + "/organizations/", data, {
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (errorData) {
+    toast.error(`Unable to load data: ${errorData.message}`);
+    throw Error(errorData.response?.data ?? "Something went wrong");
   }
 };
 
-export const updateOrganizationApi = ({ selectedOrg }) => {
+export const updateOrganizationApi = async ({ data, id }) => {
   try {
-
-    return response;
-  } catch (e) {
-    toast.error(`Unable to load data: ${e.message}`);
-    throw Error(e.response?.data ?? "Something went wrong");
+    const res = await axios.patch(BASE_URL + `/organizations/${id}/`, data, {
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (errorData) {
+    toast.error(`Unable to load data: ${errorData.message}`);
+    throw Error(errorData.response?.data ?? "Something went wrong");
   }
 };
 
 export const fetchOrganizationApi = async ({ id = "" }) => {
   try {
-    return response;
-  } catch (e) {
-    toast.error(`Unable to load data: ${e.message}`);
-    throw Error(e.response?.data ?? "Something went wrong");
+    const response = await axios.get(BASE_URL + `/organizations/${id}`, {
+      headers: { ...authHeader() },
+    });
+    return response.data;
+  } catch (errorData) {
+    toast.error(`unable to fetch organization: ${errorData.message}`);
+    throw Error(errorData.response?.data ?? "something went wrong");
+  }
+};
+
+export const fetchOrganizationsApi = async (data) => {
+  try {
+    const response = await axios.get(BASE_URL + "/organizations", {
+      params: {
+        org: data?.org,
+        page: data?.page,
+        page_size: data?.page_size,
+        filter: data?.filter,
+        search: data?.searchValue,
+      },
+      headers: { ...authHeader() },
+    });
+
+    return response.data;
+  } catch (errorData) {
+    toast.error(`unable to fetch organizations: ${errorData.message}`);
+    throw Error(errorData.response?.data ?? "something went wrong");
+  }
+};
+
+export const deleteOrganizationApi = async ({ id }) => {
+  try {
+   
+    const response = await axios.delete(BASE_URL + `/organizations/${id}`, {
+      headers: { ...authHeader() },
+    });
+  } catch (errorData) {
+    toast.error(`Unable to delete organization : ${errorData.message}`);
+    throw Error(errorData.message ?? "Something went wrong");
   }
 };

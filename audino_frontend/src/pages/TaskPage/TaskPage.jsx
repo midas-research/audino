@@ -170,8 +170,8 @@ export default function TaskPage({
                             to={`/annotate/${task.id}`}
                             className="hover:underline"
                           > */}
-                            <span className="text-gray-500">#{task.id}:</span>{" "}
-                            {task.name}
+                          <span className="text-gray-500">#{task.id}:</span>{" "}
+                          {task.name}
                           {/* </NavLink> */}
                         </p>
                         <p

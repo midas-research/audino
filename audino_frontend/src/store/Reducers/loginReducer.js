@@ -37,20 +37,12 @@ export const loginReducer = (state = initialState, action) => {
 
     case LOGIN_REQUEST_SUCCESS: {
       const { data, userData } = action.payload;
-      // localStorage.setItem("audino-key", data.key);
-      // localStorage.setItem("audino-user", JSON.stringify(userData));
-
-      // ----------Ask what is the logic to check whether user is admin or not
-      const userType = userData.is_active ? ADMIN_USER_TYPE : DEFAULT_USER_TYPE;
       localStorage.setItem("audino-key", data.key);
-      localStorage.setItem(
-        "audino-user",
-        JSON.stringify({ ...userData, userType })
-      );
+      localStorage.setItem("audino-user", JSON.stringify(userData));
       return {
         ...state,
         audinoKey: data.key,
-        audinoUserData: { ...userData, userType },
+        audinoUserData: userData,
         isLoginLoading: false,
       };
     }

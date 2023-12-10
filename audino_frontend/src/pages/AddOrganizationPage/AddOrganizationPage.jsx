@@ -2,20 +2,26 @@ import { useEffect, useState } from "react";
 import AppBar from "../../components/AppBar/AppBar";
 import { useNavigate, useParams } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import CustomInput from "../../components/CustomInput/CustomInput";
 import PrimaryButton from "../../components/PrimaryButton/PrimaryButton";
-import AddOrganizationLoader from "./AddOrganizationLoader";
-import useOrganizationStore from "../../zustand-store/organizations";
+import AddOrganizationLoader from "./components/AddOrganizationLoader";
 import { organizationAllValidation } from "../../validation/allValidation";
 import { organizationSingleFieldValidation } from "../../validation/singleValidation";
 import useSingleFieldValidation from "../../utils/inputDebounce";
-import InviteMembersForm from "../../components/inviteMember/inviteMember";
+import InviteMemberModal from "../../components/InviteMemberModal/InviteMemberModal";
 import {
   createOrganizationApi,
   updateOrganizationApi,
   fetchOrganizationApi,
 } from "../../services/organization.services";
-import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { getAllMembershipsApi } from "../../services/membership.services";
+import { createInvitationApi } from "../../services/invitation.services";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import CardLoader from "../../components/loader/cardLoader";
+import { useMembershipStore } from "../../zustand-store/memberships";
+import MembershipCard from "../../components/MembershipCard/MembershipCard";
+import useUrlQuery from "../../hooks/useUrlQuery";
 
 const initialData = {
   slug: "",
@@ -27,17 +33,10 @@ const initialData = {
     location: "",
   },
 };
-
-// Options for the dropdown
-const roleOptions = [
-  { value: "worker", label: "Worker" },
-  { value: "supervisor", label: "Supervisor" },
-  { value: "maintainer", label: "Maintainer" },
-];
-
 export default function AddOrganizationPage() {
-  const { id: selectedOrg } = useParams();
-  const { addOrganization, updateOrganization } = useOrganizationStore();
+  const { id: orgId } = useParams();
+  let urlQuery = useUrlQuery();
+  const organizationSlug = urlQuery.get("org") || "";
   const [formValue, setFormValue] = useState(initialData);
   const [formError, setFormError] = useState({
     slug: null,
@@ -57,35 +56,30 @@ export default function AddOrganizationPage() {
   );
 
   const navigate = useNavigate();
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [members, setMembers] = useState([]);
 
-  const handleInviteSuccess = ({ email, ownership }) => {
-    // Add the new member to the list
-    const newMember = {
-      id: members.length + 1, // You may need to generate a unique ID
-      username: email.split("@")[0], // Assuming username is derived from the email
-      role: ownership,
-    };
-    setMembers((prevMembers) => [...prevMembers, newMember]);
-    setIsInviteModalOpen(false);
+  const setMemberships = useMembershipStore((state) => state.setMemberships);
+  const memberships_obj = useMembershipStore((state) => state.memberships_obj);
+
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  const handleInviteSuccess = (data) => {
+    const organization = parseInt(orgId);
+    createInvitationMutation.mutate({
+      invitationData: { ...data, organization: organization },
+      organizationSlug: organizationSlug,
+    });
   };
+
+  const createInvitationMutation = useMutation({
+    mutationFn: createInvitationApi,
+    onSuccess: () => {
+      setIsInviteModalOpen(false);
+      refetchMemberships();
+    },
+  });
 
   const handleInviteCancel = () => {
     setIsInviteModalOpen(false);
-  };
-
-  const handleRoleChange = (memberId, newRole) => {
-    setMembers((prevMembers) =>
-      prevMembers.map((member) =>
-        member.id === memberId ? { ...member, role: newRole } : member
-      )
-    );
-  };
-  const handleDeleteMember = (memberId) => {
-    setMembers((prevMembers) =>
-      prevMembers.filter((member) => member.id !== memberId)
-    );
   };
 
   const handleInviteClick = () => {
@@ -96,7 +90,7 @@ export default function AddOrganizationPage() {
     const { isValid, error } = organizationAllValidation(formValue);
 
     if (isValid) {
-      if (selectedOrg) {
+      if (orgId) {
         console.log("Updating organization..");
         // updateOrganizationMutation
         updateOrganizationMutation.mutate({
@@ -110,6 +104,7 @@ export default function AddOrganizationPage() {
               location: formValue.contact.location,
             },
           },
+          id: orgId,
         });
       } else {
         console.log("Adding organization..");
@@ -130,6 +125,20 @@ export default function AddOrganizationPage() {
       setFormError(error);
     }
   };
+
+  const addOrganizationMutation = useMutation({
+    mutationFn: createOrganizationApi,
+    onSuccess: () => {
+      navigate("/organizations?page=1");
+    },
+  });
+
+  const updateOrganizationMutation = useMutation({
+    mutationFn: updateOrganizationApi,
+    onSuccess: (data) => {
+      navigate("/organizations?page=1");
+    },
+  });
 
   const handleInputChange = (name, value) => {
     setFormValue((prev) => {
@@ -152,61 +161,40 @@ export default function AddOrganizationPage() {
     debouncedValidation({ name, value });
   };
 
-  const addOrganizationMutation = useMutation({
-    mutationFn: createOrganizationApi,
-    onSuccess: (data) => {
-      //   setOrgs(data);
-      addOrganization(data);
-
-      navigate("/organizations?page=1");
-    },
-  });
-
-  const updateOrganizationMutation = useMutation({
-    mutationFn: () => updateOrganizationApi(selectedOrg),
-    onSuccess: (formValue) => {
-      if (formValue) {
-        updateOrganization(formValue);
-        console.log("updated data:", formValue);
-        navigate("/organizations?page=1");
-      } else {
-        // Handle the case where data is not received or not valid
-        console.error("Invalid or missing data in updateOrganizationApi");
-      }
-    },
-  });
-
-  const getOrganizationQuery = useQuery({
-    queryKey: ["organization", selectedOrg],
-    staleTime: 1000,
-    queryFn: () =>
-      fetchOrganizationApi({
-        id: selectedOrg,
-      }),
-    onSuccess: (data) => {
-      setFormValue((prev) => {
-        return {
-          ...prev,
-          slug: data.slug ?? "slug",
-          name: data.name ?? "",
-          description: data.description ?? "",
-          contact: {
-            email: data.contact?.email ?? "",
-            mobileNumber: data.contact?.mobileNumber ?? "",
-            location: data.contact?.location ?? "",
-          },
-        };
+  const { refetch: refetchOrganization } = useQuery({
+    queryKey: ["organization", orgId],
+    staleTime: Infinity,
+    enabled: false,
+    queryFn: () => fetchOrganizationApi({ id: orgId }),
+    onSuccess: (fetchedData) => {
+      setFormValue({
+        slug: fetchedData.slug || "",
+        name: fetchedData.name || "",
+        description: fetchedData.description || "",
+        contact: {
+          email: fetchedData.contact?.email || "",
+          mobileNumber: fetchedData.contact?.mobileNumber || "",
+          location: fetchedData.contact?.location || "",
+        },
       });
     },
   });
 
+  const { refetch: refetchMemberships, isLoading: membershipsLoading } =
+    useQuery({
+      queryKey: ["memberships"],
+      enabled: true,
+      queryFn: () => getAllMembershipsApi(organizationSlug),
+      onSuccess: (data) => setMemberships(data),
+    });
+
   useEffect(() => {
-    //fetch if selectedOrg present , fetch the form data,and set in formValue
-    if (selectedOrg) {
-      console.log("selected org", selectedOrg);
-      getOrganizationQuery.refetch();
+    //fetch if orgId present , fetch the form data,and set in formValue
+    if (orgId) {
+      refetchOrganization();
+      refetchMemberships();
     } else setFormValue(formValue);
-  }, []);
+  }, [orgId]);
 
   return (
     <>
@@ -214,122 +202,50 @@ export default function AddOrganizationPage() {
         <header className="py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold tracking-tight text-white">
-              {selectedOrg ? "Updating " : "Create "} Organization
+              {orgId ? "Updating " : "Create "} Organization
             </h1>
           </div>
         </header>
       </AppBar>
       <main className=" -mt-32 flex flex-col gap-5 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         {/* Invite members */}
-        {selectedOrg && (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
-            <div className="mb-4 py-4 bg-white">
-              <button
-                type="button"
-                className="flex items-center gap-x-2 ml-auto rounded-md bg-audino-primary px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm cursor-pointer"
-                onClick={handleInviteClick}
-              >
-                Invite Members
-                <PlusIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" />
-              </button>
-
-              {/* owner */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 border px-4 md:px-5 rounded-md p-2 mt-6 items-center">
-                <div className="col-span-1 sm:col-span-1 md:col-span-1 ">
-                  <p className="text-sm font-medium text-gray-600 overflow-ellipsis overflow-clip">
-                    Aditya sharma
-                  </p>
-                </div>
-
-                <div className="col-span-1 sm:col-span-1 md:col-span-1 ">
-                  <p className="text-sm font-medium text-gray-00 overflow-ellipsis overflow-clip">
-                    Aditya sharma
-                  </p>
-                </div>
-
-                <div className="col-span-1 sm:col-span-1 md:col-span-1 ">
-                  <p className="text-xs font-light text-gray-400 overflow-ellipsis overflow-clip">
-                    Invited 5 hours ago by aditya466
-                  </p>
-                  <p className="text-xs font-light text-gray-400 overflow-ellipsis overflow-clip">
-                    Joined 5 hours ago
-                  </p>
-                </div>
-
-                {/* Role dropdown */}
-                <div className="col-span-2 sm:col-span-2 md:col-span-1  text-right">
-                  <select
-                    id={`role-`}
-                    className="form-select text-sm w-32 border-slate-300 rounded-md shadow-sm text-green-600 cursor-not-allowed"
+        <ul>
+          {orgId ? (
+            membershipsLoading ? (
+              [...Array(2).keys()].map((load) => (
+                <li
+                  className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white cursor-pointer py-8 sm:py-0"
+                  onClick={() => navigate("create")}
+                  key={`CardLoader-${load}`}
+                >
+                  <CardLoader />
+                </li>
+              ))
+            ) : (
+              <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+                <div className="mb-4 bg-white">
+                  <button
+                    type="button"
+                    className="flex items-center gap-x-2 ml-auto rounded-md bg-audino-primary px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm cursor-pointer"
+                    onClick={handleInviteClick}
                   >
-                    <option key="role" value="owner">
-                      Owner
-                    </option>
-                  </select>
-                </div>
+                    Invite Members
+                    <PlusIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" />
+                  </button>
 
-                <div className="col-span-2 sm:col-span-1 md:col-span-1 flex justify-end">
-                  <TrashIcon
-                    className="h-4 w-4 text-gray-500  cursor-not-allowed"
-                    aria-hidden="true"
-                  />
+                  {/* Render Members */}
+                  {memberships_obj.results.map((membership) => (
+                    <MembershipCard
+                      key={membership.id}
+                      membership={membership}
+                      onMembershipUpdate={refetchMemberships}
+                    />
+                  ))}
                 </div>
               </div>
-
-              {/* Render Members */}
-              {members.map((member) => (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 border px-4 md:px-5 rounded-md p-2 mt-6 items-center">
-                  <div className="col-span-1 sm:col-span-1 md:col-span-1 ">
-                    <p className="text-sm font-medium text-gray-600 overflow-ellipsis overflow-clip">
-                      {member.username}
-                    </p>
-                  </div>
-
-                  <div className="col-span-1 sm:col-span-1 md:col-span-1 ">
-                    <p className="text-sm font-medium text-gray-00 overflow-ellipsis overflow-clip">
-                      {member.username}
-                    </p>
-                  </div>
-
-                  <div className="col-span-1 sm:col-span-1 md:col-span-1 ">
-                    <p className="text-xs font-light text-gray-400 overflow-ellipsis overflow-clip">
-                      Invited 5 hours ago by
-                      aditya46666666666666666666666666666666666666666
-                    </p>
-                    <p className="text-xs font-light text-gray-400 overflow-ellipsis overflow-clip">
-                      Joined 5 hours ago
-                    </p>
-                  </div>
-
-                  {/* Role dropdown */}
-                  <div className="col-span-2 sm:col-span-2 md:col-span-1  text-right">
-                    <select
-                      id={`role-${member.id}`}
-                      className="form-select text-sm w-32 border-slate-300 rounded-md shadow-sm text-green-600"
-                      value={member.role}
-                      onChange={(e) =>
-                        handleRoleChange(member.id, e.target.value)
-                      }
-                    >
-                      {roleOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col-span-2 sm:col-span-1 md:col-span-1 flex justify-end">
-                    <TrashIcon
-                      className="h-4 w-4 text-gray-500  cursor-not-allowed"
-                      aria-hidden="true"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            )
+          ) : null}
+        </ul>
 
         {/* Form fileds */}
         <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
@@ -467,7 +383,10 @@ export default function AddOrganizationPage() {
                   </button>
                   <PrimaryButton
                     onClick={handleSave}
-                    loading={addOrganizationMutation.isLoading} // mutation isLoading added
+                    loading={
+                      addOrganizationMutation.isLoading ||
+                      updateOrganizationMutation.isLoading
+                    }
                   >
                     Save
                   </PrimaryButton>
@@ -479,12 +398,12 @@ export default function AddOrganizationPage() {
 
         {/* invite member form */}
 
-        <InviteMembersForm
+        <InviteMemberModal
           open={isInviteModalOpen}
           onClose={() => setIsInviteModalOpen(false)}
           onCancel={handleInviteCancel}
           onSuccess={handleInviteSuccess}
-          isLoading={false} // Set to true if you want to show a loading state
+          isLoading={createInvitationMutation.isLoading}
         />
       </main>
     </>

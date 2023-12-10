@@ -21,7 +21,7 @@ import useUrlQuery from "../../hooks/useUrlQuery";
 import TopBar from "../../components/TopBar/TopBar";
 import Pagination from "../../components/Pagination/Pagination";
 
-const pageSize = 1;
+const pageSize = 11;
 
 export default function ProjectPage() {
   const navigate = useNavigate();
@@ -211,7 +211,6 @@ export default function ProjectPage() {
             currentPage={currentPage}
             page="projects"
           />
-          {console.log(projects_obj)}
         </div>
 
         {/* confirmation modal */}

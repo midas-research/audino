@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 
-export default function InviteMembersForm({
+export default function InviteMemberModal({
   open,
   onClose,
   onSuccess,
@@ -16,15 +15,17 @@ export default function InviteMembersForm({
     setSelectedRole(e.target.value);
   };
 
-  const handleOk = () => {
-    if (!email.trim()) {
-      return;
-    }
-
-    onSuccess({ email, ownership: selectedRole });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSuccess({ email: email, role: selectedRole });
     setEmail("");
   };
 
+  const handleCancel = () => {
+    setEmail("");
+    setSelectedRole("worker");
+    onCancel();
+  };
   return (
     <Transition.Root show={open} as={React.Fragment} appear>
       <Dialog
@@ -63,7 +64,7 @@ export default function InviteMembersForm({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="inline-block my-auto align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div className="bg-white p-6">
                   <h3 className="text-lg font-medium text-gray-900">
                     Invite Members
@@ -72,7 +73,7 @@ export default function InviteMembersForm({
                     Enter the email and select the role for the new member.
                   </p>
 
-                  <div className=" flex justify-between  gap-4 mt-4 ">
+                  <form className="flex justify-between  gap-4 mt-4 ">
                     <div className="flex items-center  w-full">
                       <input
                         type="email"
@@ -97,21 +98,21 @@ export default function InviteMembersForm({
                         <option value="maintainer">Maintainer</option>
                       </select>
                     </div>
-                  </div>
+                  </form>
 
                   <div className="mt-10">
                     <div className=" flex justify-end">
                       <button
                         type="button"
                         className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-600"
-                        onClick={onCancel}
+                        onClick={handleCancel}
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
+                        onClick={handleSubmit}
                         className="ml-3 flex rounded-md bg-[#65B892] px-3 py-2 text-sm font-medium text-white hover:bg-[#65B892] focus:outline-none focus:ring-1 focus:ring-green-600"
-                        onClick={handleOk}
                         disabled={isLoading}
                       >
                         {isLoading ? (

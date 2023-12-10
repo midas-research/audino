@@ -20,7 +20,7 @@ const navigation = [
 ];
 const userNavigation = [
   // { name: "Your Profile", href: "/profile" },
-  { name: "Organization", href: "/organizations?page=1" },
+  { name: "Organizations", href: "/organizations?page=1" },
   // { name: "Settings", href: "/setting" },
   { name: "Sign out", href: "/login" },
 ];
