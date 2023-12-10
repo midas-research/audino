@@ -1,7 +1,7 @@
-import { PencilIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useState, useEffect, Fragment } from "react";
 import { useSelector } from "react-redux";
-import { ADMIN_USER_TYPE } from "../../constants/constants";
+import { AUDINO_ORG } from "../../constants/constants";
 import AppBar from "../../components/AppBar/AppBar";
 import { useNavigate } from "react-router";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
@@ -27,9 +27,10 @@ const pageSize = 11;
 
 export default function OrganizationsPage() {
   const [currentOrg, setCurrentOrg] = useState(
-    parseInt(localStorage.getItem("currentOrganization"))
+    localStorage.getItem(AUDINO_ORG)
   );
-  const [currentOrgId, setCurrentOrgId] = useState("");
+  const [deleteOrg, setDeleteOrg] = useState("");
+  const [deleteOrgId, setdeleteOrgId] = useState("");
   const [deleteModal, setDeleteModal] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -48,6 +49,7 @@ export default function OrganizationsPage() {
   const { isLoading } = useQuery({
     queryKey: [
       "organizations",
+      currentOrg,
       currentPage,
       pageSize,
       appliedFilters,
@@ -57,7 +59,6 @@ export default function OrganizationsPage() {
 
     queryFn: () =>
       fetchOrganizationsApi({
-        org: "",
         page: currentPage,
         page_size: pageSize,
         searchValue: searchValue,
@@ -71,19 +72,20 @@ export default function OrganizationsPage() {
               filter: appliedFilters[0],
             }),
       }),
-    onSuccess: (data) => setOrganizations(data),
+    onSuccess: (data) => {
+      setOrganizations(data);
+    },
   });
 
   // Check if data is available and there are no errors before setting it
 
-  const handleOrgClick = (orgId, orgSlug) => {
-    localStorage.setItem("currentOrganization", orgSlug);
-    console.log(orgSlug);
+  const handleOrgClick = (orgSlug) => {
+    localStorage.setItem(AUDINO_ORG, orgSlug);
     toast.success(`Organization updated to ${orgSlug}`);
-    setCurrentOrg(orgId);
+    setCurrentOrg(orgSlug);
   };
   const handleRemoveOrgClick = () => {
-    localStorage.removeItem("currentOrganization");
+    localStorage.removeItem(AUDINO_ORG);
     toast.success("Organization updated to personal workspace");
     setCurrentOrg("");
   };
@@ -95,11 +97,7 @@ export default function OrganizationsPage() {
   };
 
   const handleDeleteProject = () => {
-    delteOrgMutation.mutate({ id: currentOrgId });
-    if (currentOrgId === currentOrg) {
-      localStorage.removeItem("currentOrganization");
-      setCurrentOrg("");
-    }
+    delteOrgMutation.mutate({ id: deleteOrgId });
   };
 
   //delete organization mutation
@@ -107,6 +105,10 @@ export default function OrganizationsPage() {
     mutationFn: deleteOrganizationApi,
     onSuccess: (data, { id }) => {
       setDeleteModal(false);
+      if (deleteOrg === currentOrg) {
+        localStorage.removeItem(AUDINO_ORG);
+        setCurrentOrg("");
+      }
       setOrganizations({
         ...organizations,
         results: organizations.results.filter((res) => res.id !== id),
@@ -183,14 +185,12 @@ export default function OrganizationsPage() {
                   >
                     <div
                       className="flex justify-start items-center gap-10 w-full cursor-pointer"
-                      onClick={() =>
-                        handleOrgClick(organization.id, organization.slug)
-                      }
+                      onClick={() => handleOrgClick(organization.slug)}
                     >
                       <div>
                         <p className="text-sm flex gap-4 items-center font-semibold leading-6 text-gray-900">
                           {organization.name}
-                          {currentOrg === organization.id && (
+                          {currentOrg === organization.slug && (
                             <span className="inline-flex flex-shrink-0 items-center rounded-full h-5 bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                               Active
                             </span>
@@ -216,16 +216,15 @@ export default function OrganizationsPage() {
                     </div>
                     <div className="flex w-full flex-none items-center justify-between gap-x-7 sm:w-auto">
                       {/* Settings icon */}
-                      {currentOrg === organization.id ? (
+                      {currentOrg === organization.slug ? (
                         <div
                           className="flex items-center justify-center py-4 cursor-pointer  text-gray-400 hover:text-gray-700"
-                          onClick={() =>
-                            navigate(
-                              `${organization.id}?page=1&org=${organization.slug}`
-                            )
-                          }
+                          onClick={() => navigate(`${organization.id}?page=1`)}
                         >
-                          <PencilIcon className="h-4 w-4" aria-hidden="true" />
+                          <Cog6ToothIcon
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         </div>
                       ) : null}
                       {/* action buttons */}
@@ -277,7 +276,8 @@ export default function OrganizationsPage() {
                                       "block px-3 py-1 text-sm leading-6 text-red-900 w-full text-left"
                                     )}
                                     onClick={() => {
-                                      setCurrentOrgId(organization.id);
+                                      setdeleteOrgId(organization.id);
+                                      setDeleteOrg(organization.slug);
                                       setDeleteModal(true);
                                     }}
                                   >

@@ -1,5 +1,6 @@
 import axios from "axios";
 import authHeader from "./auth-header";
+import globalParams from "./global-params";
 import chunkUpload from "../functions/chunkUpload";
 import { toast } from "react-hot-toast";
 
@@ -13,7 +14,7 @@ export const createTaskApi = async ({ taskSpec, taskDataSpec, onUpdate }) => {
       async function checkStatus() {
         try {
           const response = await axios.get(`${BASE_URL}/tasks/${id}/status`, {
-            params,
+            params:{...globalParams()},
             headers: { ...authHeader() },
           });
           if (["Queued", "Started"].includes(response.data.state)) {
@@ -82,7 +83,7 @@ export const createTaskApi = async ({ taskSpec, taskDataSpec, onUpdate }) => {
   onUpdate("The task is being created on the server..", null);
   try {
     response = await axios.post(`${BASE_URL}/tasks`, taskSpec, {
-      params,
+      params:{...globalParams()},
       headers: { ...authHeader() },
     });
   } catch (errorData) {
@@ -116,7 +117,7 @@ export const createTaskApi = async ({ taskSpec, taskDataSpec, onUpdate }) => {
       const percentage = totalSentSize / totalSize;
       onUpdate("The data are being uploaded to the server", percentage);
       await axios.post(`${BASE_URL}/tasks/${taskId}/data`, taskData, {
-        ...params,
+        params:{...globalParams()},
         headers: { "Upload-Multiple": true, ...authHeader() },
       });
       for (let i = 0; i < fileBulks[currentChunkNumber].files.length; i++) {
@@ -129,7 +130,7 @@ export const createTaskApi = async ({ taskSpec, taskDataSpec, onUpdate }) => {
 
   try {
     await axios.post(`${BASE_URL}/tasks/${response.data.id}/data`, taskData, {
-      ...params,
+      params:{...globalParams()},
       headers: { "Upload-Start": true, ...authHeader() },
     });
     const uploadConfig = {
@@ -148,7 +149,7 @@ export const createTaskApi = async ({ taskSpec, taskDataSpec, onUpdate }) => {
       await bulkUpload(response.data.id, bulkFiles);
     }
     await axios.post(`${BASE_URL}/tasks/${response.data.id}/data`, taskData, {
-      ...params,
+      params:{...globalParams()},
       headers: { "Upload-Finish": true, ...authHeader() },
     });
   } catch (errorData) {
@@ -178,6 +179,7 @@ export const createTaskWithDataApi = async ({
   try {
     onUpdate("The task is being created on the server..", null);
     const response = await axios.post(`${BASE_URL}/tasks`, taskSpec, {
+      params:{...globalParams()},
       headers: { ...authHeader() },
     });
     onUpdate("The data are being uploaded to the server..", null);
@@ -190,6 +192,7 @@ export const createTaskWithDataApi = async ({
       ...authHeader(),
     });
     await axios.post(`${BASE_URL}/tasks/${response.data.id}/data`, taskData, {
+      params:{...globalParams()},
       headers: { "Content-Type": "multipart/form-data", ...authHeader() },
     });
   } catch (errorData) {
@@ -207,6 +210,7 @@ export const fetchTasksApi = async (data) => {
         page_size: data?.page_size,
         filter: data?.filter,
         search: data?.searchValue,
+        ...globalParams(),
       },
       headers: { ...authHeader() },
     });
@@ -219,6 +223,7 @@ export const fetchTasksApi = async (data) => {
 export const deleteTaskApi = async ({ id }) => {
   try {
     const res = await axios.delete(BASE_URL + `/tasks/${id}`, {
+      params:{...globalParams()},
       headers: { ...authHeader() },
     });
     return res.data;
@@ -231,6 +236,7 @@ export const deleteTaskApi = async ({ id }) => {
 export const fetchTaskApi = async ({ id }) => {
   try {
     const res = await axios.get(BASE_URL + `/tasks/${id}`, {
+      params:{...globalParams()},
       headers: { ...authHeader() },
     });
     return res.data;
@@ -242,6 +248,7 @@ export const fetchTaskApi = async ({ id }) => {
 export const updateTaskApi = async ({ id, data }) => {
   try {
     const res = await axios.patch(BASE_URL + `/tasks/${id}`, data, {
+      params:{...globalParams()},
       headers: { ...authHeader() },
     });
     return res.data;

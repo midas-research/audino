@@ -1,13 +1,15 @@
 import axios from "axios";
 import authHeader from "./auth-header";
+import globalParams from "./global-params";
 import { handleDjangoErrors } from "../utils/errorHandler";
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-export const getInvitationApi = async (key = "", org = "") => {
+export const getInvitationApi = async (key = "") => {
   try {
     const response = await axios.get(
-      BASE_URL + `/invitations/${key}?org=${org}`,
+      BASE_URL + `/invitations/${key}`,
       {
+        params:{...globalParams()},
         headers: { ...authHeader() },
       }
     );
@@ -18,15 +20,13 @@ export const getInvitationApi = async (key = "", org = "") => {
   }
 };
 
-export const createInvitationApi = async ({
-  invitationData,
-  organizationSlug,
-}) => {
+export const createInvitationApi = async ({ invitationData }) => {
   try {
     const response = await axios.post(
-      BASE_URL + `/invitations/?org=${organizationSlug}`,
+      BASE_URL + `/invitations/`,
       invitationData,
       {
+        params: { ...globalParams() },
         headers: { ...authHeader() },
       }
     );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import relativeTime from "dayjs/plugin/relativeTime";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import dayjs from "dayjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 
 const MembershipCard = ({ membership, onMembershipUpdate }) => {
+  const { id: orgId } = useParams();
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState(membership?.role || "");
   const setMemberships = useMembershipStore((state) => state.setMemberships);
@@ -68,10 +69,10 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
   });
 
   const handleDeleteMutation = async () => {
-     await deleteMembershipMutation.mutate(membership.id);
+    await deleteMembershipMutation.mutate(membership.id);
 
     if (loggedInUser.username !== invitationDetails.owner.username) {
-       navigate("/organizations?page=1");
+      navigate("/organizations?page=1");
       // window.location.href = '/organizations?page=1';
     }
   };
@@ -80,7 +81,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
     refetch: refetchInvitationDetails,
     isLoading: invitationDetailsLoading,
   } = useQuery({
-    queryKey: ["invitation", membership.invitation],
+    queryKey: ["invitation", membership.invitation, orgId],
     enabled: false,
     queryFn: () => getInvitationApi(membership.invitation),
     onSuccess: (invitationDetails) => {
@@ -89,6 +90,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
   });
 
   useEffect(() => {
+    console.log("membership:::", membership);
     const fetchInvitationDetails = () => {
       if (membership.invitation) {
         refetchInvitationDetails();
@@ -96,7 +98,26 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
     };
 
     fetchInvitationDetails();
-  }, [membership,refetchInvitationDetails]);
+  }, [membership, refetchInvitationDetails, membership.invitation]);
+
+  // const prevMembership = useRef(null);
+
+  // useEffect(() => {
+  //   const fetchInvitationDetails = () => {
+  //     if (
+  //       membership.invitation &&
+  //       membership.invitation !== prevMembership.current?.invitation
+  //     ) {
+  //       // Fetch invitation details only if the invitation property has changed
+  //       refetchInvitationDetails();
+  //     }
+  //   };
+
+  //   // Update the previous membership after the check
+  //   prevMembership.current = membership;
+
+  //   fetchInvitationDetails();
+  // }, [membership, refetchInvitationDetails]);
 
   return (
     <>
@@ -178,12 +199,12 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
           {!isOwner &&
             loggedInUser.username === invitationDetails?.user.username && (
               <div className="col-span-1 sm:col-span-1 md:col-span-2 flex justify-end cursor-pointer">
-              <button
-                className="inline-block max-w-md justify-self-end rounded-md px-2 bg-white py-0.5 text-sm font-medium leading-6 text-red-500 border border-red-400 hover:bg-gray-50"
-                onClick={() => setDeleteModal(true)}
-              >
-                Leave Organization
-              </button>
+                <button
+                  className="inline-block max-w-md justify-self-end rounded-md px-2 bg-white py-0.5 text-sm font-medium leading-6 text-red-500 border border-red-400 hover:bg-gray-50"
+                  onClick={() => setDeleteModal(true)}
+                >
+                  Leave Organization
+                </button>
               </div>
             )}
 

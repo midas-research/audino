@@ -533,11 +533,17 @@ export default function AnnotatePage({}) {
   };
 
   const getAllLoading = () => {
+    console.log(
+      getJobDetailQuery.isLoading,
+      getLabelsQuery.isLoading,
+      getAnnotationDataQuery.isLoading,
+      isWaveformLoading
+    );
     return (
       getJobDetailQuery.isLoading ||
       getLabelsQuery.isLoading ||
       getAnnotationDataQuery.isLoading ||
-      isWaveformLoading
+      !isWaveformLoading
     );
   };
 

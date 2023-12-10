@@ -5,6 +5,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import capitalizeFirstLetter from "../../utils/capitalizeFirstLetter";
 import { useDispatch, useSelector } from "react-redux";
 import { userLogout } from "../../store/Actions/loginAction";
+import { AUDINO_ORG } from "../../constants/constants";
 
 const user = {
   name: "User",
@@ -34,7 +35,8 @@ export default function AppBar({ children }) {
   const navigate = useNavigate();
   const { audinoUserData } = useSelector((state) => state.loginReducer);
 
-  const { username, first_name, last_name, email } = audinoUserData;
+  const { username, first_name, last_name } = audinoUserData;
+  const CURRENT_ORG = localStorage.getItem(AUDINO_ORG) || "Personal Workspace";
   const routeChange = () => {
     let path = `https://github.com/midas-research/audino/tree/main`;
     window.location.href = path;
@@ -115,7 +117,7 @@ export default function AppBar({ children }) {
                               {username ? username : "User"}
                             </div>
                             <div className="text-xs font-medium text-gray-500 truncate">
-                              {email}
+                              {CURRENT_ORG}
                             </div>
                           </div>
                         </div>
@@ -213,7 +215,7 @@ export default function AppBar({ children }) {
                           {username ? username : "User"}
                         </div>
                         <div className="text-sm font-medium text-gray-500">
-                          {email}
+                          {CURRENT_ORG}
                         </div>
                       </div>
                       <button

@@ -22,6 +22,7 @@ import CardLoader from "../../components/loader/cardLoader";
 import { useMembershipStore } from "../../zustand-store/memberships";
 import MembershipCard from "../../components/MembershipCard/MembershipCard";
 import useUrlQuery from "../../hooks/useUrlQuery";
+import { AUDINO_ORG } from "../../constants/constants";
 
 const initialData = {
   slug: "",
@@ -35,8 +36,6 @@ const initialData = {
 };
 export default function AddOrganizationPage() {
   const { id: orgId } = useParams();
-  let urlQuery = useUrlQuery();
-  const organizationSlug = urlQuery.get("org") || "";
   const [formValue, setFormValue] = useState(initialData);
   const [formError, setFormError] = useState({
     slug: null,
@@ -65,8 +64,7 @@ export default function AddOrganizationPage() {
   const handleInviteSuccess = (data) => {
     const organization = parseInt(orgId);
     createInvitationMutation.mutate({
-      invitationData: { ...data, organization: organization },
-      organizationSlug: organizationSlug,
+      invitationData: data,
     });
   };
 
@@ -136,6 +134,7 @@ export default function AddOrganizationPage() {
   const updateOrganizationMutation = useMutation({
     mutationFn: updateOrganizationApi,
     onSuccess: (data) => {
+      localStorage.setItem(AUDINO_ORG, data.slug);
       navigate("/organizations?page=1");
     },
   });
@@ -182,16 +181,18 @@ export default function AddOrganizationPage() {
 
   const { refetch: refetchMemberships, isLoading: membershipsLoading } =
     useQuery({
-      queryKey: ["memberships"],
-      enabled: true,
-      queryFn: () => getAllMembershipsApi(organizationSlug),
+      queryKey: ["memberships", orgId],
+      enabled: false,
+
+      queryFn: () => getAllMembershipsApi(),
       onSuccess: (data) => setMemberships(data),
     });
 
   useEffect(() => {
     //fetch if orgId present , fetch the form data,and set in formValue
-    if (orgId) {
+    if (orgId != null) {
       refetchOrganization();
+      console.log("orgid::::", orgId);
       refetchMemberships();
     } else setFormValue(formValue);
   }, [orgId]);
