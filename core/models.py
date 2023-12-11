@@ -92,8 +92,9 @@ class Task(models.Model):
         ("Validation", "Validation"),
     )
     name = models.CharField(max_length=200, null=True, blank=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
-    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True,related_name="tasks",
+        related_query_name="task")
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="owners")
     subset = models.CharField(
         max_length=64, choices=SUBSET_CHOICES, default="train")
     assignee = models.ForeignKey(

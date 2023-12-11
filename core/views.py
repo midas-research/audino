@@ -13,8 +13,6 @@ from rest_framework.response import Response
 from users.manager import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied
-
-
 from .models import *
 from .models import Annotation as AnnotationModel
 from .models import AnnotationData as AnnotationDataModel
@@ -32,8 +30,6 @@ from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
 from iam.permissions import *
 
-# api for posting project and getting all projects of the organisation
-
 
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
@@ -46,16 +42,12 @@ def get_add_project(request, format=None):
 
         if organization:
             try:
-
                 data["organization"] = organization.id
             except Organization.DoesNotExist:
                 return Response(
                     {"message": "Organization does not exist."},
                     status=status.HTTP_404_NOT_FOUND,
                 )
-
-        else:
-            organization = request.iam_context['organization']
 
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
@@ -110,23 +102,21 @@ def get_add_project(request, format=None):
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 100)
+    page_size = request.GET.get("page_size", 10)
 
     organization = request.iam_context['organization']
+    print(organization)
 
-    if organization:
+    if organization is None:
         projects = ProjectModel.objects.filter(
-            organization=organization.id).order_by("created_at")
-        print(vars(projects))
-        perm = ProjectPermission.create_scope_list(request)
-        projects = perm.filter(projects)
+            organization__isnull=True).order_by("created_at")
 
     else:
-        projects = ProjectModel.objects.filter(Q(owner=request.user) | Q(assignee=request.user)).order_by(
-            "created_at"
-        )
-        perm = ProjectPermission.create_scope_list(request)
-        projects = perm.filter(projects)
+        projects = ProjectModel.objects.select_related(
+            'assignee', 'owner', 'target_storage', 'source_storage').prefetch_related('tasks').all()
+
+    perm = ProjectPermission.create_scope_list(request)
+    projects = perm.filter(projects)
 
     if search_query:
         projects = projects.filter(Q(name__icontains=search_query))
@@ -320,26 +310,30 @@ def jobs(request, format=None):
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
+    page_size = request.GET.get("page_size", 10)
 
     organization = request.iam_context['organization']
-    # if organization:
-    #     try:
-    #         jobs = JobModel.objects.filter(
-    #             organization=organization.id).order_by("created_at")
-    #         # not using JobPermission as it is not working
-    #         # perm = JobPermission.create_scope_list(request)
-    #         # jobs = perm.filter(jobs)
-    #     except Organization.DoesNotExist:
-    #         return Response(
-    #             {"message": "Organization does not exist."},
-    #             status=status.HTTP_404_NOT_FOUND,
-    #         )
+    if organization:
+        try:
+            jobs = JobModel.objects.filter(
+                Q(project_id__organization__slug=organization.slug) &
+                (Q(guide_id=request.user) | Q(assignee=request.user))
+            ).order_by("created_at")
+            
+            # not using JobPermission as it is not working
+            # perm = JobPermission.create_scope_list(request)
+            # jobs = perm.filter(jobs)
+        except Organization.DoesNotExist:
+            return Response(
+                {"message": "Organization does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-    # else:
-    jobs = JobModel.objects.filter(
-        Q(guide_id=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+    else:
+        jobs = JobModel.objects.filter(Q(task_id__project_id__organization__isnull=True) &
+                                       (Q(guide_id=request.user) |
+                                        Q(assignee=request.user))
+                                       ).order_by("created_at")
     # not using JobPermission as it is not working
     # perm = JobPermission.create_scope_list(request)
     # jobs = perm.filter(jobs)
@@ -390,13 +384,7 @@ def tasks(request, format=None):
         organization = request.iam_context['organization']
 
         if organization:
-            try:
-                data["organization"] = organization.id
-            except Organization.DoesNotExist:
-                return Response(
-                    {"message": "Organization does not exist."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+            data["organization"] = organization.id
 
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
@@ -455,10 +443,19 @@ def tasks(request, format=None):
     organization = request.iam_context['organization']
     if organization:
         try:
-            tasks = TaskModel.objects.filter(
-                Q(owner=request.user) | Q(assignee=request.user) | Q(
-                    organization=organization.id)
-            ).order_by("created_at")
+            # tasks = Task.objects.select_related(
+            #     'assignee', 'owner', 'target_storage', 'source_storage'
+            # ).filter(
+            #     Q(organization=organization)&(Q(
+            #     owner=request.user) | Q(assignee=request.user)),  project__organization=organization)
+
+            tasks = Task.objects.select_related(
+                'assignee', 'owner', 'target_storage', 'source_storage'
+            ).filter(
+                Q(organization=organization) & (Q(
+                    owner=request.user) | Q(assignee=request.user)))
+
+            # print(vars(tasks))
             perm = TaskPermission.create_scope_list(request)
             tasks = perm.filter(tasks)
         except Organization.DoesNotExist:
@@ -468,9 +465,13 @@ def tasks(request, format=None):
             )
 
     else:
-        tasks = TaskModel.objects.filter(
-            Q(owner=request.user) | Q(assignee=request.user)
+        tasks = TaskModel.objects.select_related(
+            'assignee', 'owner', 'target_storage', 'source_storage'
+        ).filter(
+            (Q(owner=request.user) | Q(assignee=request.user)) & Q(
+                organization__isnull=True)
         ).order_by("created_at")
+
         perm = TaskPermission.create_scope_list(request)
         tasks = perm.filter(tasks)
 
