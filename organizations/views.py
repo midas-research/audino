@@ -14,7 +14,9 @@ from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from .mixins import PartialUpdateModelMixin
 from rest_framework.throttling import UserRateThrottle
+# from engine.pagination import CustomPagination
 from rest_framework.pagination import PageNumberPagination
+from iam.filters import ORGANIZATION_OPEN_API_PARAMETERS
 
 from iam.permissions import (
     InvitationPermission, MembershipPermission, OrganizationPermission)
@@ -102,6 +104,7 @@ class OrganizationViewSet(viewsets.GenericViewSet,
     search_fields = ('owner__username','name', 'slug', 'id')
     filter_fields = list(search_fields)
     simple_filters = list(search_fields)
+    iam_organization_field = None
 
     pagination_class = CustomPagination
     ordering_fields = list(filter_fields)
@@ -167,6 +170,7 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
 
     pagination_class = CustomPagination
     permission_classes = [permissions.IsAuthenticated] 
+    iam_organization_field = 'organization'
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -245,6 +249,7 @@ class InvitationViewSet(viewsets.GenericViewSet,
     simple_filters = list(search_fields)
     ordering_fields = list(filter_fields) + ['created_date']
     ordering = '-created_date'
+    iam_organization_field = 'membership__organization'
 
     pagination_class = CustomPagination
 

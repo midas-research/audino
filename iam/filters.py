@@ -95,24 +95,24 @@ class OrganizationFilterBackend(BaseFilterBackend):
 
         return queryset
 
-    def get_schema_operation_parameters(self, view):
-        if not view.iam_organization_field or view.detail:
-            return []
+    # def get_schema_operation_parameters(self, view):
+    #     if not view.iam_organization_field or view.detail:
+    #         return []
 
-        parameters = []
-        for parameter in ORGANIZATION_OPEN_API_PARAMETERS:
-            parameter_type = None
+    #     parameters = []
+    #     for parameter in ORGANIZATION_OPEN_API_PARAMETERS:
+    #         parameter_type = None
 
-            if parameter.type == int:
-                parameter_type = 'integer'
-            elif parameter.type == str:
-                parameter_type = 'string'
+    #         if parameter.type == int:
+    #             parameter_type = 'integer'
+    #         elif parameter.type == str:
+    #             parameter_type = 'string'
 
-            parameters.append({
-                'name': parameter.name,
-                'in': parameter.location,
-                'description': parameter.description,
-                'schema': {'type': parameter_type}
-            })
+    #         parameters.append({
+    #             'name': parameter.name,
+    #             'in': parameter.location,
+    #             'description': parameter.description,
+    #             'schema': {'type': parameter_type}
+    #         })
 
-        return parameters
+    #     return parameters

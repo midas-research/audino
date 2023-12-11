@@ -35,7 +35,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://app.audino.in",
     "https://*"
 ]
-CORS_ALLOWED_HEADERS = ['*']    
+CORS_ALLOWED_HEADERS = ['*']
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "organizations",
     'allauth',
     'iam',
+    'engine',
 ]
 
 MIDDLEWARE = [
@@ -86,7 +87,8 @@ TEMPLATES = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",'allauth.account.auth_backends.AuthenticationBackend',)
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",
+                           'allauth.account.auth_backends.AuthenticationBackend',)
 
 
 ACCOUNT_EMAIL_REQUIRED = True
@@ -108,7 +110,16 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
         'iam.permissions.PolicyEnforcer',
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    'DEFAULT_FILTER_BACKENDS': (
+        # 'cvat.apps.engine.filters.SimpleFilter',
+        # 'cvat.apps.engine.filters.SearchFilter',
+        # 'cvat.apps.engine.filters.OrderingFilter',
+        # 'cvat.apps.engine.filters.JsonLogicFilter',
+        'iam.filters.OrganizationFilterBackend',
+    ),
+    'SEARCH_PARAM': 'search',
+    'DEFAULT_PAGINATION_CLASS':
+        'engine.pagination.CustomPagination',
     'DEFAULT_SCHEMA_CLASS': 'iam.schema.CustomAutoSchema',
 }
 
@@ -120,7 +131,7 @@ DATABASES = {
     #     "ENGINE": "django.db.backends.sqlite3",
     #     "NAME": BASE_DIR / "db.sqlite3",
     # }
-      'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_DB'),
         'USER': os.environ.get("POSTGRES_USER"),
@@ -180,13 +191,13 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # ORG SETTINGS
-ORG_INVITATION_CONFIRM = 'No' #automatically accept invitations
+ORG_INVITATION_CONFIRM = 'No'  # automatically accept invitations
 ORG_INVITATION_EXPIRY_DAYS = 7
 
 
 # IAM SETTINGS
 IAM_TYPE = 'BASIC'
-IAM_BASE_EXCEPTION = None # a class which will be used by IAM to report errors
+IAM_BASE_EXCEPTION = None  # a class which will be used by IAM to report errors
 
 
 def GET_IAM_DEFAULT_ROLES(user) -> list:
@@ -207,8 +218,6 @@ IAM_OPA_DATA_URL = f'{IAM_OPA_HOST}/v1/data'
 # LOGIN_REDIRECT_URL = '/'
 
 OBJECTS_NOT_RELATED_WITH_ORG = ['user', 'function', 'request', 'server',]
-
-
 
 IAM_OPA_BUNDLE_PATH = os.path.join(STATIC_ROOT, 'opa', 'bundle.tar.gz')
 os.makedirs(Path(IAM_OPA_BUNDLE_PATH).parent, exist_ok=True)
