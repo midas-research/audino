@@ -30,6 +30,7 @@ urlpatterns = [
     path("api/", include("users.urls")),
     path("api/", include("organizations.urls")),
     path('api/auth/', include("iam.urls")),
+    # path("__debug__/", include("debug_toolbar.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

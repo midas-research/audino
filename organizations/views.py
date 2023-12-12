@@ -1,10 +1,14 @@
+from .models import Invitation, Membership, Organization
+from .serializers import (
+    InvitationReadSerializer, InvitationWriteSerializer,
+    MembershipReadSerializer, MembershipWriteSerializer,
+    OrganizationReadSerializer, OrganizationWriteSerializer,
+    AcceptInvitationReadSerializer, AcceptInvitationWriteSerializer)
 from django.utils.crypto import get_random_string
 from django.db import transaction
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework import permissions
 from rest_framework.generics import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import mixins, viewsets, status
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.permissions import AllowAny
@@ -14,53 +18,15 @@ from drf_spectacular.utils import OpenApiParameter
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from .mixins import PartialUpdateModelMixin
 from rest_framework.throttling import UserRateThrottle
-# from engine.pagination import CustomPagination
 from rest_framework.pagination import PageNumberPagination
 from iam.filters import ORGANIZATION_OPEN_API_PARAMETERS
 
 from iam.permissions import (
     InvitationPermission, MembershipPermission, OrganizationPermission)
 
+
 class ResendOrganizationInvitationThrottle(UserRateThrottle):
     rate = '5/hour'
-
-class CustomPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-
-from .models import Invitation, Membership, Organization
-
-from .serializers import (
-    InvitationReadSerializer, InvitationWriteSerializer,
-    MembershipReadSerializer, MembershipWriteSerializer,
-    OrganizationReadSerializer, OrganizationWriteSerializer,
-    AcceptInvitationReadSerializer, AcceptInvitationWriteSerializer)
-
-
-ORGANIZATION_OPEN_API_PARAMETERS = [
-    OpenApiParameter(
-        name='org',
-        type=str,
-        required=False,
-        location=OpenApiParameter.QUERY,
-        description="Organization unique slug",
-    ),
-    OpenApiParameter(
-        name='org_id',
-        type=int,
-        required=False,
-        location=OpenApiParameter.QUERY,
-        description="Organization identifier",
-    ),
-    OpenApiParameter(
-        name='X-Organization',
-        type=str,
-        required=False,
-        location=OpenApiParameter.HEADER,
-        description="Organization unique slug",
-    ),
-]
 
 @extend_schema(tags=['organizations'])
 @extend_schema_view(
@@ -78,7 +44,7 @@ ORGANIZATION_OPEN_API_PARAMETERS = [
         summary='Methods does a partial update of chosen fields in an organization',
         request=OrganizationWriteSerializer(partial=True),
         responses={
-            '200': OrganizationReadSerializer, 
+            '200': OrganizationReadSerializer,
         }),
     create=extend_schema(
         summary='Method creates an organization',
@@ -93,24 +59,21 @@ ORGANIZATION_OPEN_API_PARAMETERS = [
         })
 )
 class OrganizationViewSet(viewsets.GenericViewSet,
-                   mixins.RetrieveModelMixin,
-                   mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin,
-                   PartialUpdateModelMixin,
-    ):
+                          mixins.RetrieveModelMixin,
+                          mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          mixins.DestroyModelMixin,
+                          PartialUpdateModelMixin,
+                          ):
     queryset = Organization.objects.select_related('owner').all()
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ('owner__username','name', 'slug', 'id')
-    filter_fields = list(search_fields)
+    search_fields = ('name', 'owner', 'slug')
+    filter_fields = list(search_fields) + ['id']
     simple_filters = list(search_fields)
-    iam_organization_field = None
-
-    pagination_class = CustomPagination
+    lookup_fields = {'owner': 'owner__username'}
     ordering_fields = list(filter_fields)
     ordering = '-id'
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
-    permission_classes = [permissions.IsAuthenticated]
+    iam_organization_field = None
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -124,14 +87,15 @@ class OrganizationViewSet(viewsets.GenericViewSet,
             return OrganizationWriteSerializer
 
     def perform_create(self, serializer):
-        extra_kwargs = { 'owner': self.request.user }
+        extra_kwargs = {'owner': self.request.user}
         if not serializer.validated_data.get('name'):
-            extra_kwargs.update({ 'name': serializer.validated_data['slug'] })
+            extra_kwargs.update({'name': serializer.validated_data['slug']})
         serializer.save(**extra_kwargs)
 
     class Meta:
         model = Membership
         fields = ("user", )
+
 
 @extend_schema(tags=['memberships'])
 @extend_schema_view(
@@ -158,18 +122,15 @@ class OrganizationViewSet(viewsets.GenericViewSet,
         })
 )
 class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
-    mixins.ListModelMixin, PartialUpdateModelMixin, viewsets.GenericViewSet):
+                        mixins.ListModelMixin, PartialUpdateModelMixin, viewsets.GenericViewSet):
     queryset = Membership.objects.select_related('invitation', 'user').all()
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     ordering = '-id'
     http_method_names = ['get', 'patch', 'delete', 'head', 'options']
-    search_fields = ('user__username', 'role','id')
-    filter_fields = list(search_fields)
+    search_fields = ('user', 'role')
+    filter_fields = list(search_fields) + ['id']
     simple_filters = list(search_fields)
     ordering_fields = list(filter_fields)
-
-    pagination_class = CustomPagination
-    permission_classes = [permissions.IsAuthenticated] 
+    lookup_fields = {'user': 'user__username'}
     iam_organization_field = 'organization'
 
     def get_serializer_class(self):
@@ -187,6 +148,7 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
 
         return queryset
 
+
 @extend_schema(tags=['invitations'])
 @extend_schema_view(
     retrieve=extend_schema(
@@ -203,7 +165,7 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
         summary='Methods does a partial update of chosen fields in an invitation',
         request=InvitationWriteSerializer(partial=True),
         responses={
-            '200': InvitationReadSerializer, 
+            '200': InvitationReadSerializer,
         }),
     create=extend_schema(
         summary='Method creates an invitation',
@@ -235,23 +197,21 @@ class MembershipViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
         }),
 )
 class InvitationViewSet(viewsets.GenericViewSet,
-                   mixins.RetrieveModelMixin,
-                   mixins.ListModelMixin,
-                   PartialUpdateModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin,
-    ):
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        PartialUpdateModelMixin,
+                        mixins.CreateModelMixin,
+                        mixins.DestroyModelMixin,
+                        ):
     queryset = Invitation.objects.all()
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ('owner__username', 'key', 'id')
+    iam_organization_field = 'membership__organization'
+    search_fields = ('owner',)
     filter_fields = list(search_fields)
     simple_filters = list(search_fields)
     ordering_fields = list(filter_fields) + ['created_date']
     ordering = '-created_date'
-    iam_organization_field = 'membership__organization'
-
-    pagination_class = CustomPagination
+    lookup_fields = {'owner': 'owner__username'}
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -289,7 +249,6 @@ class InvitationViewSet(viewsets.GenericViewSet,
 
             super().perform_update(serializer)
 
-
     @transaction.atomic
     @action(detail=True, methods=['POST'], url_path='accept', permission_classes=[AllowAny], authentication_classes=[])
     def accept(self, request, pk):
@@ -303,7 +262,8 @@ class InvitationViewSet(viewsets.GenericViewSet,
             if serializer.is_valid(raise_exception=True):
                 serializer.save(request, invitation)
                 invitation.accept()
-                response_serializer = AcceptInvitationReadSerializer(data={'organization_slug': invitation.membership.organization.slug})
+                response_serializer = AcceptInvitationReadSerializer(
+                    data={'organization_slug': invitation.membership.organization.slug})
                 if response_serializer.is_valid(raise_exception=True):
                     return Response(status=status.HTTP_200_OK, data=response_serializer.data)
         except Invitation.DoesNotExist:

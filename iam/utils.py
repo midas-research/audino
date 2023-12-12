@@ -42,8 +42,6 @@ _CVAT_USER_AGENT = f"CVAT {requests.utils.default_user_agent()}"
 
 def make_requests_session() -> requests.Session:
     session = requests.Session()
-    # print(session.headers)
-    # print(_CVAT_USER_AGENT)
-    # print(vars(session))
+
     session.headers['User-Agent'] = _CVAT_USER_AGENT
     return session

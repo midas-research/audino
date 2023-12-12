@@ -18,12 +18,14 @@ class Organization(models.Model):
     contact = models.JSONField(blank=True, default=dict)
 
     owner = models.ForeignKey(get_user_model(), null=True,
-        blank=True, on_delete=models.SET_NULL, related_name='+')
+                              blank=True, on_delete=models.SET_NULL, related_name='+')
 
     def __str__(self):
         return self.slug
+
     class Meta:
         default_permissions = ()
+
 
 class Membership(models.Model):
     WORKER = 'worker'
@@ -32,11 +34,10 @@ class Membership(models.Model):
     OWNER = 'owner'
 
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,
-        null=True, related_name='memberships')
+                             null=True, related_name='memberships')
 
-    
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE,
-        related_name='members')
+                                     related_name='members')
     is_active = models.BooleanField(default=False)
     joined_date = models.DateTimeField(null=True)
     role = models.CharField(max_length=16, choices=[
@@ -55,7 +56,8 @@ class Invitation(models.Model):
     key = models.CharField(max_length=64, primary_key=True)
     created_date = models.DateTimeField(auto_now_add=True)
     sent_date = models.DateTimeField(null=True)
-    owner = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(
+        get_user_model(), null=True, on_delete=models.SET_NULL)
     membership = models.OneToOneField(Membership, on_delete=models.CASCADE)
 
     @property

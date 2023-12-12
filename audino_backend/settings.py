@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'allauth',
     'iam',
     'engine',
+    # "debug_toolbar",
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "iam.views.ContextMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 INTERNAL_IPS = {"127.0.0.1"}
@@ -106,20 +109,20 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": ["users.manager.TokenAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
         "rest_framework.permissions.IsAuthenticated",
         'iam.permissions.PolicyEnforcer',
     ],
     'DEFAULT_FILTER_BACKENDS': (
-        # 'cvat.apps.engine.filters.SimpleFilter',
-        # 'cvat.apps.engine.filters.SearchFilter',
-        # 'cvat.apps.engine.filters.OrderingFilter',
-        # 'cvat.apps.engine.filters.JsonLogicFilter',
+        'engine.filters.SimpleFilter',
+        'engine.filters.SearchFilter',
+        'engine.filters.OrderingFilter',
+        'engine.filters.JsonLogicFilter',
         'iam.filters.OrganizationFilterBackend',
     ),
     'SEARCH_PARAM': 'search',
     'DEFAULT_PAGINATION_CLASS':
         'engine.pagination.CustomPagination',
+    'PAGE_SIZE': 10,
     'DEFAULT_SCHEMA_CLASS': 'iam.schema.CustomAutoSchema',
 }
 

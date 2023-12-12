@@ -141,7 +141,6 @@ def is_valid(scope, context, ownership, privilege, membership, resource, same_or
 def gen_test_rego(name):
     with open(f"{name}_test.gen.rego", "wt") as f:
         f.write(f"package {name}\n\n")
-        print("scopes", SCOPES)
         for scope, context, ownership, privilege, membership, same_org in product(
             SCOPES, CONTEXTS, OWNERSHIPS, GROUPS, ORG_ROLES, SAME_ORG
         ):

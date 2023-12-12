@@ -105,7 +105,6 @@ def get_add_project(request, format=None):
     page_size = request.GET.get("page_size", 10)
 
     organization = request.iam_context['organization']
-    print(organization)
 
     if organization is None:
         projects = ProjectModel.objects.filter(
@@ -319,7 +318,7 @@ def jobs(request, format=None):
                 Q(project_id__organization__slug=organization.slug) &
                 (Q(guide_id=request.user) | Q(assignee=request.user))
             ).order_by("created_at")
-            
+
             # not using JobPermission as it is not working
             # perm = JobPermission.create_scope_list(request)
             # jobs = perm.filter(jobs)
@@ -443,19 +442,12 @@ def tasks(request, format=None):
     organization = request.iam_context['organization']
     if organization:
         try:
-            # tasks = Task.objects.select_related(
-            #     'assignee', 'owner', 'target_storage', 'source_storage'
-            # ).filter(
-            #     Q(organization=organization)&(Q(
-            #     owner=request.user) | Q(assignee=request.user)),  project__organization=organization)
-
             tasks = Task.objects.select_related(
                 'assignee', 'owner', 'target_storage', 'source_storage'
             ).filter(
                 Q(organization=organization) & (Q(
                     owner=request.user) | Q(assignee=request.user)))
 
-            # print(vars(tasks))
             perm = TaskPermission.create_scope_list(request)
             tasks = perm.filter(tasks)
         except Organization.DoesNotExist:
