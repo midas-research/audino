@@ -145,5 +145,5 @@ audino_frontend/build/
 
 audino-env
 static/
-iam/rules/tests/*
+iam/rules/tests/generate_tests.py
 iam/adapters.py
