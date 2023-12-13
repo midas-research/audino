@@ -1,4 +1,4 @@
-import { DEFAULT_USER_TYPE } from "../../constants/constants";
+import { DEFAULT_USER_TYPE, ADMIN_USER_TYPE } from "../../constants/constants";
 import {
   LOGIN_REQUEST,
   LOGIN_REQUEST_SUCCESS,

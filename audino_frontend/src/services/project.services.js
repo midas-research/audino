@@ -1,5 +1,6 @@
 import axios from "axios";
 import authHeader from "./auth-header";
+import globalParams from "./global-params";
 import { toast } from "react-hot-toast";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
@@ -9,6 +10,7 @@ export const createProjectApi = async ({ data, params }) => {
     const res = await axios.post(BASE_URL + "/projects", data, {
       params: {
         org: params.org,
+        ...globalParams(),
       },
       headers: { ...authHeader() },
     });
@@ -27,6 +29,7 @@ export const fetchProjectsApi = async (data) => {
         page_size: data?.page_size,
         filter: data?.filter,
         search: data?.searchValue,
+        ...globalParams(),
       },
       headers: { ...authHeader() },
     });
@@ -40,6 +43,7 @@ export const fetchProjectsApi = async (data) => {
 export const deleteProjectApi = async ({ id }) => {
   try {
     const res = await axios.delete(BASE_URL + `/projects/${id}`, {
+      params: { ...globalParams() },
       headers: { ...authHeader() },
     });
     return res.data;
@@ -51,6 +55,7 @@ export const deleteProjectApi = async ({ id }) => {
 export const fetchProjectApi = async ({ id }) => {
   try {
     const res = await axios.get(BASE_URL + `/projects/${id}`, {
+      params: { ...globalParams() },
       headers: { ...authHeader() },
     });
     return res.data;
@@ -67,6 +72,7 @@ export const updateProjectApi = async ({ params, data }) => {
       {
         params: {
           org: params.org,
+          ...globalParams(),
         },
         headers: { ...authHeader() },
       }
@@ -77,10 +83,10 @@ export const updateProjectApi = async ({ params, data }) => {
   }
 };
 
-export const fetchLabelsApi = async ({ data, params }) => {
+export const fetchLabelsApi = async ({ data, params:apiParams }) => {
   try {
     const res = await axios.get(BASE_URL + "/labels", {
-      params,
+      params: { ...apiParams, ...globalParams() },
       headers: { ...authHeader() },
     });
     return res.data;
@@ -92,6 +98,7 @@ export const fetchLabelsApi = async ({ data, params }) => {
 export const deleteLabelApi = async ({ id }) => {
   try {
     const res = await axios.delete(BASE_URL + `/labels/${id}`, {
+      params: { ...globalParams() },
       headers: { ...authHeader() },
     });
     return res.data;

@@ -8,7 +8,7 @@ function* createProject(action) {
   try {
     const { payload, callback } = action.payload;
     const data = yield call(createProjectApi, payload);
-    toast.success('Project created successfullyG');
+    toast.success('Project created successfully');
     yield put(createProjectSuccess({ data: data.data, callback }));
   } catch (error) {
     toast.error(error.message);

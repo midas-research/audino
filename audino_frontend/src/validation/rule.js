@@ -27,3 +27,6 @@ export const taskEditRule = {
   subset: "required|string",
 };
 
+export const organizationRule = {
+  slug: "required|string",
+};

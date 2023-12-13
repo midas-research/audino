@@ -1,5 +1,11 @@
 import Validator from "validatorjs";
-import { attributeRule, projectRule, taskAddRule, taskEditRule } from "./rule";
+import {
+  attributeRule,
+  organizationRule,
+  projectRule,
+  taskAddRule,
+  taskEditRule,
+} from "./rule";
 
 export const projectSingleFieldValidation = ({ key, value }) => {
   const validationResponse = { isValid: true };
@@ -51,6 +57,21 @@ export const taskEditSingleFieldValidation = ({ key, value }) => {
     const validation = new Validator(
       { [key]: value },
       { [key]: taskEditRule[key] }
+    );
+    validationResponse.isValid = validation.passes();
+    if (!validationResponse.isValid) {
+      validationResponse.errors = validation.errors.all();
+    }
+  }
+  return validationResponse;
+};
+
+export const organizationSingleFieldValidation = ({ key, value }) => {
+  const validationResponse = { isValid: true };
+  if (organizationRule[key]) {
+    const validation = new Validator(
+      { [key]: value },
+      { [key]: organizationRule[key] }
     );
     validationResponse.isValid = validation.passes();
     if (!validationResponse.isValid) {

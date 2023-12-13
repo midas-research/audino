@@ -1,5 +1,13 @@
 import Validator from "validatorjs";
-import { attributeRule, loginRule, projectRule, singupRule, taskAddRule, taskEditRule } from "./rule";
+import {
+  attributeRule,
+  organizationRule,
+  loginRule,
+  projectRule,
+  singupRule,
+  taskAddRule,
+  taskEditRule,
+} from "./rule";
 
 export const loginAllValidation = (data) => {
   const validation = new Validator(data, loginRule);
@@ -47,6 +55,15 @@ export const taskAddAllValidation = (data) => {
 };
 export const taskEditAllValidation = (data) => {
   const validation = new Validator(data, taskEditRule);
+  const validationResponse = { isValid: validation.passes() };
+  if (!validationResponse.isValid) {
+    validationResponse.error = validation.errors.all();
+  }
+  return validationResponse;
+};
+
+export const organizationAllValidation = (data) => {
+  const validation = new Validator(data, organizationRule);
   const validationResponse = { isValid: validation.passes() };
   if (!validationResponse.isValid) {
     validationResponse.error = validation.errors.all();

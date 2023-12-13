@@ -20,33 +20,39 @@ import { useProjectsStore } from "../../zustand-store/projects";
 import useUrlQuery from "../../hooks/useUrlQuery";
 import TopBar from "../../components/TopBar/TopBar";
 import Pagination from "../../components/Pagination/Pagination";
+import { AUDINO_ORG } from "../../constants/constants";
 
 const pageSize = 11;
 
 export default function ProjectPage() {
   const navigate = useNavigate();
-
+  const OrgSlug = localStorage.getItem(AUDINO_ORG);
   let urlQuery = useUrlQuery();
   dayjs.extend(relativeTime);
 
   const [deleteModal, setDeleteModal] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState(null);
   const [appliedFilters, setAppliedFilters] = useState([]);
-  const [searchValue, setSearchValue] = useState("")
+  const [searchValue, setSearchValue] = useState("");
 
   const currentPage = parseInt(urlQuery.get("page"));
 
   const projects_obj = useProjectsStore((state) => state.projects_obj);
   const setProjects = useProjectsStore((state) => state.setProjects);
 
-
   const getProjectsQuery = useQuery({
-    queryKey: ["projects", currentPage, pageSize, appliedFilters, searchValue],
+    queryKey: [
+      "projects",
+      currentPage,
+      pageSize,
+      appliedFilters,
+      searchValue,
+      OrgSlug,
+    ],
     enabled: true,
     staleTime: 30000,
     queryFn: () =>
       fetchProjectsApi({
-        org: "",
         page: currentPage,
         page_size: pageSize,
         searchValue: searchValue,
@@ -92,7 +98,7 @@ export default function ProjectPage() {
     }
   };
 
-  console.log(searchValue)
+  console.log(searchValue);
   return (
     <>
       <AppBar>
