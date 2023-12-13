@@ -6,14 +6,15 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import dayjs from "dayjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getInvitationApi } from "../../services/invitation.services";
-import { useMembershipStore } from "../../zustand-store/memberships";
+import { getInvitationApi } from "../../../../services/invitation.services";
+import { useMembershipStore } from "../../../../zustand-store/memberships";
 import {
   deleteMembershipApi,
   updateMembershipApi,
-} from "../../services/membership.services";
-import AlertModal from "../Alert/AlertModal";
-import CardLoader from "../loader/cardLoader";
+} from "../../../../services/membership.services";
+import AlertModal from "../../../../components/Alert/AlertModal";
+import CardLoader from "../../../../components/loader/cardLoader";
+import { useSelector } from "react-redux";
 dayjs.extend(relativeTime);
 dayjs.extend(advancedFormat);
 
@@ -25,7 +26,8 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
   const memberships_obj = useMembershipStore((state) => state.memberships_obj);
   const navigate = useNavigate();
   const [invitationDetails, setInvitationDetails] = useState(null);
-  const loggedInUser = JSON.parse(localStorage.getItem("audino-user"));
+  // const audinoUserData = JSON.parse(localStorage.getItem("audino-user"));
+  const { audinoUserData } = useSelector((state) => state.loginReducer);
 
   const isOwner = membership.role === "owner";
   const roleOptions = [
@@ -61,6 +63,9 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
     mutationFn: deleteMembershipApi,
     onSuccess: (data, id) => {
       setDeleteModal(false);
+      if (audinoUserData.username !== invitationDetails.owner.username) {
+        navigate("/organizations?page=1");
+      }
       setMemberships({
         ...memberships_obj,
         results: memberships_obj.results.filter((res) => res.id !== id),
@@ -70,11 +75,6 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
 
   const handleDeleteMutation = async () => {
     await deleteMembershipMutation.mutate(membership.id);
-
-    if (loggedInUser.username !== invitationDetails.owner.username) {
-      navigate("/organizations?page=1");
-      // window.location.href = '/organizations?page=1';
-    }
   };
 
   const {
@@ -90,7 +90,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
   });
 
   useEffect(() => {
-    console.log("membership:::", membership);
+   
     const fetchInvitationDetails = () => {
       if (membership.invitation) {
         refetchInvitationDetails();
@@ -185,7 +185,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
 
           {/* delete icon */}
           {!isOwner &&
-            loggedInUser.username === invitationDetails?.owner.username && (
+            audinoUserData.username === invitationDetails?.owner.username && (
               <div className="col-span-1 sm:col-span-1 md:col-span-2 flex justify-end cursor-pointer">
                 <TrashIcon
                   className="h-4 w-4 text-gray-500"
@@ -197,7 +197,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
 
           {/* leave organization */}
           {!isOwner &&
-            loggedInUser.username === invitationDetails?.user.username && (
+            audinoUserData.username === invitationDetails?.user.username && (
               <div className="col-span-1 sm:col-span-1 md:col-span-2 flex justify-end cursor-pointer">
                 <button
                   className="inline-block max-w-md justify-self-end rounded-md px-2 bg-white py-0.5 text-sm font-medium leading-6 text-red-500 border border-red-400 hover:bg-gray-50"
@@ -215,7 +215,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
             onSuccess={handleDeleteMutation}
             onCancel={() => setDeleteModal(false)}
             text={
-              loggedInUser.username === invitationDetails?.owner.username
+              audinoUserData.username === invitationDetails?.owner.username
                 ? `You are removing ${membership?.user?.username} from this organization`
                 : "Are you sure you want to leave the organization? "
             }

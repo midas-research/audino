@@ -9,7 +9,7 @@ import AddOrganizationLoader from "./components/AddOrganizationLoader";
 import { organizationAllValidation } from "../../validation/allValidation";
 import { organizationSingleFieldValidation } from "../../validation/singleValidation";
 import useSingleFieldValidation from "../../utils/inputDebounce";
-import InviteMemberModal from "../../components/InviteMemberModal/InviteMemberModal";
+import InviteMemberModal from "./components/InviteMemberModal/InviteMemberModal";
 import {
   createOrganizationApi,
   updateOrganizationApi,
@@ -20,8 +20,7 @@ import { createInvitationApi } from "../../services/invitation.services";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import CardLoader from "../../components/loader/cardLoader";
 import { useMembershipStore } from "../../zustand-store/memberships";
-import MembershipCard from "../../components/MembershipCard/MembershipCard";
-import useUrlQuery from "../../hooks/useUrlQuery";
+import MembershipCard from "./components/MembershipCard/MembershipCard";
 import { AUDINO_ORG } from "../../constants/constants";
 
 const initialData = {
@@ -89,7 +88,7 @@ export default function AddOrganizationPage() {
 
     if (isValid) {
       if (orgId) {
-        console.log("Updating organization..");
+       
         // updateOrganizationMutation
         updateOrganizationMutation.mutate({
           data: {
@@ -105,7 +104,7 @@ export default function AddOrganizationPage() {
           id: orgId,
         });
       } else {
-        console.log("Adding organization..");
+       
         addOrganizationMutation.mutate({
           data: {
             slug: formValue.slug,
@@ -192,10 +191,15 @@ export default function AddOrganizationPage() {
     //fetch if orgId present , fetch the form data,and set in formValue
     if (orgId != null) {
       refetchOrganization();
-      console.log("orgid::::", orgId);
+   
       refetchMemberships();
     } else setFormValue(formValue);
   }, [orgId]);
+
+  useEffect(() => {
+    return () =>
+      setMemberships({ count: 0, next: null, previous: null, results: [] });
+  }, []);
 
   return (
     <>

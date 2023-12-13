@@ -5,7 +5,11 @@ import PrimaryButton from "../../components/PrimaryButton/PrimaryButton";
 import CustomSelect from "../../components/CustomInput/CustomSelect";
 import CustomInput from "../../components/CustomInput/CustomInput";
 import useSingleFieldValidation from "../../utils/inputDebounce";
-import { projectSingleFieldValidation, taskAddSingleFieldValidation, taskEditSingleFieldValidation } from "../../validation/singleValidation";
+import {
+  projectSingleFieldValidation,
+  taskAddSingleFieldValidation,
+  taskEditSingleFieldValidation,
+} from "../../validation/singleValidation";
 import {
   taskAddAllValidation,
   taskEditAllValidation,
@@ -52,18 +56,20 @@ export default function AddTaskPage() {
   });
   const [responseMsg, setResponseMsg] = useState({ msg: "", status: null });
   const [audioPreview, setAudioPreview] = useState(null);
-  const { debouncedValidation: debouncedAddValidation } = useSingleFieldValidation(
-    taskAddSingleFieldValidation,
-    1000,
-    formError,
-    setFormError
-  );
-  const { debouncedValidation:debouncedEditValidation } = useSingleFieldValidation(
-    taskEditSingleFieldValidation,
-    1000,
-    formError,
-    setFormError
-  );
+  const { debouncedValidation: debouncedAddValidation } =
+    useSingleFieldValidation(
+      taskAddSingleFieldValidation,
+      1000,
+      formError,
+      setFormError
+    );
+  const { debouncedValidation: debouncedEditValidation } =
+    useSingleFieldValidation(
+      taskEditSingleFieldValidation,
+      1000,
+      formError,
+      setFormError
+    );
   const { isTaskLoading } = useSelector((state) => state.taskReducer);
 
   const handleInputChange = (name, value) => {
@@ -96,7 +102,7 @@ export default function AddTaskPage() {
               },
               id: taskId,
             },
-            callback: () => navigate("/tasks"),
+            callback: () => navigate("/tasks?page=1"),
           })
         );
       else setFormError(error);
@@ -359,7 +365,7 @@ export default function AddTaskPage() {
                       id="dropzone-file"
                       type="file"
                       className="hidden"
-                      // accept=".mp3,audio/*"
+                      accept=".mp3,audio/*"
                       onChange={(e) =>
                         handleInputChange("files", e.target.files[0])
                       }
