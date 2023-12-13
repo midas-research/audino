@@ -35,7 +35,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://app.audino.in",
     "https://*"
 ]
-
+CORS_ALLOWED_HEADERS = ['*']
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -48,6 +48,12 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "users",
     "core",
+    "organizations",
+    'allauth',
+    'iam',
+    'engine',
+    # "debug_toolbar",
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -56,9 +62,12 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    'django.middleware.gzip.GZipMiddleware',
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "iam.views.ContextMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 INTERNAL_IPS = {"127.0.0.1"}
@@ -81,7 +90,9 @@ TEMPLATES = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",
+                           'allauth.account.auth_backends.AuthenticationBackend',)
+
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = True
@@ -98,10 +109,21 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": ["users.manager.TokenAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
         "rest_framework.permissions.IsAuthenticated",
+        'iam.permissions.PolicyEnforcer',
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    'DEFAULT_FILTER_BACKENDS': (
+        'engine.filters.SimpleFilter',
+        'engine.filters.SearchFilter',
+        'engine.filters.OrderingFilter',
+        'engine.filters.JsonLogicFilter',
+        'iam.filters.OrganizationFilterBackend',
+    ),
+    'SEARCH_PARAM': 'search',
+    'DEFAULT_PAGINATION_CLASS':
+        'engine.pagination.CustomPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'iam.schema.CustomAutoSchema',
 }
 
 # Database
@@ -112,7 +134,7 @@ DATABASES = {
     #     "ENGINE": "django.db.backends.sqlite3",
     #     "NAME": BASE_DIR / "db.sqlite3",
     # }
-      'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_DB'),
         'USER': os.environ.get("POSTGRES_USER"),
@@ -158,6 +180,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+os.makedirs(STATIC_ROOT, exist_ok=True)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -166,3 +192,35 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Media Handling Configuration
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# ORG SETTINGS
+ORG_INVITATION_CONFIRM = 'No'  # automatically accept invitations
+ORG_INVITATION_EXPIRY_DAYS = 7
+
+
+# IAM SETTINGS
+IAM_TYPE = 'BASIC'
+IAM_BASE_EXCEPTION = None  # a class which will be used by IAM to report errors
+
+
+def GET_IAM_DEFAULT_ROLES(user) -> list:
+    return ['user']
+
+
+IAM_CONTEXT_BUILDERS = ['iam.utils.build_iam_context',]
+
+
+IAM_ADMIN_ROLE = 'admin'
+# Index in the list below corresponds to the priority (0 has highest priority)
+IAM_ROLES = [IAM_ADMIN_ROLE, 'business', 'user', 'worker']
+
+
+IAM_OPA_HOST = 'http://localhost:8181'
+IAM_OPA_DATA_URL = f'{IAM_OPA_HOST}/v1/data'
+# LOGIN_URL = 'rest_login'
+# LOGIN_REDIRECT_URL = '/'
+
+OBJECTS_NOT_RELATED_WITH_ORG = ['user', 'function', 'request', 'server',]
+
+IAM_OPA_BUNDLE_PATH = os.path.join(STATIC_ROOT, 'opa', 'bundle.tar.gz')
+os.makedirs(Path(IAM_OPA_BUNDLE_PATH).parent, exist_ok=True)

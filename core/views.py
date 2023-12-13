@@ -1,5 +1,6 @@
 import requests
 from django.db.models import Q
+from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
@@ -10,7 +11,9 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.manager import TokenAuthentication
-
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import PermissionDenied
+from .models import *
 from .models import Annotation as AnnotationModel
 from .models import AnnotationData as AnnotationDataModel
 from .models import AnnotationAttribute as AnnotationAttributeModel
@@ -20,23 +23,12 @@ from .models import Job as JobModel
 from .models import Label as LabelModel
 from .models import Project as ProjectModel
 from .models import Task as TaskModel
-from .serializers import AnnotationAttributeSerializer
-from .serializers import AnnotationDataSerializer
-from .serializers import AttributeSerializer
-from .serializers import DataSerializer
-from .serializers import GetAnnotationSerializer
-from .serializers import GetJobSerializer
-from .serializers import GetLabelSerializer
-from .serializers import GetProjectSerializer
-from .serializers import GetTaskSerializer
-from .serializers import PostAnnotationSerializer
-from .serializers import PostJobSerializer
-from .serializers import PostLabelSerializer
-from .serializers import PostProjectSerializer
-from .serializers import PostTaskSerializer
-from .serializers import StorageSerializer
+
+from .serializers import *
+
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
+from iam.permissions import *
 
 
 @api_view(["GET", "POST"])
@@ -44,7 +36,18 @@ from .utils import get_paginator
 @permission_classes([IsAuthenticated])
 def get_add_project(request, format=None):
     if request.method == "POST":
+        organization = request.iam_context['organization']
+
         data = JSONParser().parse(request)
+
+        if organization:
+            try:
+                data["organization"] = organization.id
+            except Organization.DoesNotExist:
+                return Response(
+                    {"message": "Organization does not exist."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
@@ -60,49 +63,59 @@ def get_add_project(request, format=None):
         serializer = PostProjectSerializer(data=data)
         if serializer.is_valid():
             project_obj = serializer.save()
-            if len(data["labels"]) != 0:
-                for each_label in data["labels"]:
-                    label_obj = {
-                        "project": project_obj.id,
-                        "name": each_label["name"],
-                        "label_type": each_label["label_type"],
-                    }
-                    label_serializer = PostLabelSerializer(data=label_obj)
-                    if label_serializer.is_valid():
-                        label_obj = label_serializer.save()
-                        for each_attribute in each_label["attributes"]:
-                            attribute_obj = {
-                                "label": label_obj.id,
-                                "name": each_attribute["name"],
-                                "input_type": each_attribute["input_type"],
-                                "default_value": each_attribute["default_value"],
-                                "values": str(each_attribute["values"]),
-                            }
-                            attribute_serializer = AttributeSerializer(
-                                data=attribute_obj
-                            )
-                            if attribute_serializer.is_valid():
-                                attr_obj = attribute_serializer.save()
-                                label_obj.attributes.add(attr_obj)
-                            else:
-                                return Response(
-                                    attribute_serializer.errors,
-                                    status=status.HTTP_400_BAD_REQUEST,
-                                )
-                    else:
-                        return Response(
-                            label_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            for each_label in data["labels"]:
+                label_object = {
+                    "project": project_obj.id,
+                    "name": each_label["name"],
+                    "label_type": each_label["label_type"],
+                }
+                label_serializer = PostLabelSerializer(data=label_object)
+                if label_serializer.is_valid():
+                    label_obj = label_serializer.save()
+                    for each_attribute in each_label["attributes"]:
+                        attribute_obj = {
+                            "label": label_obj.id,
+                            "name": each_attribute["name"],
+                            "input_type": each_attribute["input_type"],
+                            "default_value": each_attribute["default_value"],
+                            "values": str(each_attribute["values"]),
+                        }
+                        attribute_serializer = AttributeSerializer(
+                            data=attribute_obj
                         )
+                        if attribute_serializer.is_valid():
+                            attribute_obj = attribute_serializer.save()
+                            label_obj.attributes.add(attribute_obj)
+                        else:
+                            return Response(
+                                attribute_serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                else:
+                    return Response(
+                        label_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
-    projects = ProjectModel.objects.filter(
-        Q(owner=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+    page_size = request.GET.get("page_size", 10)
+
+    organization = request.iam_context['organization']
+
+    if organization is None:
+        projects = ProjectModel.objects.filter(
+            organization__isnull=True).order_by("created_at")
+
+    else:
+        projects = ProjectModel.objects.select_related(
+            'assignee', 'owner', 'target_storage', 'source_storage').prefetch_related('tasks').all()
+
+    perm = ProjectPermission.create_scope_list(request)
+    projects = perm.filter(projects)
 
     if search_query:
         projects = projects.filter(Q(name__icontains=search_query))
@@ -296,10 +309,33 @@ def jobs(request, format=None):
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
-    jobs = JobModel.objects.filter(
-        Q(guide_id=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+    page_size = request.GET.get("page_size", 10)
+
+    organization = request.iam_context['organization']
+    if organization:
+        try:
+            jobs = JobModel.objects.filter(
+                Q(project_id__organization__slug=organization.slug) &
+                (Q(guide_id=request.user) | Q(assignee=request.user))
+            ).order_by("created_at")
+
+            # not using JobPermission as it is not working
+            # perm = JobPermission.create_scope_list(request)
+            # jobs = perm.filter(jobs)
+        except Organization.DoesNotExist:
+            return Response(
+                {"message": "Organization does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    else:
+        jobs = JobModel.objects.filter(Q(task_id__project_id__organization__isnull=True) &
+                                       (Q(guide_id=request.user) |
+                                        Q(assignee=request.user))
+                                       ).order_by("created_at")
+    # not using JobPermission as it is not working
+    # perm = JobPermission.create_scope_list(request)
+    # jobs = perm.filter(jobs)
 
     if search_query:
         jobs = jobs.filter(Q(task_id__name__icontains=search_query))
@@ -344,6 +380,10 @@ def get_job_by_id(request, job_id, format=None):
 def tasks(request, format=None):
     if request.method == "POST":
         data = JSONParser().parse(request)
+        organization = request.iam_context['organization']
+
+        if organization:
+            data["organization"] = organization.id
 
         source_serializer = StorageSerializer(data=data["source_storage"])
         target_serializer = StorageSerializer(data=data["target_storage"])
@@ -397,11 +437,35 @@ def tasks(request, format=None):
 
     search_query = request.GET.get("search", None)
     page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
+    page_size = request.GET.get("page_size", 10)
 
-    tasks = TaskModel.objects.filter(
-        Q(owner=request.user) | Q(assignee=request.user)
-    ).order_by("created_at")
+    organization = request.iam_context['organization']
+    if organization:
+        try:
+            tasks = Task.objects.select_related(
+                'assignee', 'owner', 'target_storage', 'source_storage'
+            ).filter(
+                Q(organization=organization) & (Q(
+                    owner=request.user) | Q(assignee=request.user)))
+
+            perm = TaskPermission.create_scope_list(request)
+            tasks = perm.filter(tasks)
+        except Organization.DoesNotExist:
+            return Response(
+                {"message": "Organization does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    else:
+        tasks = TaskModel.objects.select_related(
+            'assignee', 'owner', 'target_storage', 'source_storage'
+        ).filter(
+            (Q(owner=request.user) | Q(assignee=request.user)) & Q(
+                organization__isnull=True)
+        ).order_by("created_at")
+
+        perm = TaskPermission.create_scope_list(request)
+        tasks = perm.filter(tasks)
 
     if search_query:
         tasks = tasks.filter(Q(name__icontains=search_query))
@@ -498,7 +562,6 @@ def get_task_by_id(request, task_id, format=None):
 @permission_classes([IsAuthenticated])
 def add_data(request, task_id, format=None):
     if request.method == "POST":
-        print(request.data)
         file_data = {
             "task": task_id,
             "filename": request.data["file"].name,

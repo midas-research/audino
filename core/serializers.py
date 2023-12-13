@@ -1,16 +1,7 @@
 from rest_framework import serializers
 from users.serializers import UserSerializer
 
-from .models import Annotation
-from .models import AnnotationAttribute
-from .models import AnnotationData
-from .models import Attribute
-from .models import Data
-from .models import Job
-from .models import Label
-from .models import Project
-from .models import Storage
-from .models import Task
+from .models import *
 
 
 class StorageSerializer(serializers.ModelSerializer):
@@ -25,9 +16,19 @@ class GetProjectSerializer(serializers.ModelSerializer):
     owner = UserSerializer()
     assignee = UserSerializer()
 
+    # class Meta:
+    #     model = Project
+    #     fields = "__all__"
     class Meta:
         model = Project
+        # fields = ('url', 'id', 'name', 'owner', 'assignee', 'guide_id',
+        #     'bug_tracker', 'task_subsets', 'created_date', 'updated_date', 'status',
+        #     'dimension', 'organization', 'target_storage', 'source_storage',
+        #     'tasks', 'labels',
+        # )
         fields = "__all__"
+        extra_kwargs = { 'organization': { 'allow_null': True } }
+
 
 
 class PostProjectSerializer(serializers.ModelSerializer):
@@ -79,6 +80,10 @@ class GetTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = "__all__"
+        extra_kwargs = {
+            'organization': { 'allow_null': True },
+            'overlap': { 'allow_null': True },
+        }
 
 
 class PostJobSerializer(serializers.ModelSerializer):
@@ -136,3 +141,4 @@ class PostAnnotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Annotation
         fields = "__all__"
+

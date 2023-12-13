@@ -31,6 +31,7 @@ media
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
+.idea
 
 # Gradle
 .idea/**/gradle.xml
@@ -143,3 +144,6 @@ audino_frontend/node_modules/
 audino_frontend/build/
 
 audino-env
+static/
+iam/rules/tests/generate_tests.py
+iam/adapters.py

@@ -2,6 +2,8 @@ import os
 
 from django.db import models
 from users.models import User
+from django.utils.text import slugify
+from organizations.models import Organization
 
 
 def get_upload_path(instance, filename):
@@ -30,6 +32,8 @@ class Project(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="owner"
     )
+    organization = models.ForeignKey(Organization, null=True, default=None,
+                                     blank=True, on_delete=models.SET_NULL, related_name="projects")
     assignee = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="assignee"
     )
@@ -66,13 +70,15 @@ class Label(models.Model):
 
 class Attribute(models.Model):
     INPUT_CHOICES = (("select", "select"), ("radio", "radio"))
-    label = models.ForeignKey(Label, on_delete=models.CASCADE, default=None, null=True)
+    label = models.ForeignKey(
+        Label, on_delete=models.CASCADE, default=None, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
     mutable = models.BooleanField(default=False)
     input_type = models.CharField(
         max_length=10, choices=INPUT_CHOICES, default="select"
     )
-    default_value = models.CharField(max_length=20, default="", blank=True, null=True)
+    default_value = models.CharField(
+        max_length=20, default="", blank=True, null=True)
     values = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -86,9 +92,11 @@ class Task(models.Model):
         ("Validation", "Validation"),
     )
     name = models.CharField(max_length=200, null=True, blank=True)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
-    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    subset = models.CharField(max_length=64, choices=SUBSET_CHOICES, default="train")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True,related_name="tasks",
+        related_query_name="task")
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="owners")
+    subset = models.CharField(
+        max_length=64, choices=SUBSET_CHOICES, default="train")
     assignee = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -110,6 +118,8 @@ class Task(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+    organization = models.ForeignKey(Organization, null=True, default=None,
+                                     blank=True, on_delete=models.SET_NULL, related_name="tasks")
 
     def __str__(self):
         return self.name
@@ -145,7 +155,8 @@ class Job(models.Model):
         ("acceptance", "acceptance"),
     )
     task_id = models.ForeignKey(Task, on_delete=models.CASCADE, null=True)
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
+    project_id = models.ForeignKey(
+        Project, on_delete=models.CASCADE, null=True)
     assignee = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -155,7 +166,8 @@ class Job(models.Model):
     guide_id = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="guide"
     )
-    state = models.CharField(max_length=100, choices=STATE_CHOICES, default="new")
+    state = models.CharField(
+        max_length=100, choices=STATE_CHOICES, default="new")
     stage = models.CharField(
         max_length=100, choices=STAGE_CHOICES, default="annotation"
     )

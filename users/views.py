@@ -9,7 +9,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from .manager import TokenAuthentication
 from .models import User
 from .serializers import GetUserSerializer
@@ -123,8 +122,11 @@ def show_current_user(request, format=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def show_users(request, format=None):
-    page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 1)
+    page = request.GET.get("page", -1)
+    if page < 1:
+        page_size = 100
+    else: 
+        page_size = request.GET.get("page_size",1)
     paginator = get_paginator(page, page_size)
 
     all_users = User.objects.all()
@@ -145,6 +147,7 @@ def user_by_id(request, user_id, format=None):
         )
 
     if request.method == "DELETE":
+
         user.delete()
         return Response(
             {"message": "User Deleted Successfully!!"}, status=status.HTTP_200_OK
