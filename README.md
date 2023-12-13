@@ -86,7 +86,13 @@ $ docker-compose -f docker-compose.prod.yml down
 ### Postgres Setup
 Download and setup postgres on your machine or use the credentials for any postgres service on the cloud. Update the postgres configuration in `.env`.
 
-### Backend Setup
+### Open Policy Agent Setup
+Audino uses OPA to manage apis policies. So please Pull and run Open Policy Agent docker image:
+```sh
+docker run -d --rm --name audino_opa_debug -p 8181:8181 openpolicyagent/opa:0.45.0-rootless run --server --set=decision_logs.console=true --set=services.audino.url=http://host.docker.internal:8000 --set=bundles.audino.service=audino --set=bundles.audino.resource=/api/auth/rules
+```
+
+### Server Setup
 Create and activate a virtual environment in python using the following steps :-
 
 1. Install python Package
