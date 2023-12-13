@@ -144,3 +144,6 @@ audino_frontend/node_modules/
 audino_frontend/build/
 
 audino-env
+static/
+iam/rules/tests/*
+iam/adapters.py
