@@ -285,7 +285,7 @@ export default function AddOrganizationPage() {
                 name="name"
                 id="name"
                 formError={formError}
-                placeholder="Full name"
+                placeholder="Org 1"
                 value={formValue.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
               />
@@ -296,7 +296,7 @@ export default function AddOrganizationPage() {
                 htmlFor="description"
                 className="block text-sm font-medium leading-6 text-gray-900 mb-2"
               >
-                Task description
+                Description
               </label>
               <CustomInput
                 type="text"
@@ -304,7 +304,7 @@ export default function AddOrganizationPage() {
                 name="description"
                 id="description"
                 formError={formError}
-                placeholder="Task description"
+                placeholder="Organization description"
                 value={formValue.description}
                 onChange={(e) =>
                   handleInputChange("description", e.target.value)

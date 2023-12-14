@@ -7,7 +7,7 @@ const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const createProjectApi = async ({ data, params }) => {
   try {
-    const res = await axios.post(BASE_URL + "/projects", data, {
+    const res = await axios.post(BASE_URL + "/projects/", data, {
       params: {
         org: params.org,
         ...globalParams(),

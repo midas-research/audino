@@ -1,18 +1,13 @@
-import requests
 from django.db.models import Q
-from rest_framework.authtoken.models import Token
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.decorators import authentication_classes
-from rest_framework.decorators import parser_classes
-from rest_framework.decorators import permission_classes
-from rest_framework.parsers import JSONParser
-from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
+
+from rest_framework import viewsets, mixins, status, serializers
+from rest_framework.decorators import api_view, authentication_classes, parser_classes, permission_classes
+from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.response import Response
-from users.manager import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.exceptions import PermissionDenied
+
 from .models import *
 from .models import Annotation as AnnotationModel
 from .models import AnnotationData as AnnotationDataModel
@@ -28,8 +23,50 @@ from .serializers import *
 
 from .utils import convert_string_lists_to_lists
 from .utils import get_paginator
+
+from users.manager import TokenAuthentication
 from iam.permissions import *
 
+class ProjectViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, 
+    mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin
+):
+    queryset = ProjectModel.objects.select_related(
+        'assignee', 'owner', 'target_storage', 'source_storage',
+    ).all()
+
+    search_fields = ('name', 'owner', 'assignee')
+    filter_fields = list(search_fields) + ['id', 'updated_at']
+    simple_filters = list(search_fields)
+    ordering_fields = list(filter_fields)
+    ordering = "-id"
+    lookup_fields = {'owner': 'owner__username', 'assignee': 'assignee__username'}
+    iam_organization_field = 'organization'
+
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return ProjectReadSerializer
+        else:
+            return ProjectWriteSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.action == 'list':
+            perm = ProjectPermission.create_scope_list(self.request)
+            queryset = perm.filter(queryset)
+        return queryset
+    
+    @transaction.atomic
+    def perform_create(self, serializer, **kwargs):
+        print("perform_create")
+        serializer.save(
+            owner=self.request.user,
+            organization=self.request.iam_context['organization']
+        )
+        print("hello")
+
+        # After saving the serializer (creating a new object), the line retrieves the saved instance from the database
+        serializer.instance = self.get_queryset().get(pk=serializer.instance.pk)
 
 @api_view(["GET", "POST"])
 @authentication_classes([TokenAuthentication])
@@ -60,7 +97,7 @@ def get_add_project(request, format=None):
 
         data["owner"] = request.user.id
         data["assignee"] = data.pop("assignee_id")
-        serializer = PostProjectSerializer(data=data)
+        serializer = ProjectWriteSerializer(data=data)
         if serializer.is_valid():
             project_obj = serializer.save()
             for each_label in data["labels"]:
@@ -69,7 +106,7 @@ def get_add_project(request, format=None):
                     "name": each_label["name"],
                     "label_type": each_label["label_type"],
                 }
-                label_serializer = PostLabelSerializer(data=label_object)
+                label_serializer = LabelWriteSerializer(data=label_object)
                 if label_serializer.is_valid():
                     label_obj = label_serializer.save()
                     for each_attribute in each_label["attributes"]:
@@ -101,8 +138,8 @@ def get_add_project(request, format=None):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     search_query = request.GET.get("search", None)
-    page = request.GET.get("page", 1)
-    page_size = request.GET.get("page_size", 10)
+    # page = request.GET.get("page", 1)
+    # page_size = request.GET.get("page_size", 10)
 
     organization = request.iam_context['organization']
 
@@ -120,9 +157,10 @@ def get_add_project(request, format=None):
     if search_query:
         projects = projects.filter(Q(name__icontains=search_query))
 
-    paginator = get_paginator(page, page_size)
-    result = paginator.paginate_queryset(projects, request)
-    serializer = GetProjectSerializer(result, many=True)
+    # paginator = get_paginator(page, page_size)
+    paginator = PageNumberPagination()
+    paginated_queryset = paginator.paginate_queryset(projects, request)
+    serializer = ProjectReadSerializer(paginated_queryset, many=True)
     return paginator.get_paginated_response(serializer.data)
 
 
@@ -138,7 +176,7 @@ def update_project(request, id, format=None):
         )
 
     if request.method == "DELETE":
-        serializer = GetProjectSerializer(project)
+        serializer = ProjectReadSerializer(project)
         project.delete()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -158,7 +196,7 @@ def update_project(request, id, format=None):
             data["source_storage"] = src.id
             data["target_storage"] = tgt.id
 
-        serializer = PostProjectSerializer(project, data=data)
+        serializer = ProjectWriteSerializer(project, data=data)
         if serializer.is_valid():
             serializer.save()
             for each_label in data["labels"]:
@@ -169,10 +207,10 @@ def update_project(request, id, format=None):
                 }
                 if "id" in each_label:
                     label = LabelModel.objects.get(id=each_label["id"])
-                    label_serializer = PostLabelSerializer(
+                    label_serializer = LabelWriteSerializer(
                         label, data=label_object)
                 else:
-                    label_serializer = PostLabelSerializer(data=label_object)
+                    label_serializer = LabelWriteSerializer(data=label_object)
 
                 if label_serializer.is_valid():
                     label_obj = label_serializer.save()
@@ -213,7 +251,7 @@ def update_project(request, id, format=None):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = GetProjectSerializer(project)
+    serializer = ProjectReadSerializer(project)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -227,7 +265,7 @@ def get_labels(request, format=None):
         project=project_id
     ).order_by("-created_at")
 
-    serializer = GetLabelSerializer(labels, many=True)
+    serializer = LabelReadSerializer(labels, many=True)
     temp_serializer = convert_string_lists_to_lists(serializer.data)
 
     return Response(temp_serializer, status=status.HTTP_200_OK)
@@ -245,7 +283,7 @@ def get_label_by_id(request, id, format=None):
         )
 
     if request.method == "DELETE":
-        serializer = GetLabelSerializer(label)
+        serializer = LabelReadSerializer(label)
         temp_serializer = convert_string_lists_to_lists(serializer.data)
         label.delete()
         return Response(temp_serializer, status=status.HTTP_200_OK)
@@ -258,7 +296,7 @@ def get_label_by_id(request, id, format=None):
             "label_type": data["label_type"],
         }
 
-        label_serializer = PostLabelSerializer(label, data=label_object)
+        label_serializer = LabelWriteSerializer(label, data=label_object)
         if label_serializer.is_valid():
             label_obj = label_serializer.save()
             for each_attribute in data["attributes"]:
@@ -291,7 +329,7 @@ def get_label_by_id(request, id, format=None):
             return Response(label_serializer.data, status=status.HTTP_200_OK)
         return Response(label_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = GetLabelSerializer(label)
+    serializer = LabelReadSerializer(label)
     temp_serializer = convert_string_lists_to_lists(serializer.data)
     return Response(temp_serializer, status=status.HTTP_200_OK)
 
