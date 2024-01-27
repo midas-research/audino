@@ -36,6 +36,7 @@ import {
   fetchJobDetailApi,
   postAnnotationApi,
   putAnnotationApi,
+  patchJobMetaApi,
 } from "../../services/job.services";
 import { fetchLabelsApi } from "../../services/project.services";
 import { toast } from "react-hot-toast";
@@ -48,6 +49,7 @@ import { v4 as uuid } from "uuid";
  * @returns {*}
  */
 function generateNum(min, max) {
+  console.log("GENRATE NUM")
   return Math.random() * (max - min + 1) + min;
 }
 
@@ -58,14 +60,37 @@ function generateNum(min, max) {
  * @returns {([*, *]|[*, *])|*[]}
  */
 function generateTwoNumsWithDistance(distance, min, max) {
-  const num1 = generateNum(min, max);
-  const num2 = generateNum(min, max);
-  // if num2 - num1 < 10
-  if (num2 - num1 >= 10) {
-    return [num1, num2];
+  // Ensure that the inputs are valid
+  if (min >= max || distance <= 0) {
+    throw new Error("Invalid input values. Make sure min < max and distance > 0.");
   }
-  return generateTwoNumsWithDistance(distance, min, max);
+
+  // Calculate the range
+  const range = max - min;
+
+  // Ensure that the range is greater than or equal to twice the distance
+  // if (range < distance * 2) {
+  //   throw new Error("Invalid input values. The range should be greater than or equal to twice the distance.");
+  // }
+
+  // Generate the first random number
+  const firstNumber = Math.random() * (range - distance) + min;
+
+  // Generate the second random number with the specified distance
+  const secondNumber = firstNumber + distance;
+
+  return [firstNumber, secondNumber];
 }
+// function generateTwoNumsWithDistance(distance, min, max) {
+//   console.log("GENERATE TWO NUMBERS WITH DISATANCE")
+//   const num1 = generateNum(min, max);
+//   const num2 = generateNum(min, max);
+//   // if num2 - num1 < 10
+//   if (num2 - num1 >= 10) {
+//     return [num1, num2];
+//   }
+//   return generateTwoNumsWithDistance(distance, min, max);
+// }
 
 export default function AnnotatePage({}) {
   const { taskId: taskId } = useParams();
@@ -85,6 +110,7 @@ export default function AnnotatePage({}) {
   const [horizontalZoom, setHorizontalZoom] = useState(1);
   const [verticalZoom, setVerticalZoom] = useState(1);
   const [volume, setVolume] = useState(50);
+  const annotationDataRef = useRef(null);
   const initialVerticalZoom = 1;
   const initialVerticalHeight = 130;
   const unique_id = uuid();
@@ -226,7 +252,7 @@ export default function AnnotatePage({}) {
       wavesurferRef.current = waveSurfer;
 
       if (wavesurferRef.current) {
-        // wavesurferRef.current.load(require('../../assets/audio/audio.wav'));
+        // wavesurferRef.current.load(require("../../assets/audio/audio.wav"));
         // wavesurferRef.current.load(task?.files[currentJob]);
         wavesurferRef.current.on("region-created", regionCreatedHandler);
 
@@ -279,7 +305,7 @@ export default function AnnotatePage({}) {
     if (!wavesurferRef.current) return;
     const minTimestampInSeconds = 0;
     const maxTimestampInSeconds = wavesurferRef.current.getDuration();
-    const distance = generateNum(0, 10);
+    const distance = generateNum(0, 2);
     const [min] = generateTwoNumsWithDistance(
       distance,
       minTimestampInSeconds,
@@ -312,12 +338,12 @@ export default function AnnotatePage({}) {
   // remove annotation data
   const removeAnnotationMutation = useMutation({
     mutationFn: deleteAnnotationAPi,
-    onSuccess: (data, { annotationId }) => {
+    onSuccess: (data) => {
       console.log("data", data);
       toast.success(`Annotation deleted successfully`);
       // Update the regions
       setRegions((prevRegions) =>
-        prevRegions.filter((reg) => reg?.id !== annotationId)
+        prevRegions.filter((reg) => reg?.id !== data.shapes[0].id)
       );
       setSelectedSegment(null);
     },
@@ -333,9 +359,40 @@ export default function AnnotatePage({}) {
         // Backend call after 5 seconds if the user doesn't click "Undo"
         undoTimer = setTimeout(() => {
           removeAnnotationMutation.mutate({
-            data: {},
+            data: {
+              shapes: [
+                {
+                  attributes: selectedSegment.data.labels[0].attributes.map(a => {
+                    return {
+                      spec_id : a.id,
+                      value : a.values[0]
+                    }
+                  }),
+                  elements: [],
+                  frame: 0,
+                  id : selectedSegment.id,
+                  group: 0,
+                  label_id: selectedSegment.data.labels[0].id,
+                  occluded: false,
+                  outside: false,
+                  points: [
+                    parseFloat(selectedSegment.start),
+                    parseFloat(selectedSegment.start),
+                    parseFloat(selectedSegment.end),
+                    parseFloat(selectedSegment.end),
+                  ],
+                  rotation: 0,
+                  source: "manual",
+                  type: "rectangle",
+                  z_order: 0,
+                  transcript: selectedSegment.data.transcription,
+                  color: selectedSegment.color,
+                },
+              ],
+              tags: [],
+              tracks: [],
+            },
             jobId,
-            annotationId: currentSegmentId,
           });
         }, 5000);
 
@@ -543,7 +600,7 @@ export default function AnnotatePage({}) {
       getJobDetailQuery.isLoading ||
       getLabelsQuery.isLoading ||
       getAnnotationDataQuery.isLoading ||
-      !isWaveformLoading
+      isWaveformLoading
     );
   };
 
@@ -581,19 +638,46 @@ export default function AnnotatePage({}) {
   });
 
   // fetch annotation data when job detail fetched
+  // const getAnnotationDataQuery = useQuery({
+  //   queryKey: ["annotation-data"],
+  //   enabled: false,
+  //   staleTime: Infinity,
+  //   queryFn: () =>
+  //     fetchAnnotationDataApi({
+  //       id: jobId,
+  //       org: "",
+  //     }),
+  //   onSuccess: (data) =>
+  //     wavesurferRef.current.load(
+  //       process.env.REACT_APP_BACKEND_FILE_URL + data.file
+  //     ),
+  // });
   const getAnnotationDataQuery = useQuery({
     queryKey: ["annotation-data"],
     enabled: false,
     staleTime: Infinity,
     queryFn: () =>
       fetchAnnotationDataApi({
-        id: taskId,
+        id: jobId,
         org: "",
+        quality: "compressed",
+        type: "chunk",
+        number: 0,
       }),
-    onSuccess: (data) =>
-      wavesurferRef.current.load(
-        process.env.REACT_APP_BACKEND_FILE_URL + data.file
-      ),
+    onSuccess: (binaryString) => {
+      console.log("Doaaijgj0i");
+
+      const blob = new Blob([binaryString], { type: "audio/wav" });
+      console.log(blob);
+      // Create an Object URL for the Blob
+      const url = URL.createObjectURL(blob);
+      console.log(url);
+      wavesurferRef.current.load(url)
+      // setTimeout(() => {
+      //   audioRef.current.play();
+      // }, 3000)
+      // Play the audio
+    },
   });
 
   // fetch all annotations when job detail fetched
@@ -607,36 +691,49 @@ export default function AnnotatePage({}) {
         org: "",
       }),
     onSuccess: (data) => {
-      const updatedData = data.map((item) => {
+      console.log("Annotations", data);
+      const updatedData = data.shapes.map((item) => {
         return {
           id: item.id,
-          start: item.start,
-          end: item.end,
-          color: item.color,
+          start: item.points[0],
+          end: item.points[3],
+          color: item.color || "rgba(124, 200, 67, 0.5)",
           attributes: {
-            label: item.name,
+            label: `#${item.id}`,
           },
           data: {
             isSaved: true,
-            transcription: item.transcription,
+            transcription: item.transcript || "",
             systemRegionId: item.id,
-            labels:
-              item.labels &&
-              item.labels.map((label) => {
-                return {
-                  id: label.label,
-                  name: label.name,
-                  attributes:
-                    label.attributes &&
-                    label.attributes.map((attr) => {
-                      return {
-                        id: attr.attribute,
-                        name: attr.name,
-                        values: attr.values,
-                      };
-                    }),
-                };
-              }),
+            labels: [
+              {
+                id: item.label_id,
+                name: "Animal",
+                attributes : item.attributes.map(a => {
+                  return {
+                    id : a.spec_id,
+                    values : [a.value]
+                  }
+                }),
+              },
+            ],
+            // labels:
+            //   item.labels &&
+            //   item.labels.map((label) => {
+            //     return {
+            //       id: label.label,
+            //       name: label.name,
+            //       attributes:
+            //         label.attributes &&
+            //         label.attributes.map((attr) => {
+            //           return {
+            //             id: attr.attribute,
+            //             name: attr.name,
+            //             values: attr.values,
+            //           };
+            //         }),
+            //     };
+            //   }),
 
             // [
             //   {
@@ -654,6 +751,8 @@ export default function AnnotatePage({}) {
           },
         };
       });
+
+      console.log("UPDATEDDDDDD DATA", updatedData);
       setRegions(updatedData);
       // setRegions((prev) => [
       //   ...prev,
@@ -739,7 +838,8 @@ export default function AnnotatePage({}) {
     if (!wavesurferRef.current) return;
     const minTimestampInSeconds = 0;
     const maxTimestampInSeconds = wavesurferRef.current.getDuration();
-    const distance = generateNum(0, 10);
+    const distance = generateNum(0, 0.1);
+    console.log({maxTimestampInSeconds})
     const [min, max] = generateTwoNumsWithDistance(
       distance,
       minTimestampInSeconds,
@@ -752,18 +852,22 @@ export default function AnnotatePage({}) {
 
     if (getLabelsQuery?.data?.length > 0) {
       const labels = getLabelsForRegion();
+
+      const id = parseInt(generateNum(0, 9999));
       setRegions([
         ...regions,
+
         {
-          id: `wavesurfer-${generateNum(0, 9999)}`,
-          start: min.toFixed(2),
-          end: max.toFixed(2),
+          id,
+          start: parseFloat(min.toFixed(2)),
+          end: parseFloat(max.toFixed(2)),
           color: `rgba(${r}, ${g}, ${b}, 0.5)`,
           attributes: {
             label: "#" + unique_id.slice(0, 3),
           },
           data: {
             isSaved: false,
+            systemRegionId: id,
             transcription: "",
             labels: labels,
           },
@@ -777,17 +881,17 @@ export default function AnnotatePage({}) {
     mutationFn: postAnnotationApi,
     onSuccess: (data, { id, index }) => {
       console.log("data", data);
-      toast.success(`Annotation ${data.name} saved successfully`);
-      // Update the region object with backend id
-      const updatedRegion = [...regions];
-      const regionIndex = regions.findIndex(
-        (reg) => reg.id === selectedSegment.id
-      );
-      updatedRegion[regionIndex].id = data.id;
-      updatedRegion[regionIndex].data.isSaved = true;
-      setRegions(updatedRegion);
-      setSelectedSegment(updatedRegion[regionIndex]);
-      getAllAnnotations.data.push(updatedRegion[regionIndex]);
+      // toast.success(`Annotation ${data.name} saved successfully`);
+      // // Update the region object with backend id
+      // const updatedRegion = [...regions];
+      // const regionIndex = regions.findIndex(
+      //   (reg) => reg.id === selectedSegment.id
+      // );
+      // updatedRegion[regionIndex].id = data.id;
+      // updatedRegion[regionIndex].data.isSaved = true;
+      // setRegions(updatedRegion);
+      // setSelectedSegment(updatedRegion[regionIndex]);
+      // getAllAnnotations.data.push(updatedRegion[regionIndex]);
     },
   });
 
@@ -795,17 +899,37 @@ export default function AnnotatePage({}) {
   const putAnnotationMutation = useMutation({
     mutationFn: putAnnotationApi,
     onSuccess: (data, { id, index }) => {
-      console.log("data", data);
-      toast.success(`Annotation ${data.name} edited successfully`);
+      console.log("Update Annotation data", data);
+      toast.success(`Annotation #${data.shapes[0].id} edited successfully`);
       // Update the region object with backend id
       const updatedRegion = [...regions];
       const regionIndex = regions.findIndex(
         (reg) => reg.id === selectedSegment.id
       );
-      updatedRegion[regionIndex].id = data.id;
+      updatedRegion[regionIndex].id = data.shapes[0].id;
       updatedRegion[regionIndex].data.isSaved = true;
       setRegions(updatedRegion);
       setSelectedSegment(updatedRegion[regionIndex]);
+    },
+  });
+
+  // Patch Job Meta
+  const patchJobMeta = useMutation({
+    mutationFn: patchJobMetaApi,
+    onSuccess: (data, { action }) => {
+      console.log("patch job meta data", data, action);
+
+      if (action === "create") {
+        postAnnotationMutation.mutate({
+          data: annotationDataRef.current,
+          jobId: jobId,
+        });
+      } else if (action === "update") {
+        putAnnotationMutation.mutate({
+          data: annotationDataRef.current,
+          jobId: jobId,
+        });
+      }
     },
   });
 
@@ -836,27 +960,61 @@ export default function AnnotatePage({}) {
       // Add the label payload to the overall payload
       tempLabels.push(labelPayload);
     }
-    console.log("selectedSegment", selectedSegment.id);
+
+    console.log("handle save", { tempLabels });
+    console.log("selectedSegment", selectedSegment.id, selectedSegment.data);
     console.log("getAllAnnotations.data", getAllAnnotations.data);
     // check if the region is already saved or not
-    const regionIndex = getAllAnnotations.data.findIndex(
+    const regionIndex = getAllAnnotations.data.shapes.findIndex(
       (reg) => reg.id === selectedSegment.id
     );
+
     const payload = {
-      id: selectedSegment.id,
-      name: selectedSegment.attributes.label,
-      start: selectedSegment.start,
-      end: selectedSegment.end,
-      color: selectedSegment.color,
-      transcription: selectedSegment.data.transcription,
-      label: tempLabels,
+      shapes: [
+        {
+          attributes: selectedSegment.data.labels[0].attributes.map(a => {
+            return {
+              spec_id : a.id,
+              value : a.values[0]
+            }
+          }),
+          elements: [],
+          frame: 0,
+          group: 0,
+          label_id: selectedSegment.data.labels[0].id,
+          occluded: false,
+          outside: false,
+          points: [
+            parseFloat(selectedSegment.start),
+            parseFloat(selectedSegment.start),
+            parseFloat(selectedSegment.end),
+            parseFloat(selectedSegment.end),
+          ],
+          rotation: 0,
+          source: "manual",
+          type: "rectangle",
+          z_order: 0,
+          transcript: selectedSegment.data.transcription,
+          color: selectedSegment.color,
+        },
+      ],
+      tags: [],
+      tracks: [],
     };
-    if (regionIndex < 0) {
-      postAnnotationMutation.mutate({ data: payload, jobId: jobId });
-    } else {
-      console.log("editing....");
-      putAnnotationMutation.mutate({ data: payload, jobId: jobId });
+
+    annotationDataRef.current = payload;
+    
+    const action = (regionIndex < 0) ? "create" : "update"
+
+    if(action === "update"){
+      annotationDataRef.current.shapes[0].id = selectedSegment.id
     }
+    // if (regionIndex < 0) {
+    patchJobMeta.mutate({ data: {}, jobId, action });
+    // } else {
+    //   console.log("editing....");
+    //   putAnnotationMutation.mutate({ data: payload, jobId: jobId });
+    // }
     // console.log(regions, selectedSegment.data);
     // const regionIndex = regions.findIndex(
     //   (reg) => reg.id === selectedSegment.id

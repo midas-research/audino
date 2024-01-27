@@ -152,7 +152,7 @@ export default function JobPage({ isRemoveAppbar = false, prevFilter = null }) {
                       <div className="flex items-start gap-x-3">
                         <p className="text-sm font-medium leading-6 text-gray-900">
                           <NavLink
-                            to={`/annotate/${job.task.id}/${job.id}`}
+                            to={`/annotate/${job.task_id}/${job.id}`}
                             className="hover:underline"
                           >
                             <span className="text-gray-500">Id:</span> #{job.id}
@@ -163,7 +163,7 @@ export default function JobPage({ isRemoveAppbar = false, prevFilter = null }) {
                             "rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset"
                           )}
                         >
-                          {job.task.name}
+                          {"Task"}
                         </p>
                       </div>
 

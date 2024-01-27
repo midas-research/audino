@@ -74,7 +74,7 @@ export default function AddTaskPage() {
 
   const handleInputChange = (name, value) => {
     if (name === "files") {
-      const file = value;
+      const file = value[0];
       const previewURL = URL.createObjectURL(file);
       setAudioPreview(previewURL);
     }
@@ -120,7 +120,11 @@ export default function AddTaskPage() {
             assignee_id: parseInt(formValue.assign_to),
           },
           taskDataSpec: {
-            file: formValue.files,
+            image_quality: 70,
+            use_zip_chunks: false,
+            use_cache: false,
+            sorting_method: "lexicographical",
+            client_files: formValue.files,
           },
           onUpdate: (msg, status) => setResponseMsg({ msg, status }),
         });
@@ -367,7 +371,7 @@ export default function AddTaskPage() {
                       className="hidden"
                       accept=".mp3,audio/*"
                       onChange={(e) =>
-                        handleInputChange("files", e.target.files[0])
+                        handleInputChange("files", e.target.files)
                       }
                     />
                   </label>

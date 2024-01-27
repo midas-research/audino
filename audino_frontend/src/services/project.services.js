@@ -89,7 +89,7 @@ export const fetchLabelsApi = async ({ data, params:apiParams }) => {
       params: { ...apiParams, ...globalParams() },
       headers: { ...authHeader() },
     });
-    return res.data;
+    return res.data.results;
   } catch (e) {
     throw Error(e.response?.data ?? "Something went wrong");
   }

@@ -46,10 +46,14 @@ export const fetchJobDetailApi = async (data) => {
 
 export const fetchAnnotationDataApi = async (data) => {
   try {
-    const res = await axios.get(BASE_URL + "/tasks/" + data.id + "/data", {
+    const res = await axios.get(BASE_URL + "/jobs/" + data.id + "/data", {
+      responseType: 'arraybuffer',
       params: {
         org: data?.org,
         ...globalParams(),
+        type : "chunk",
+        quality : "compressed",
+        number : 0
       },
       headers: { ...authHeader() },
     });
@@ -61,7 +65,7 @@ export const fetchAnnotationDataApi = async (data) => {
 
 export const fetchAllAnnotationApi = async (data) => {
   try {
-    const res = await axios.get(BASE_URL + "/jobs/" + data.id + "/annotation", {
+    const res = await axios.get(BASE_URL + "/jobs/" + data.id + "/annotations", {
       params: {
         org: data?.org,
         ...globalParams(),
@@ -74,15 +78,38 @@ export const fetchAllAnnotationApi = async (data) => {
   }
 };
 
+
+export const patchJobMetaApi = async ({ jobId, data }) => {
+  try {
+    const res = await axios.patch(
+      BASE_URL + "/jobs/" + jobId + "/data/meta",
+      {
+        deleted_frames : [0]
+      },
+      {
+        params: {
+          org: data?.org,
+          ...globalParams(),
+        },
+        headers: { ...authHeader() },
+      }
+    );
+    return res.data;
+  } catch (e) {
+    throw Error(e.response?.data?.msg ?? "Something went wrong");
+  }
+};
+
 export const postAnnotationApi = async ({ data, jobId }) => {
   try {
-    const res = await axios.post(
-      BASE_URL + "/jobs/" + jobId + "/annotation",
+    const res = await axios.patch(
+      BASE_URL + "/jobs/" + jobId + "/annotations",
       data,
       {
         params: {
           org: data?.org,
           ...globalParams(),
+          action : "create"
         },
         headers: { ...authHeader() },
       }
@@ -96,12 +123,13 @@ export const postAnnotationApi = async ({ data, jobId }) => {
 export const putAnnotationApi = async ({ data, jobId }) => {
   try {
     const res = await axios.patch(
-      BASE_URL + "/jobs/" + jobId + "/annotation/" + data.id,
+      BASE_URL + "/jobs/" + jobId + "/annotations/",
       data,
       {
         params: {
           org: data?.org,
           ...globalParams(),
+          action : "update"
         },
         headers: { ...authHeader() },
       }
@@ -114,7 +142,7 @@ export const putAnnotationApi = async ({ data, jobId }) => {
 
 export const getAllAnnotationApi = async ({ data, jobId }) => {
   try {
-    const res = await axios.get(BASE_URL + "/jobs/" + jobId + "/annotation", {
+    const res = await axios.get(BASE_URL + "/jobs/" + jobId + "/annotations", {
       params: {
         org: data?.org,
         ...globalParams(),
@@ -127,14 +155,16 @@ export const getAllAnnotationApi = async ({ data, jobId }) => {
   }
 };
 
-export const deleteAnnotationAPi = async ({ data, jobId, annotationId }) => {
+export const deleteAnnotationAPi = async ({ data, jobId }) => {
   try {
-    const res = await axios.delete(
-      BASE_URL + "/jobs/" + jobId + "/annotation/" + annotationId,
+    const res = await axios.patch(
+      BASE_URL + "/jobs/" + jobId + "/annotations/",
+      data,
       {
         params: {
           org: data?.org,
           ...globalParams(),
+          action : "delete"
         },
         headers: { ...authHeader() },
       }

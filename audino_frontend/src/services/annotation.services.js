@@ -14,3 +14,13 @@ export const createAnnotationApi = async (data) => {
   }
 };
 
+export const patchAnnotationApi = async (data) => {
+  try {
+    const res = await axios.post(`${BASE_URL}/api/jobs/${data.jobId}/annotations?action=${data.action}`, data.data, {
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (e) {
+    throw Error(e.response?.data?.msg ?? "Something went wrong");
+  }
+};
