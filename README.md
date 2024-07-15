@@ -26,7 +26,7 @@ Current Features:
 
 4. Flexible Label Creation: Enjoy the flexibility in creating and customizing labels, adapting to your specific annotation requirements.
 
-5. Export in JSON Format: Download annotated data in JSON format for seamless integration with other tools and platforms.
+5. Export in specific formats: Download annotated data in different format for seamless integration with other tools and platforms.
 
 ## Tutorials 🔍
 
@@ -52,106 +52,94 @@ $ cd audino
 $ git checkout main
 ```
 
-## Deploy
+## Installation Guide
 
 You can either run the project on [default configuration](./docker-compose.yml) or modify them to your need.
 **Note**: Before proceeding further, you might need to give docker `sudo` access or run the commands listed below as `sudo`.
 
-**To build the services, run:**
-
-```sh
-$ docker-compose -f docker-compose.yml build
-```
-
 **To bring up the services, run:**
 
 ```sh
-$ docker-compose -f docker-compose.yml up
+$ docker compose up -d
 ```
 
+Then, in browser, go to [http://localhost:8080/](http://localhost:8080/) to view the application.
+
+You can register a user but by default, it will not have rights even to view the list of tasks. Thus you should create a superuser. The superuser can use an admin panel to assign the correct groups to the user. Please use the command below:
 ```sh
-$ docker-compose exec app python manage.py migrate
+$ docker exec -it cvat_server bash -ic 'python3 ~/manage.py createsuperuser'
 ```
-
-Then, in browser, go to [http://localhost:3000/](http://localhost:3000/) to view the application.
 
 **To bring down the services, run:**
 
 ```sh
-$ docker-compose -f docker-compose.prod.yml down
+$ docker compose -f docker-compose.prod.yml down
 ```
 
-## Contribute to project
-
-### Postgres Setup
-Download and setup postgres on your machine or use the credentials for any postgres service on the cloud. Update the postgres configuration in `.env`.
-
-### Open Policy Agent Setup
-Audino uses OPA to manage apis policies. So please Pull and run Open Policy Agent docker image:
-```sh
-docker run -d --rm --name audino_opa_debug -p 8181:8181 openpolicyagent/opa:0.45.0-rootless run --server --set=decision_logs.console=true --set=services.audino.url=http://host.docker.internal:8000 --set=bundles.audino.service=audino --set=bundles.audino.resource=/api/auth/rules
-```
+## Development Guide
 
 ### Server Setup
-Create and activate a virtual environment in python using the following steps :-
 
-1. Install python Package
-  ```sh
-$ pip install virtualenv 
-  ```
+1. Install necessary dependencies: Ubuntu 22.04/20.04
+     ```sh
+    $ cd cvat
+    $ sudo apt-get update && sudo apt-get --no-install-recommends install -y build-essential curl git redis-server python3-dev python3-pip python3-venv python3-tk libldap2-dev libsasl2-dev
+    
+    # Install Node.js 20 and yarn
+    $ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+    $ sudo apt-get install -y nodejs
+      ```
 
-2. Setup the virtual environment virtualenv <env_name>
+2. Make sure to use Python 3.10.0 or higher
+    ```sh
+    $ python3 --version
+    ```
 
-3. Activate the virtual environment
-```sh
-$ source <env_name>/bin/activate
-```
+3. Install CVAT on your local host:
+    ```sh
+    $ mkdir logs keys
+    $ python3 -m venv .env
+    $ . .env/bin/activate
+    $ pip install -U pip wheel setuptools
+    $ pip install -r cvat/requirements/development.txt
+    ```
 
-4. Download all the dependencies in the python environment
-```sh
-$ pip install -r requirements.txt
-```
+4. Install Docker Engine and Docker Compose
 
-5. Download psycopg2-binary package for connecting to postgresql easily.
-```sh
-$ pip install psycopg2-binary
-```
+5. Start service dependencies:
+    ```sh
+    $ cd ..
+    # Make sure you are in audino root dir
+    $ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build cvat_opa cvat_db cvat_redis_inmem cvat_redis_ondisk cvat_server
+    ```
+    Note: to stop these services, use `docker compose -f docker-compose.yml -f docker-compose.dev.yml down`. You can add -v to remove the data, as well.
+    
+6. Apply migrations and create a super user for CVAT:
+    ```sh
+    $ cd cvat
+    $ python manage.py migrate
+    $ python manage.py collectstatic
+    $ python manage.py createsuperuser
+    ```
 
-6. Migrate and sync postgres database based on the code.
-```sh
-$ python3 manage.py migrate
-```
+7. Run VScode from the virtual environment:
+    ```sh
+    $ source .env/bin/activate && code
+    ```
+8. Inside VScode, Open CVAT root dir
+9. Select `server: debug` configuration and run it (F5) to run REST server and its workers
+10. Make sure that Uncaught Exceptions option under breakpoints section is unchecked
 
-(If it throws any errors, you might consider running the makemigrations command)
-```sh
-$ python manage.py makemigrations
-```
+### Frontend Setup
 
-7. Finally, run the server on port 8000
-```sh
-$ python manage.py runserver
-```
-
-8. Create superuser account and add the credentials
-```sh
-$ python manage.py createsuperuser
-```
-
-### Frontend Setup 
-Go to the frontend code directory
-```sh
-$ cd audino_frontend
-```
-
-Install all dependencies
-```sh
-$ npm i
-```
-
-Start the server on port 3000
-```sh
-$ npm run start
-```
+1. Install npm packages for UI (Make sure you are in `audino/audino-frontend` dir):
+    ```sh
+    $ npm install
+    ```
+2. Start the server on port 3000
+    ```sh
+    $ npm run start
+    ```
 
 ## License
 [MIT](https://github.com/midas-research/audino/blob/master/LICENSE) © MIDAS, IIIT Delhi

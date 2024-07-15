@@ -1,0 +1,6 @@
+[submodule "audino-frontend"]
+	path = audino-frontend
+	url = https://github.com/midas-research/audino-frontend.git
+[submodule "cvat"]
+	path = cvat
+	url = https://github.com/midas-research/cvat.git
