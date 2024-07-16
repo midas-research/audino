@@ -50,6 +50,7 @@ Please install the following dependencies to run `audino` on your system:
 $ git clone https://github.com/midas-research/audino.git
 $ cd audino
 $ git checkout main
+$ git submodule update --init --recursive
 ```
 
 ## Installation Guide
