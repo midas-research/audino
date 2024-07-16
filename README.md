@@ -40,9 +40,9 @@ We provide a set of [tutorials](./docs/tutorials.md) to guide users to achieve c
 
 Please install the following dependencies to run `audino` on your system:
 
-1. [git](https://git-scm.com/) *[tested on version 2.39.2]*
-2. [docker](https://www.docker.com/) *[Docker version 24.0.2, build cb74dfc]* 
-3. [docker-compose](https://docs.docker.com/compose/) *[Docker Compose version v2.19.1]* 
+1. [git](https://git-scm.com/)
+2. [docker](https://www.docker.com/) 
+3. [docker-compose](https://docs.docker.com/compose/) 
 
 ### Clone the repository
 
@@ -73,7 +73,7 @@ $ docker exec -it cvat_server bash -ic 'python3 ~/manage.py createsuperuser'
 **To bring down the services, run:**
 
 ```sh
-$ docker compose -f docker-compose.prod.yml down
+$ docker compose -f docker-compose.yml down
 ```
 
 ## Development Guide
@@ -85,7 +85,7 @@ $ docker compose -f docker-compose.prod.yml down
     $ cd cvat
     $ sudo apt-get update && sudo apt-get --no-install-recommends install -y build-essential curl git redis-server python3-dev python3-pip python3-venv python3-tk libldap2-dev libsasl2-dev
     
-    # Install Node.js 20 and yarn
+    # Install Node.js 20
     $ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
     $ sudo apt-get install -y nodejs
       ```
