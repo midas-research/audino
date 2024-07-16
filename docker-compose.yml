@@ -74,8 +74,7 @@ services:
 
   cvat_server:
     container_name: cvat_server
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on:
       <<: *backend-deps
@@ -109,8 +108,7 @@ services:
 
   cvat_utils:
     container_name: cvat_utils
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:
@@ -127,8 +125,7 @@ services:
 
   cvat_worker_import:
     container_name: cvat_worker_import
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:
@@ -144,8 +141,7 @@ services:
 
   cvat_worker_export:
     container_name: cvat_worker_export
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:
@@ -161,8 +157,7 @@ services:
 
   cvat_worker_annotation:
     container_name: cvat_worker_annotation
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:
@@ -178,8 +173,7 @@ services:
 
   cvat_worker_webhooks:
     container_name: cvat_worker_webhooks
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:
@@ -195,8 +189,7 @@ services:
 
   cvat_worker_quality_reports:
     container_name: cvat_worker_quality_reports
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:
@@ -212,8 +205,7 @@ services:
 
   cvat_worker_analytics_reports:
     container_name: cvat_worker_analytics_reports
-    build:
-      context: ./cvat/
+    image: rk220217/audino-cvat:1.0
     restart: always
     depends_on: *backend-deps
     environment:

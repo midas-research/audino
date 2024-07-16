@@ -35,9 +35,11 @@ function* signupRequest(action) {
   try {
     const { payload, callback } = action.payload;
     const data = yield call(signupRequestApi, payload);
-    toast.success(
-      "Your account has been created successfully. Please check your email to verify your account."
-    );
+    let msg = "Your account has been created successfully.";
+    if (data.email_verification_required) {
+      msg = msg + " Please check your email to verify your account.";
+    }
+    toast.success(msg);
     yield put(signupSuccess({ data, callback }));
   } catch (error) {
     yield put(signupFailed(error));

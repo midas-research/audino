@@ -9,10 +9,12 @@ import EmailVerificataionSentPage from "./pages/EmailVerificataionPage/EmailVeri
 import EmailVerificationFailPage from "./pages/EmailVerificataionPage/EmailVerificationFailPage";
 import EmailConfirmationPage from "./pages/EmailVerificataionPage/EmailConfirmationPage";
 import AcceptInvitationPage from "./pages/AcceptInvitationPage/AcceptInvitationPage";
+import ScrollToTop from "./functions/scrollToTop";
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       {CustomToast()}
       <Routes>
         <Route
