@@ -13,7 +13,7 @@ In this guide, we'll explain how user can create, edit, delete projects. In our 
 To create a project, follow these steps:
 
 - Open your web browser and navigate to projects tab.
-![alt text](../assets/project-appbar.png)
+![alt text](../assets/project-appbar-new.png)
 
 - Click on the card "Get started by creating a new project".
 ![alt text](../assets/project-page.png)
@@ -26,7 +26,7 @@ You will be asked to provide the following information to create a project:
 | Assigned to |  Select a user whom you want to assign this project  |
 | Labels |  Create labels for the project |
 
-![alt text](../assets/project-add.png)
+![alt text](../assets/create-new-project.png)
 
 Once you've entered all the required information. Then, click the "Save" button to complete the creating process.
 
@@ -37,7 +37,7 @@ After successful create, you will be redirected to projects page, where you can 
 To edit a project, follow these steps:
 
 - Open your web browser and navigate to projects tab.
-![alt text](../assets/project-appbar.png)
+![alt text](../assets/project-appbar-new.png)
 - Click on the pencil icon of a particular project whom you want to edit.
 ![alt text](../assets/project-page.png)
 
@@ -49,7 +49,7 @@ You will be asked to provide the following information to edit a project:
 | Assigned to |  Select a user whom you want to assign this project  |
 | Labels |  Create/Edit labels for the project |
 
-![alt text](../assets/project-edit.png)
+![alt text](../assets/project-edit-new.png)
 
 Once you've entered all the required information. Then, click the "Save" button to complete the editing process.
 
@@ -60,8 +60,11 @@ After successful edit, you will be redirected to projects page.
 To delete a project, follow these steps:
 
 - Open your web browser and navigate to projects tab.
-![alt text](../assets/project-appbar.png)
+![alt text](../assets/project-appbar-new.png)
 - Click on the dustbin icon of a particular project whom you want to delete.
 ![alt text](../assets/project-page.png)
 
-You will be asked to provide the confirmation (yes or no). Once you click yes button the project is permanantly deleted. 
+- You will be asked to provide the confirmation (yes or no).Once you click yes button the project is permanantly deleted.
+![alt text](../assets/project-delete.png)
+
+ 

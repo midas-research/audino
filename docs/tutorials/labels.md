@@ -18,7 +18,7 @@ In this guide, we'll explain how user can create, edit, delete labels in a parti
 To create a label, follow these steps:
 
 - Open your web browser and navigate to projects tab.
-![alt text](../assets/project-appbar.png)
+![alt text](../assets/project-appbar-new.png)
 
 - Click on the card "Get started by creating a new project" or edit a project.
 - Now you can click on Add new label button to create a new label

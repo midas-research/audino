@@ -14,9 +14,9 @@ In this guide, we'll explain how user can create, edit, delete tasks. In our Ann
 To create a task, follow these steps:
 
 - Open your web browser and navigate to tasks tab.
-![alt text](../assets/task-appbar.png)
+![alt text](../assets/task-appbar-new.png)
 - Click on the "Add new task" button.
-![alt text](../assets/task-page.png)
+![alt text](../assets/task-page-new.png)
 
 You will be asked to provide the following information to create a task:
 
@@ -39,9 +39,9 @@ After successful create, you will be redirected to tasks page, where you can fin
 To edit a task, follow these steps:
 
 - Open your web browser and navigate to tasks tab.
-![alt text](../assets/task-appbar.png)
+![alt text](../assets/task-appbar-new.png)
 - Click on the three dot button of a particular task.
-![alt text](../assets/task-page.png)
+![alt text](../assets/task-page-new.png)
 - Select "Edit" button
 
 You will be asked to provide the following information to create a task:
@@ -53,7 +53,7 @@ You will be asked to provide the following information to create a task:
 | Subset |  Select a subset according to the requirements |
 | Assigned to |  Select a user whom you want to assign this task 
 
-![alt text](../assets/task-edit.png)
+![alt text](../assets/task-edit-new.png)
 Once you've entered all the required information. Then, click the "Save" button to complete the creating process.
 
 After successful edit, you will be redirected to tasks page.
@@ -63,9 +63,10 @@ After successful edit, you will be redirected to tasks page.
 To delete a task, follow these steps:
 
 - Open your web browser and navigate to tasks tab.
-![alt text](../assets/task-appbar.png)
+![alt text](../assets/task-appbar-new.png)
 - Click on the three dot button of a particular task.
-![alt text](../assets/task-page.png)
+![alt text](../assets/task-page-popover.png)
 - Select "Delete" button
 
 You will be asked to provide the confirmation (yes or no). Once you click yes button the task is permanantly deleted. 
+![alt text](../assets/task-delete.png)
