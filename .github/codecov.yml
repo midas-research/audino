@@ -1,0 +1,34 @@
+comment:
+  layout: "header, diff, components"
+
+component_management:
+  individual_components:
+    - component_id: cvat-ui
+      name: cvat-ui
+      paths:
+        - cvat/cvat-canvas/**
+        - cvat/cvat-canvas3d/**
+        - cvat/cvat-core/**
+        - cvat/cvat-data/**
+        - cvat/cvat-ui/**
+        - audino-frontend/**
+    - component_id: cvat-server
+      name: cvat-server
+      paths:
+        - cvat/cvat/**
+        - cvat/cvat-cli/**
+        - cvat/cvat-sdk/**
+        - cvat/utils/**
+
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+
+coverage:
+  status:
+    patch: false
+    project:
+      default:
+        target: auto
+        threshold: 5%
