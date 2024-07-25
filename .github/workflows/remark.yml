@@ -1,0 +1,21 @@
+name: Remark
+on: pull_request
+jobs:
+  Linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+            node-version: '16.x'
+            submodule: true
+
+      - name: Run checks
+        run: |
+          cd audino-frontend; npm i
+          cd ../cvat; yarn install --frozen-lockfile
+
+          cd ..
+
+          echo "Remark version: "`npx remark --version`
+          npx remark --quiet --frail -i .remarkignore .

@@ -1,0 +1,40 @@
+name: StyleLint
+
+on: pull_request
+
+jobs:
+  Linter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16.x'
+
+      - name: Get list of changed files
+        id: files
+        uses: tj-actions/changed-files@v41.0.0
+        with:
+          files: |
+            **/*.css
+            **/*.scss
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run StyleLint
+        run: |
+          CHANGED_FILES="${{steps.files.outputs.all_changed_files}}"
+          
+          if [[ ! -z $CHANGED_FILES ]]; then
+            echo "StyleLint version: $(npx stylelint --version)"
+            echo "Checking the following files: $CHANGED_FILES"
+            npx stylelint $CHANGED_FILES
+          else
+            echo "No CSS or SCSS files changed"
