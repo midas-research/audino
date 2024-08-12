@@ -10,6 +10,7 @@ export const loginRule = {
 };
 export const projectRule = {
   name: "required|string",
+  'labels.*.name': 'required|string',
 };
 export const attributeRule = {
   name: "required|string",

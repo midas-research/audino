@@ -18,6 +18,14 @@ export const default_labels_obj = {
         },
       ],
     },
+    {
+      name: "",
+      type: "any",
+      color:
+        "#" +
+        ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, "0"),
+      attributes: [],
+    },
   ],
 };
 

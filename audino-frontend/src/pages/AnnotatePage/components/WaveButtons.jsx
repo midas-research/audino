@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ReactComponent as BackIcon } from "../../../assets/svgs/back.svg";
 import { ReactComponent as ForwardIcon } from "../../../assets/svgs/forward.svg";
-import { ReactComponent as KeyboardIcon } from "../../../assets/svgs/keyboard.svg"
+import { ReactComponent as KeyboardIcon } from "../../../assets/svgs/keyboard.svg";
 import Tooltip from "../../../components/Tooltip/Tooltip";
 import { useEffect, useRef, useState } from "react";
 import formatTime from "../../../utils/formatTime";
@@ -39,14 +39,10 @@ export default function WaveButtons({
   setVolume,
   regions,
   setRegions,
-  changeHistory,
-  setChangeHistory,
-  currentHistoryIndex,
-  setCurrentHistoryIndex,
   horizontalZoom,
   setHorizontalZoom,
-  setSelectedSegment,
-  setIsInputGiven,
+  undoStackRef,
+  redoStackRef,
 
   handleBackward,
   handleForward,
@@ -58,12 +54,11 @@ export default function WaveButtons({
   const horizontalZoomRef = useRef(1);
   const verticalZoomRef = useRef(1);
 
-
   useEffect(() => {
     const handleMouseScroll = (event) => {
       if (event.altKey) {
         event.preventDefault();
-        console.log("checking scroll event")
+        console.log("checking scroll event");
         let newZoom = horizontalZoomRef.current;
         if (event.deltaY < 0 && newZoom < 200) {
           newZoom = newZoom + 10;
@@ -74,7 +69,7 @@ export default function WaveButtons({
         wavesurferRef.current.zoom(newZoom);
       } else if (event.shiftKey) {
         event.preventDefault();
-        console.log("checking ver event")
+        console.log("checking ver event");
         let newZoom = verticalZoomRef.current;
         const verticalZoomFactor = 0.02;
         const verticalHeightFactor = 1;
@@ -93,19 +88,19 @@ export default function WaveButtons({
         wavesurferRef.current.drawBuffer();
       }
     };
-    document.addEventListener('wheel', handleMouseScroll, { passive: false });
+    document.addEventListener("wheel", handleMouseScroll, { passive: false });
     return () => {
       document.removeEventListener("wheel", handleMouseScroll);
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
-    horizontalZoomRef.current = horizontalZoom
-  }, [horizontalZoom])
+    horizontalZoomRef.current = horizontalZoom;
+  }, [horizontalZoom]);
 
   useEffect(() => {
-    verticalZoomRef.current = verticalZoom
-  }, [verticalZoom])
+    verticalZoomRef.current = verticalZoom;
+  }, [verticalZoom]);
 
   const handleHorizontalZoomChange = (type, value) => {
     let newZoom = value;
@@ -154,110 +149,24 @@ export default function WaveButtons({
     wavesurferRef.current.setVolume(newVolume / 100);
   };
 
-  const applyUndoHistory = (type, data, historyIndex) => {
-    // console.log("applyUndoHistory", type, data);
-    // console.log("regions", regions);
-    setSelectedSegment(null);
-    setIsInputGiven("");
-    if (type === "create") {
-      setRegions((prevRegions) =>
-        prevRegions.filter((reg) => reg?.id !== data.id)
-      );
-    } else if (type === "delete") {
-      setRegions((prevRegions) => [...prevRegions, data]);
-    } else if (type === "update") {
-      const updatedRegion = [...regions];
-      const regionIndex = updatedRegion.findIndex((reg) => reg.id === data.id);
-      const tempUpdatedRegion = updatedRegion[regionIndex];
-      console.log("temperory region", tempUpdatedRegion)
-      // need to add systemRegionId to avoid multiple creation
-      updatedRegion[regionIndex] = {
-        ...data,
-        data: { ...data.data, systemRegionId: data.id },
-      };
-      // update the history with the updated region
-      const updatedChangeHistory = [...changeHistory];
-      updatedChangeHistory[historyIndex] = {
-        ...updatedChangeHistory[historyIndex],
-        data: tempUpdatedRegion,
-      };
-
-      setRegions(updatedRegion);
-      setChangeHistory(updatedChangeHistory);
-    }
-  };
-
   const handleUndo = () => {
-    let updatedHistoryIndex = currentHistoryIndex;
-    if (updatedHistoryIndex < 0) {
-      return;
-    }
-    console.log("undo triggered", updatedHistoryIndex, changeHistory[updatedHistoryIndex])
-    applyUndoHistory(
-      changeHistory[updatedHistoryIndex].subType,
-      changeHistory[updatedHistoryIndex].data,
-      updatedHistoryIndex
-    );
-    updatedHistoryIndex = updatedHistoryIndex - 1;
-    setCurrentHistoryIndex(updatedHistoryIndex);
-  };
-
-  const applyRedoHistory = (type, data, historyIndex) => {
-    // console.log("applyRedoHistory", type, data);
-    // console.log("regions", regions);
-    setSelectedSegment(null);
-    setIsInputGiven("");
-    if (type === "create") {
-      setRegions((prevRegions) => [...prevRegions, data]);
-    } else if (type === "delete") {
-      setRegions((prevRegions) =>
-        prevRegions.filter((reg) => reg?.id !== data.id)
-      );
-    } else if (type === "update") {
-      const updatedRegion = [...regions];
-      const regionIndex = updatedRegion.findIndex((reg) => reg.id === data.id);
-      const tempUpdatedRegion = updatedRegion[regionIndex];
-      // need to add systemRegionId to avoid multiple creation
-      updatedRegion[regionIndex] = {
-        ...data,
-        data: { ...data.data, systemRegionId: data.id },
-      };
-
-      // update the history with the updated region
-      const updatedChangeHistory = [...changeHistory];
-      // const historyIndex = updatedChangeHistory.findIndex(
-      //   (change) => change.data.id === data.id
-      // );
-      updatedChangeHistory[historyIndex] = {
-        ...updatedChangeHistory[historyIndex],
-        data: tempUpdatedRegion,
-      };
-
-      setRegions(updatedRegion);
-      setChangeHistory(updatedChangeHistory);
-    }
+    if (undoStackRef.length === 0) return;
+    const lastState = undoStackRef.current.pop();
+    redoStackRef.current.push(regions);
+    setRegions(lastState);
   };
 
   const handleRedo = () => {
-    let updatedHistoryIndex = currentHistoryIndex;
-    if (updatedHistoryIndex >= changeHistory.length - 1) {
-      return;
-    }
-    console.log("redo triggered", updatedHistoryIndex, changeHistory[updatedHistoryIndex + 1])
-    updatedHistoryIndex = updatedHistoryIndex + 1;
-    applyRedoHistory(
-      changeHistory[updatedHistoryIndex].subType,
-      changeHistory[updatedHistoryIndex].data,
-      updatedHistoryIndex
-    );
-    setCurrentHistoryIndex(currentHistoryIndex + 1);
+    if(redoStackRef.current.length === 0) return;
+    const lastState = redoStackRef.current.pop();
+    undoStackRef.current.push(regions);
+    setRegions(lastState);
   };
 
   return (
     <>
       <p className="truncate text-center text-sm font-bold leading-6 my-2">
-        <span id="currentTime"></span> -{" "}
-        {formatTime(totalDuration) || "00:00"}
+        <span id="currentTime"></span> - {formatTime(totalDuration) || "00:00"}
       </p>
       <div className="relative w-full">
         <div className="bg-slate-100 h-1.5 w-full rounded-lg"></div>
@@ -288,7 +197,7 @@ export default function WaveButtons({
                 ref={undoButtonRef}
                 className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleUndo}
-                disabled={currentHistoryIndex < 0}
+                disabled={undoStackRef.current.length === 0}
               >
                 <span className="sr-only">Undo</span>
                 <ArrowUturnLeftIcon className="h-5 w-5 stroke-slate-500 group-hover:stroke-slate-700" />
@@ -302,7 +211,7 @@ export default function WaveButtons({
                 ref={redoButtonRef}
                 className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleRedo}
-                disabled={currentHistoryIndex >= changeHistory.length - 1}
+                disabled={redoStackRef.current.length === 0}
               >
                 <span className="sr-only">Redo</span>
                 <ArrowUturnRightIcon className="h-5 w-5 stroke-slate-500 group-hover:stroke-slate-700" />

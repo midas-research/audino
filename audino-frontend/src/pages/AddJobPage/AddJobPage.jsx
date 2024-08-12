@@ -48,7 +48,7 @@ export default function AddJobPage() {
   const handleInputChange = async (name, value) => {
     debouncedAddValidation({ name, value });
     if (name === "quantity") {
-      if (value > 100) value = 100;
+      if (value >= 100) value = 100;
       const frame_count = Math.floor((taskData?.size / 100) * value);
       setFormValue((prev) => ({ ...prev, quantity: value, frame_count }));
       return;

@@ -3,7 +3,6 @@ import authHeader from "./auth-header";
 import globalParams from "./global-params";
 import toast from "react-hot-toast";
 import { handleDjangoErrors } from "../utils/errorHandler";
-import './axios-config'
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 

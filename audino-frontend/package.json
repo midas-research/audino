@@ -2,7 +2,6 @@
   "name": "audino-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/audino",
   "dependencies": {
     "@emoji-mart/react": "^1.1.1",
     "@headlessui/react": "^1.7.15",
@@ -27,6 +26,7 @@
     "react-redux": "^8.1.1",
     "react-router-dom": "^6.14.1",
     "react-scripts": "5.0.1",
+    "react-transliterate": "^1.1.9",
     "redux-saga": "^1.2.3",
     "tus-js-client": "^3.1.1",
     "uuidv4": "^6.2.13",

@@ -1,15 +1,11 @@
 
-import { Fragment, useEffect, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationCircleIcon, MinusCircleIcon } from '@heroicons/react/24/outline'
+import {  useEffect, useState } from 'react'
+import {  MinusCircleIcon } from '@heroicons/react/24/outline'
 import { PlusIcon } from '@heroicons/react/20/solid'
-import PrimaryButton from '../../../components/PrimaryButton/PrimaryButton'
 import NewValueField from './NewValueField'
-import { attributeAllValidation } from '../../../validation/allValidation'
 import CustomInput from '../../../components/CustomInput/CustomInput'
 import useSingleFieldValidation from '../../../utils/inputDebounce'
 import { attributeSingleFieldValidation } from '../../../validation/singleValidation'
-import CustomSelect from '../../../components/CustomInput/CustomSelect'
 
 export default function AttributeFields({ index, onRemoveValue, onRemoveAttribute, value, onInputChange, attributesError, setAttributesError }) {
     const [showEmojiList, setShowEmojiList] = useState(Array.from({ length: value.values.length }, () => false))
@@ -51,6 +47,10 @@ export default function AttributeFields({ index, onRemoveValue, onRemoveAttribut
             });
         }
     }, [JSON.stringify(value.values)])
+
+    useEffect(()=>{
+        if(value.values.length === 0) handleAddValue();
+    },[value.values])
 
     // console.log(labels, attribute);
     return <div className="w-full" key={`newAttribute-${index}`}>
@@ -138,7 +138,7 @@ export default function AttributeFields({ index, onRemoveValue, onRemoveAttribut
             </div>
         </fieldset>
 
-        <div className="flex gap-1 h-7 items-center justify-end mr-6 pb-6 text-red-400 hover:text-red-500 hover:cursor-pointer" onClick={handleRemoveAttribute}>
+        <div className="flex gap-1 items-center justify-end mr-6 mb-6 text-red-400 hover:text-red-500 hover:cursor-pointer" onClick={handleRemoveAttribute}>
             <button
                 type="button"
                 className=""

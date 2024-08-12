@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AppBar from "../../components/AppBar/AppBar";
 import AttributeModal from "./components/AttributeModal";
 import PrimaryIconButton from "../../components/PrimaryButton/PrimaryIconButton";
@@ -9,7 +9,6 @@ import CustomInput from "../../components/CustomInput/CustomInput";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createProjectRequest,
-  fetchLabelsRequest,
   fetchProjectRequest,
   updateProjectRequest,
 } from "../../store/Actions/projectAction";
@@ -60,8 +59,6 @@ export default function AddProjectPage() {
   const [currentLabelIndex, setCurrentLabelIndex] = useState(-1);
   var advancedFormat = require("dayjs/plugin/advancedFormat");
   dayjs.extend(advancedFormat);
-
-
 
   const [showEmojiList, setShowEmojiList] = useState(
     Array.from({ length: labels_obj.results.length }, () => false)
@@ -411,6 +408,7 @@ export default function AddProjectPage() {
                               }
                               placeholder="Label name"
                               isColorPicker={true}
+                              error={formError?.[`labels.${labelIdx+1}.name`]?.[0]}
                             />
                           </div>
 

@@ -7,7 +7,6 @@ import {
   EllipsisVerticalIcon,
   EyeIcon,
   EyeSlashIcon,
-  InformationCircleIcon,
   LockClosedIcon,
   LockOpenIcon,
   TrashIcon,
@@ -22,16 +21,11 @@ function classNames(...classes) {
 }
 
 export default function RegionsList({
-  isScrolled,
   regions,
   setRegions,
-  setCurrentHistoryIndex,
-  changeHistory,
-  setChangeHistory,
-  selectedSegment,
-  removeAnnotationMutation,
-  removeCurrentRegion,
+  currentAnnotationIndex,
   handleRegionClick,
+  onDelete,
 }) {
   const unique_id = uuid();
   const [dragData, setDragData] = useState({});
@@ -48,15 +42,6 @@ export default function RegionsList({
 
   const handleLock = (regionIndex) => {
     const updatedRegion = [...regions];
-    setCurrentHistoryIndex(changeHistory.length);
-    setChangeHistory([
-      ...changeHistory,
-      {
-        type: "annotation",
-        subType: "update",
-        data: { ...updatedRegion[regionIndex] },
-      },
-    ]);
     const newState = { ...updatedRegion[regionIndex] }; // Shallow copy of the region object
     newState.drag = !updatedRegion[regionIndex]?.drag;
     updatedRegion[regionIndex] = newState;
@@ -178,23 +163,12 @@ export default function RegionsList({
       },
     };
 
-    setCurrentHistoryIndex(changeHistory.length);
-    setChangeHistory([
-      ...changeHistory,
-      {
-        type: "annotation",
-        subType: "add",
-        data: { ...tempRegion },
-      },
-    ]);
     setRegions([...regions, tempRegion]);
     toast.success(`${currentRegion.attributes.label} duplicated as #${id}`);
   };
 
   return (
-    <div
-
-    >
+    <div>
       {/* <div className="flex items-center justify-between py-2">
         <h1 className="block text-sm font-medium leading-6 text-gray-900">
           Regions
@@ -221,7 +195,6 @@ export default function RegionsList({
       <div className="flex my-2 flex-col h-[calc(100vh-180px)] rounded-lg overflow-y-scroll no-scrollbar pr-12 -mr-12 bg-clip-content">
         {regions.map((regionProps, index) => {
           return (
-
             <div
               draggable
               droppable
@@ -230,10 +203,15 @@ export default function RegionsList({
               onDrop={(e) => onDrop(e, index)}
               onClick={(e) => handleRegionClick(regionProps.id, e)}
               key={regionProps?.id}
-              className={`flex ${regionProps?.data?.labels ? "cursor-pointer" : "cursor-not-allowed"}  py-3 mb-2 items-center justify-between shadow rounded p-2 border-l-4 ${selectedSegment?.id === regionProps?.id
-                ? "border-l-audino-primary"
-                : "border-l-white"
-                }`}
+              className={`flex ${
+                regionProps?.data?.label
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed"
+              }  py-3 mb-2 items-center justify-between shadow rounded p-2 border-l-4 ${
+                currentAnnotationIndex === index
+                  ? "border-l-[#10ff00]"
+                  : "border-l-white"
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <div
@@ -242,7 +220,10 @@ export default function RegionsList({
                     backgroundColor: handleShowColor(regionProps.color),
                   }}
                 ></div>
-                <p className="text-black">{regionProps?.attributes.label}{regionProps?.data?.labels ? "" : "(GT)"}</p>
+                <p className="text-black">
+                  {regionProps?.attributes.label}
+                  {regionProps?.data?.label ? "" : "(GT)"}
+                </p>
               </div>
               <div className="flex gap-3 items-center ">
                 <Tooltip message="Hide/Show">
@@ -270,10 +251,11 @@ export default function RegionsList({
                 <Tooltip message="Move Up">
                   <ChevronDoubleUpIcon
                     className={`h-5 w-5 flex-shrink-0 stroke-slate-500 
-                    ${index === 0
+                    ${
+                      index === 0
                         ? "opacity-50 cursor-not-allowed"
                         : "group-hover:stroke-slate-700 cursor-pointer"
-                      }`}
+                    }`}
                     aria-hidden="true"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -285,9 +267,10 @@ export default function RegionsList({
                 <Tooltip message="Move Down">
                   <ChevronDoubleDownIcon
                     className={`h-5 w-5 flex-shrink-0 stroke-slate-500
-                      ${index === regions.length - 1
-                        ? "opacity-50 cursor-not-allowed"
-                        : "group-hover:stroke-slate-700 cursor-pointer"
+                      ${
+                        index === regions.length - 1
+                          ? "opacity-50 cursor-not-allowed"
+                          : "group-hover:stroke-slate-700 cursor-pointer"
                       }
                       `}
                     aria-hidden="true"
@@ -361,26 +344,23 @@ export default function RegionsList({
                           Duplicate
                         </div>
                       </Menu.Item>
-                      {/* <Menu.Item>
+                      <Menu.Item>
                         <button
                           className={classNames(
                             "hover:bg-gray-100 hover:text-gray-900 text-gray-700 group flex items-center px-4 py-2 text-sm w-full"
                           )}
-                          onClick={() => {
-                            
-                            removeCurrentRegion(regionProps.id);
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onDelete(index);
                           }}
-                          disabled={removeAnnotationMutation.isLoading}
                         >
                           <TrashIcon
                             className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
                             aria-hidden="true"
                           />
-                          {removeAnnotationMutation.isLoading
-                            ? "Deleting..."
-                            : "Delete"}
+                          Delete
                         </button>
-                      </Menu.Item> */}
+                      </Menu.Item>
                     </Menu.Items>
                   </Transition>
                 </Menu>

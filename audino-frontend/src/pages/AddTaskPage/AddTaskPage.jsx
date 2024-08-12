@@ -16,7 +16,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { updateTaskRequest } from "../../store/Actions/taskAction";
 import AddTaskPageLoader from "./components/AddTaskPageLoader";
-import { useTask } from "../../services/Task/useQueries"
+import { useTask } from "../../services/Task/useQueries";
 import { useProjects } from "../../services/Projects/useQueries"; //
 import { useUserQuery } from "../../services/User/useQueries";
 import JobPage from "../JobPage/JobPage";
@@ -32,6 +32,7 @@ import { toast } from "react-hot-toast";
 import TaskMenu from "../../components/TaskComponent/TaskMenu";
 import AlertExportTaskModal from "../../components/TaskComponent/AlertExportTaskModal";
 import { useAddTaskMutation } from "../../services/Task/useMutations";
+import DragInput from "./components/DragInput";
 
 const initialData = {
   name: "",
@@ -105,8 +106,10 @@ export default function AddTaskPage() {
         const duration = await getDuration(previewURL);
 
         if (duration === Infinity) {
-          toast.error("Unable to extract metadata from this file. Please check the file format and try again.");
-          return
+          toast.error(
+            "Unable to extract metadata from this file. Please check the file format and try again."
+          );
+          return;
         }
 
         const tempAudioDuration = duration * 1000;
@@ -196,16 +199,13 @@ export default function AddTaskPage() {
     }
   };
 
-
   const addTaskMutation = useAddTaskMutation({
     mutationConfig: {
       onSuccess: (data) => {
         navigate("/tasks?page=1");
       },
-    }
-  })
-
-
+    },
+  });
 
   const getProjectsQuery = useProjects({
     queryConfig: {
@@ -217,8 +217,8 @@ export default function AddTaskPage() {
       enabled: false,
       staleTime: Infinity,
       onSuccess: (data) => console.log(data),
-    }
-  })
+    },
+  });
 
   //  fetch users
   const getUsersQuery = useUserQuery({
@@ -231,13 +231,13 @@ export default function AddTaskPage() {
       enabled: false,
       staleTime: Infinity,
     },
-  })
+  });
   // fetch task data if task id exists
   const getTaskQuery = useTask({
     queryConfig: {
       queryKey: [taskId],
       apiParams: {
-        id: taskId
+        id: taskId,
       },
       enabled: false,
       staleTime: Infinity,
@@ -252,7 +252,7 @@ export default function AddTaskPage() {
           };
         });
       },
-    }
+    },
   });
 
   useEffect(() => {
@@ -302,8 +302,13 @@ export default function AddTaskPage() {
                 {taskId ? "Update" : "Create a new"} task
               </h1>
             </div>
-            {taskId &&
-              <TaskMenu isShowText={true} task={getTaskQuery.data} isShowEdit={false} />}
+            {taskId && (
+              <TaskMenu
+                isShowText={true}
+                task={getTaskQuery.data}
+                isShowEdit={false}
+              />
+            )}
           </div>
         </header>
       </AppBar>
@@ -425,47 +430,8 @@ export default function AddTaskPage() {
                 <label className="block text-sm font-medium leading-6 text-gray-900">
                   Select file <span className="text-red-600">*</span>
                 </label>
-                <div className="flex items-center justify-center w-full mt-2">
-                  <label
-                    htmlFor="dropzone-file"
-                    className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:bg-gray-50"
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <svg
-                        className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 20 16"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                        />
-                      </svg>
-                      <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                        <span className="font-medium">Click to upload</span> or
-                        drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Upload Audio file only
-                      </p>
-                    </div>
-                    <input
-                      id="dropzone-file"
-                      type="file"
-                      multiple
-                      className="hidden"
-                      accept=".mp3,audio/*"
-                      onChange={(e) =>
-                        handleInputChange("files", e.target.files)
-                      }
-                    />
-                  </label>
-                </div>
+                <DragInput handleInputChange={handleInputChange} />
+
                 {audioPreview ? (
                   // <AudioPlayer audioUrl={audioPreview} />
 

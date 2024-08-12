@@ -9,8 +9,6 @@ import { WaveSurfer, WaveForm, Region, Marker } from "wavesurfer-react";
 
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
-import MarkersPlugin from "wavesurfer.js/src/plugin/markers";
-import PrimaryButton from "../../components/PrimaryButton/PrimaryButton";
 
 import { useParams } from "react-router-dom";
 
@@ -21,10 +19,12 @@ import {
   usePutAnnotationMutation,
   useRemoveAnnotationMutation,
 } from "../../services/Annotations/useMutations";
-import { useGetAllAnnotation } from "../../services/Annotations/useQueries";
+import {
+  ANNOTATIONS_KEY,
+  useGetAllAnnotation,
+} from "../../services/Annotations/useQueries";
 import { useLabelsQuery } from "../../services/Labels/useQueries";
 import { toast } from "react-hot-toast";
-import UndoToast from "../../components/UndoToast/UndoToast";
 import { v4 as uuid } from "uuid";
 import audioBufferToWav from "audiobuffer-to-wav";
 
@@ -45,39 +45,11 @@ import {
   useJobDetail,
   useJobMetaData,
 } from "../../services/Jobs/useQueries";
-import {
-  usePatchJobMetaMutation,
-  useJobUpdateMutation,
-} from "../../services/Jobs/useMutations";
+import { useJobUpdateMutation } from "../../services/Jobs/useMutations";
+import AlertModal from "../../components/Alert/AlertModal";
 
-function generateNum(min, max) {
-  return Math.random() * (max - min + 1) + min;
-}
-
-function generateTwoNumsWithDistance(distance, min, max) {
-  // Ensure that the inputs are valid
-  if (min >= max || distance <= 0) {
-    throw new Error(
-      "Invalid input values. Make sure min < max and distance > 0."
-    );
-  }
-
-  // Calculate the range
-  const range = max - min;
-
-  // Ensure that the range is greater than or equal to twice the distance
-  // if (range < distance * 2) {
-  //   throw new Error("Invalid input values. The range should be greater than or equal to twice the distance.");
-  // }
-
-  // Generate the first random number
-  const firstNumber = Math.random() * (range - distance) + min;
-
-  // Generate the second random number with the specified distance
-  const secondNumber = firstNumber + distance;
-
-  return [firstNumber, secondNumber];
-}
+import { Transition } from "@headlessui/react";
+import Spinner from "../../components/loader/spinner";
 
 export default function AnnotatePage({}) {
   const { id: jobId } = useParams();
@@ -85,27 +57,10 @@ export default function AnnotatePage({}) {
   const [timelineVis, setTimelineVis] = useState(true);
   const [horizontalZoom, setHorizontalZoom] = useState(1);
   const [volume, setVolume] = useState(50);
-  const [currentLabel, setCurrentLabel] = useState(null);
-  const annotationDataRef = useRef(null);
   const initialVerticalZoom = 1;
   const initialVerticalHeight = 130;
   const unique_id = uuid();
   const queryClient = useQueryClient();
-
-  const [markers, setMarkers] = useState([
-    // {
-    //   time: 5.5,
-    //   label: "V1",
-    //   color: "#FACC15",
-    //   draggable: true,
-    // },
-    // {
-    //   time: 10,
-    //   label: "V2",
-    //   color: "#FACC15",
-    //   position: "top",
-    // },
-  ]);
 
   const plugins = useMemo(() => {
     return [
@@ -119,85 +74,33 @@ export default function AnnotatePage({}) {
           container: "#timeline",
         },
       },
-      {
-        plugin: MarkersPlugin,
-        options: {
-          markers: [{ draggable: true }],
-        },
-      },
-      // {
-      //   plugin: MinimapPlugin,
-      // },
     ].filter(Boolean);
   }, []);
 
-  const [regions, setRegions] = useState([
-    // {
-    //   id: "region-1",
-    //   start: 0.5,
-    //   end: 2,
-    //   color: "rgb(254, 202, 202, .5)",
-    //   attributes: {
-    //     label: 'Region Name1'
-    //   },
-    //   data: {
-    //     transcription: "31"
-    //   }
-    // },
-    // {
-    //   id: "region-1",
-    //   start: 3,
-    //   end: 5,
-    //   color: "rgb(190, 242, 100, 0.5)",
-    //   attributes: {
-    //     label: "region1",
-    //   },
-    //   data: {
-    //     transcription: "32",
-    //     systemRegionId: 32,
-    //     labels: [
-    //       {
-    //         id: "1",
-    //         name: "label 1",
-    //         attributes: [
-    //           {
-    //             id: "1",
-    //             name: "attr1",
-    //             values: ["val 1", "val 2"],
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // },
-    // {
-    //   id: "region-3",
-    //   start: 6,
-    //   end: 10,
-    //   color: "rgb(147, 197, 253, .5)",
-    //   attributes: {
-    //     label: "region3",
-    //   },
-    //   data: {
-    //     transcription: "33",
-    //     systemRegionId: 33,
-    //   },
-    // },
-  ]);
+  const [regions, setRegions] = useState([]);
   const [isWaveformLoading, setIsWaveformLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedSegment, setSelectedSegment] = useState(null);
-  const [isInputGiven, setIsInputGiven] = useState("");
-  const [changeHistory, setChangeHistory] = useState([]);
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [isScrolled, setIsScrolled] = useState(false);
   const [conflicts, setConflicts] = useState([]);
   const [totalDuration, setTotalDuration] = useState(0);
+  const tabs = [{ name: "Regions" }, { name: "Conflicts" }];
+  const [currentTab, setCurrentTab] = useState(0);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [currentAnnotationIndex, setCurrentAnnotationIndex] = useState(null);
+  const [dataChangedLog, setDataChangedLog] = useState({
+    created: [],
+    updated: [],
+    deleted: [],
+  });
+  const [mutationCount, setMutationCount] = useState({
+    totalMutation: 0,
+    successMutation: 0,
+  });
+  const [gtAnnotations, setGtAnnotations] = useState([]);
 
   // use regions ref to pass it inside useCallback
   // so it will use always the most fresh version of regions list
   const regionsRef = useRef(regions);
-  const selectedSegmentRef = useRef(selectedSegment);
   const progressBarRef = useRef(null);
   const inputTextRef = useRef(null);
   const undoButtonRef = useRef(null);
@@ -205,19 +108,20 @@ export default function AnnotatePage({}) {
   const deleteButtonRef = useRef(null);
   const wavesurferRef = useRef();
   const oneTimeApiCallRef = useRef(false);
+  const currentAnnotationIndexRef = useRef(null);
+  const undoStackRef = useRef([]);
+  const redoStackRef = useRef([]);
 
   // only use for shortucts
   const isPlayingRef = useRef(isPlaying);
-  const tabs = [{ name: "Regions" }, { name: "Conflicts" }];
-  const [currentTab, setCurrentTab] = useState(0);
 
   useEffect(() => {
     regionsRef.current = regions;
   }, [regions]);
 
   useEffect(() => {
-    selectedSegmentRef.current = selectedSegment;
-  }, [selectedSegment]);
+    currentAnnotationIndexRef.current = currentAnnotationIndex;
+  }, [currentAnnotationIndex]);
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
@@ -258,12 +162,12 @@ export default function AnnotatePage({}) {
         (event.metaKey || event.ctrlKey) &&
         event.key === "ArrowRight"
       ) {
-        getNextObject(selectedSegmentRef.current?.id);
+        getNextObject(currentAnnotationIndexRef.current);
       } else if (
         (event.metaKey || event.ctrlKey) &&
         event.key === "ArrowLeft"
       ) {
-        getPreviousObject(selectedSegmentRef.current?.id);
+        getPreviousObject(currentAnnotationIndexRef.current);
       } else if (event.key === "ArrowRight") {
         event.preventDefault();
         handleForward();
@@ -279,24 +183,16 @@ export default function AnnotatePage({}) {
     };
   }, []);
 
-  const getNextObject = (currentId) => {
-    const index = regionsRef?.current?.findIndex((obj) => obj.id === currentId);
-    if (index === -1) return null;
-    const nextSegment =
-      regionsRef?.current[(index + 1) % regionsRef?.current?.length];
-    setSelectedSegment(nextSegment);
-    setCurrentLabel(nextSegment?.data?.labels[0]);
+  const getNextObject = (currentIndex) => {
+    if (currentIndex >= 0 && currentIndex < regionsRef?.current?.length - 1) {
+      setCurrentAnnotationIndex(currentIndex + 1);
+    }
   };
 
-  const getPreviousObject = (currentId) => {
-    const index = regionsRef?.current?.findIndex((obj) => obj.id === currentId);
-    if (index === -1) return null;
-    const nextSegment =
-      regionsRef?.current[
-        (index - 1 + regionsRef?.current?.length) % regionsRef?.current?.length
-      ];
-    setSelectedSegment(nextSegment);
-    setCurrentLabel(nextSegment?.data?.labels[0]);
+  const getPreviousObject = (currentIndex) => {
+    if (currentIndex > 0 && currentIndex < regionsRef?.current?.length) {
+      setCurrentAnnotationIndex(currentIndex - 1);
+    }
   };
 
   const regionCreatedHandler = useCallback(
@@ -307,14 +203,75 @@ export default function AnnotatePage({}) {
 
       // if the region has no systemRegionId, add it
       region.data.systemRegionId = region.id;
-      setRegions((prev) => [...prev, { ...region }]);
-      setSelectedSegment({
-        ...region,
-      });
-      setIsInputGiven((prev) => prev + "rc");
-      setCurrentLabel(null);
+
+      undoStackRef.current.push(regionsRef.current.map((r) => ({ ...r })));
+      redoStackRef.current = [];
+
+      setRegions((prev) => [
+        ...prev,
+        {
+          id: region.id,
+          start: region.start.toFixed(2),
+          end: region.end.toFixed(2),
+          color: region.color,
+          attributes: {
+            label: "new",
+          },
+          drag: true,
+          data: {
+            isSaved: false,
+            transcription: "",
+            locale: "",
+            gender: "",
+            age: "",
+            accent: "",
+            emotion: "",
+            systemRegionId: region.id,
+          },
+        },
+      ]);
     },
     [regionsRef]
+  );
+
+  const handleRegionUpdate = useCallback(
+    (region, smth) => {
+      console.log("region-update-end --> region:", region);
+      const updatedRegions = [...regions];
+      const regionIndex = updatedRegions.findIndex(
+        (reg) => reg.id === region.id
+      );
+
+      if (regionIndex >= 0) {
+        // region created using drag selection
+        if (!updatedRegions[regionIndex].data.hasOwnProperty("label")) {
+          updatedRegions[regionIndex].start = region.start.toFixed(2);
+          updatedRegions[regionIndex].end = region.end.toFixed(2);
+          updatedRegions[regionIndex].color =
+            getLabelsQuery.data[0].color + "80";
+          updatedRegions[regionIndex].attributes.label =
+            "#" + unique_id.slice(0, 3);
+          updatedRegions[regionIndex].data.label = getLabelsQuery.data[0];
+          // we need to update the label of the region in wavesurfer directly to show the label on the region
+          wavesurferRef.current.regions.list[region.id].update({
+            attributes: {
+              label: "#" + unique_id.slice(0, 3),
+            },
+          });
+        } else {
+          undoStackRef.current.push(regionsRef.current.map((r) => ({ ...r })));
+          redoStackRef.current = [];
+
+          // update the region start time and end time only
+          updatedRegions[regionIndex].start = region.start.toFixed(2);
+          updatedRegions[regionIndex].end = region.end.toFixed(2);
+        }
+        // updatedRegions[regionIndex].data.isSaved = false;
+        setRegions(updatedRegions);
+        setCurrentAnnotationIndex(regionIndex);
+      }
+    },
+    [regions]
   );
 
   const handleWSMount = useCallback(
@@ -349,7 +306,7 @@ export default function AnnotatePage({}) {
         });
 
         wavesurferRef.current.on("loading", (data) => {
-          console.log("loading --> ", data);
+          // console.log("loading --> ", data);
           if (data === 100) {
             setIsWaveformLoading(false);
           }
@@ -387,14 +344,15 @@ export default function AnnotatePage({}) {
 
   const handleRegionClick = (id, event) => {
     const region = wavesurferRef.current.regions.list[id];
-    // console.log("onclick regions", region);
     if (event) event.stopPropagation();
     if (region.drag) {
       setIsPlaying(true);
-      setSelectedSegment(region);
-      setCurrentLabel(region.data.labels[0]);
       region.play();
     }
+
+    // need to check id in regionsRef.current bcoz this function is being called in wavesurfer event
+    const regionIndex = regionsRef.current.findIndex((reg) => reg.id === id);
+    setCurrentAnnotationIndex(regionIndex);
   };
 
   const updateTimeUi = () => {
@@ -409,99 +367,17 @@ export default function AnnotatePage({}) {
     progressBarRef.current.style.width = `${progressPercentage}%`;
   };
 
-  // remove annotation data
-  const removeAnnotationMutation = useRemoveAnnotationMutation({
-    mutationConfig: {
-      onSuccess: (data) => {
-        console.log("data", data);
-        toast.success(`Annotation deleted successfully`);
-        // Update the regions
-        setRegions((prevRegions) =>
-          prevRegions.filter((reg) => reg?.id !== data.shapes[0].id)
-        );
-        setSelectedSegment(null);
-        setIsInputGiven("");
-        setCurrentLabel(null);
-      },
-    },
-  });
-
   const removeCurrentRegion = () => {
-    if (selectedSegment?.id) {
-      const currentSegmentId = selectedSegment.id;
-      const hasWavesurfer = /wavesurfer/i.test(selectedSegment.id);
-      let undoTimer = null;
+    if (regions[currentAnnotationIndex]?.id) {
+      const currentAnnotation = regions[currentAnnotationIndex];
 
-      if (!hasWavesurfer) {
-        // Backend call after 5 seconds if the user doesn't click "Undo"
-        undoTimer = setTimeout(() => {
-          // index of current label selected
-          const labelIndex = selectedSegment.data.labels.findIndex(
-            (label) => label.id === currentLabel?.id
-          );
-          removeAnnotationMutation.mutate({
-            data: {
-              shapes: [
-                {
-                  attributes: selectedSegment.data.labels[
-                    labelIndex
-                  ].attributes.map((a) => {
-                    return {
-                      spec_id: a.id,
-                      value: a.values[0] ?? "",
-                    };
-                  }),
-                  frame: 0,
-                  id: selectedSegment.id,
-                  label_id: selectedSegment.data.labels[labelIndex].id,
-                  points: [
-                    parseFloat(selectedSegment.start),
-                    parseFloat(selectedSegment.start),
-                    parseFloat(selectedSegment.end),
-                    parseFloat(selectedSegment.end),
-                  ],
-                  type: "rectangle",
-                  transcript: selectedSegment.data.transcription,
-                  gender: selectedSegment.data.gender,
-                  locale: selectedSegment.data.locale,
-                  age: selectedSegment.data.age,
-                  accent: selectedSegment.data.accent,
-                  emotion: selectedSegment.data.emotion,
-                  color: selectedSegment.color,
-                },
-              ],
-              tags: [],
-              tracks: [],
-            },
-            jobId,
-          });
-        }, 5000);
-
-        toast.custom((t) => (
-          <UndoToast
-            t={t}
-            regionName={selectedSegment.attributes.label}
-            undoTimer={undoTimer}
-            undoButtonRef={undoButtonRef}
-          />
-        ));
-      } else {
-        setRegions((prevRegions) =>
-          prevRegions.filter((reg) => reg.id !== currentSegmentId)
-        );
-        setSelectedSegment(null);
-        setIsInputGiven("");
-        setCurrentLabel(null);
-        setCurrentHistoryIndex(changeHistory.length);
-        setChangeHistory([
-          ...changeHistory,
-          {
-            type: "annotation",
-            subType: "delete",
-            data: selectedSegment,
-          },
-        ]);
-      }
+      setCurrentAnnotationIndex(null);
+      setRegions((prevRegions) =>
+        prevRegions.filter((reg) => reg.id !== currentAnnotation.id)
+      );
+      setDeleteModal(false);
+      undoStackRef.current.push(regionsRef.current.map((r) => ({ ...r })));
+      redoStackRef.current = [];
     } else {
       toast.error("Please select a segment to delete");
     }
@@ -512,69 +388,6 @@ export default function AnnotatePage({}) {
     setIsPlaying(!isPlayingRef.current);
   }, [isPlaying]);
 
-  const handleRegionUpdate = useCallback(
-    (region, smth) => {
-      console.log("region-update-end --> region:", region);
-      const updatedRegion = [...regions];
-      const regionIndex = updatedRegion.findIndex(
-        (reg) => reg.id === region.id
-      );
-      if (regionIndex >= 0) {
-        // region created using drag selection
-        setCurrentHistoryIndex(changeHistory.length);
-        if (
-          !updatedRegion[regionIndex].data.hasOwnProperty("transcription") &&
-          !updatedRegion[regionIndex].data.hasOwnProperty("labels")
-        ) {
-          setChangeHistory([
-            ...changeHistory,
-            {
-              type: "annotation",
-              subType: "create",
-              data: updatedRegion[regionIndex],
-            },
-          ]);
-
-          const r = generateNum(0, 255);
-          const g = generateNum(0, 255);
-          const b = generateNum(0, 255);
-
-          updatedRegion[regionIndex].start = region.start.toFixed(2);
-          updatedRegion[regionIndex].end = region.end.toFixed(2);
-          updatedRegion[regionIndex].color = `rgba(${r}, ${g}, ${b}, 0.5)`;
-          updatedRegion[regionIndex].attributes.label =
-            "#" + unique_id.slice(0, 3);
-          updatedRegion[regionIndex].data.transcription = "";
-          updatedRegion[regionIndex].data.gender = "";
-          updatedRegion[regionIndex].data.locale = "";
-          updatedRegion[regionIndex].data.age = "";
-          updatedRegion[regionIndex].data.accent = "";
-          updatedRegion[regionIndex].data.emotion = "";
-          updatedRegion[regionIndex].data.labels = getLabelsForRegion();
-        } else {
-          // store the unchanged data in history
-          setChangeHistory([
-            ...changeHistory,
-            {
-              type: "annotation",
-              subType: "update",
-              data: { ...updatedRegion[regionIndex] },
-            },
-          ]);
-          // update the region start time and end time only
-          updatedRegion[regionIndex].start = region.start.toFixed(2);
-          updatedRegion[regionIndex].end = region.end.toFixed(2);
-        }
-        updatedRegion[regionIndex].data.isSaved = false;
-        setRegions(updatedRegion);
-        setSelectedSegment(updatedRegion[regionIndex]);
-
-        setIsInputGiven((prev) => prev + "ur");
-      }
-    },
-    [regions]
-  );
-
   const handleForward = () => {
     wavesurferRef.current.skipForward(10);
   };
@@ -584,12 +397,12 @@ export default function AnnotatePage({}) {
   };
 
   const getAllLoading = () => {
-    console.log(
-      getJobDetailQuery.isLoading,
-      getLabelsQuery.isLoading,
-      getAnnotationDataQuery.isFetching,
-      isWaveformLoading
-    );
+    // console.log(
+    //   getJobDetailQuery.isLoading,
+    //   getLabelsQuery.isLoading,
+    //   getAnnotationDataQuery.isFetching,
+    //   isWaveformLoading
+    // );
     return (
       getJobDetailQuery.isLoading ||
       getLabelsQuery.isLoading ||
@@ -607,7 +420,7 @@ export default function AnnotatePage({}) {
       },
       enabled: false,
       staleTime: Infinity,
-      onSuccess: (data) => console.log(data),
+      // onSuccess: (data) => console.log(data),
     },
   });
 
@@ -620,7 +433,7 @@ export default function AnnotatePage({}) {
       },
       enabled: false,
       staleTime: Infinity,
-      onSuccess: (data) => console.log("Job Meta Data", data),
+      // onSuccess: (data) => console.log("Job Meta Data", data),
     },
   });
 
@@ -859,11 +672,13 @@ export default function AnnotatePage({}) {
       enabled: false,
       staleTime: Infinity,
       onSuccess: (data) => {
-        console.log("Annotations", data);
         // label color map
-        const labelColorMap = {};
+        const labelMapping = {};
         getLabelsQuery.data?.forEach((label) => {
-          labelColorMap[label.id] = label.color + "80";
+          labelMapping[label.id] = {
+            color: label.color + "80",
+            name: label.name,
+          };
         });
 
         const updatedData = data.shapes.map((item) => {
@@ -871,7 +686,7 @@ export default function AnnotatePage({}) {
             id: item.id,
             start: item.points[0],
             end: item.points[3],
-            color: labelColorMap[item.label_id],
+            color: labelMapping[item.label_id].color,
             attributes: {
               label: `#${item.id}`,
             },
@@ -885,49 +700,16 @@ export default function AnnotatePage({}) {
               accent: item.accent || "",
               emotion: item.emotion || "",
               systemRegionId: item.id,
-              labels: [
-                {
-                  id: item.label_id,
-                  name: item.label_id,
-                  attributes: item.attributes.map((a) => {
-                    return {
-                      id: a.spec_id,
-                      values: [a.value],
-                    };
-                  }),
-                },
-              ],
-              // labels:
-              //   item.labels &&
-              //   item.labels.map((label) => {
-              //     return {
-              //       id: label.label,
-              //       name: label.name,
-              //       attributes:
-              //         label.attributes &&
-              //         label.attributes.map((attr) => {
-              //           return {
-              //             id: attr.attribute,
-              //             name: attr.name,
-              //             values: attr.values,
-              //           };
-              //         }),
-              //     };
-              //   }),
-
-              // [
-              //   {
-              //     id: "1",
-              //     name: "label 1",
-              //     attributes: [
-              //       {
-              //         id: "1",
-              //         name: "attr1",
-              //         values: ["val 1", "val 2"],
-              //       },
-              //     ],
-              //   },
-              // ],
+              label: {
+                id: item.label_id,
+                name: labelMapping[item.label_id].name,
+                attributes: item.attributes.map((a) => {
+                  return {
+                    id: a.spec_id,
+                    values: [a.value],
+                  };
+                }),
+              },
             },
           };
         });
@@ -950,102 +732,8 @@ export default function AnnotatePage({}) {
     }
   }, [getJobMetaDataQuery.data?.size]);
 
-  const getLabelsForRegion = () => {
-    const labels = [];
-
-    const labelQueryData = getLabelsQuery.data;
-    for (
-      let labelIndex = 1;
-      labelIndex <= labelQueryData?.length;
-      labelIndex++
-    ) {
-      const label = {
-        id: labelQueryData?.[labelIndex - 1].id,
-        name: labelQueryData?.[labelIndex - 1].name,
-        attributes: [],
-      };
-
-      // Create two attribute objects for each label
-      for (
-        let attributeIndex = 1;
-        attributeIndex <= labelQueryData[labelIndex - 1].attributes?.length;
-        attributeIndex++
-      ) {
-        const attribute = {
-          id: labelQueryData[labelIndex - 1].attributes?.[attributeIndex - 1]
-            .id,
-          name: labelQueryData[labelIndex - 1].attributes?.[attributeIndex - 1]
-            .name,
-          values: [],
-        };
-
-        // Add the attribute to the label's attributes array
-        label.attributes.push(attribute);
-      }
-
-      // Add the label to the labels array
-      labels.push(label);
-    }
-    return labels;
-  };
-
-  const generateRegion = useCallback(() => {
-    if (!wavesurferRef.current) return;
-    const minTimestampInSeconds = 0;
-    const maxTimestampInSeconds = wavesurferRef.current.getDuration();
-    const distance = generateNum(0, 0.1);
-    console.log({ maxTimestampInSeconds });
-    const [min, max] = generateTwoNumsWithDistance(
-      distance,
-      minTimestampInSeconds,
-      maxTimestampInSeconds
-    );
-
-    const r = generateNum(0, 255);
-    const g = generateNum(0, 255);
-    const b = generateNum(0, 255);
-
-    if (getLabelsQuery?.data?.length > 0) {
-      const labels = getLabelsForRegion();
-
-      const id = parseInt(generateNum(0, 9999));
-      const tempRegion = {
-        id,
-        start: parseFloat(min.toFixed(2)),
-        end: parseFloat(max.toFixed(2)),
-        color: `rgba(${r}, ${g}, ${b}, 0.5)`,
-        attributes: {
-          label: "#" + unique_id.slice(0, 3),
-        },
-        drag: true,
-        data: {
-          isSaved: false,
-          systemRegionId: id,
-          transcription: "",
-          gender: "",
-          locale: "",
-          age: "",
-          accent: "",
-          emotion: "",
-          labels: labels,
-        },
-      };
-      setRegions([...regions, tempRegion]);
-      setCurrentHistoryIndex(changeHistory.length);
-      setChangeHistory([
-        ...changeHistory,
-        {
-          type: "annotation",
-          subType: "create",
-          data: tempRegion,
-        },
-      ]);
-      setIsInputGiven((prev) => prev + " nr");
-    }
-  }, [regions, wavesurferRef, getLabelsQuery]);
-
-  const generateMissingRegionsFromGroundTruth = (conflicts, shapes) => {
-    console.log("final data", conflicts, shapes);
+  const generateMissingRegionsFromGroundTruth = () => {
+    console.log("final data", conflicts, gtAnnotations);
     const missing_regions = [];
     const missing_annotations = conflicts.reduce((acc, conflict) => {
       if (conflict.type === "missing_annotation") {
@@ -1053,11 +741,18 @@ export default function AnnotatePage({}) {
       }
       return acc;
     }, []);
-
+    const labelMapping = {};
+    getLabelsQuery.data?.forEach((label) => {
+      labelMapping[label.id] = {
+        color: label.color + "80",
+        name: label.name,
+      };
+    });
     missing_annotations.map((missing_annotation) => {
-      const groundtruth_annotation = shapes.find(
+      const groundtruth_annotation = gtAnnotations.find(
         (shape) => shape?.id === missing_annotation
       );
+
       const {
         id,
         points,
@@ -1068,6 +763,7 @@ export default function AnnotatePage({}) {
         age,
         accent,
         emotion,
+        label_id,
       } = groundtruth_annotation;
       const tempRegion = {
         id,
@@ -1087,7 +783,16 @@ export default function AnnotatePage({}) {
           age,
           accent,
           emotion,
-          // labels: labels,
+          label: {
+            id: label_id,
+            name: labelMapping[label_id].name,
+            attributes: attributes.map((a) => {
+              return {
+                id: a.spec_id,
+                values: [a.value],
+              };
+            }),
+          },
         },
       };
       missing_regions.push(tempRegion);
@@ -1095,45 +800,48 @@ export default function AnnotatePage({}) {
     setRegions([...regions, ...missing_regions]);
   };
 
+  const removeMissingRegionsFromGroundTruth = () => {
+    const missing_annotations = conflicts.reduce((acc, conflict) => {
+      if (conflict.type === "missing_annotation") {
+        acc.push(conflict?.annotation_ids[0]?.obj_id);
+      }
+      return acc;
+    }, []);
+    const updatedRegions = regions.filter((region) => {
+      return !missing_annotations.includes(region.id);
+    });
+    setRegions(updatedRegions);
+    setCurrentAnnotationIndex(null);
+  };
+
   // post annotation data
   const postAnnotationMutation = usePostAnnotationMutation({
     mutationConfig: {
-      onSuccess: (data, { id, index }) => {
-        toast.success(`Annotation saved successfully`);
-        // Update the region object with backend id
-        const oldRegionId = selectedSegment.id;
-        const updatedRegion = [...regions];
-        const regionIndex = regions.findIndex(
-          (reg) => reg.id === selectedSegment.id
-        );
-        updatedRegion[regionIndex].id = data["shapes"][0].id;
-        updatedRegion[regionIndex].data.systemRegionId = data["shapes"][0].id;
-        updatedRegion[regionIndex].data.isSaved = true;
-
-        // // update the history state with the new id
-        const updatedChangeHistory = [...changeHistory];
-        const updatedChangeHistoryIndex = updatedChangeHistory.findIndex(
-          (ch) => ch.data.id === oldRegionId
-        );
-        updatedChangeHistory[updatedChangeHistoryIndex].data.id =
-          data["shapes"][0].id;
-
-        setChangeHistory(updatedChangeHistory);
-        setSelectedSegment(updatedRegion[regionIndex]);
-        setIsInputGiven("");
-        setRegions(updatedRegion);
-
-        // check if no annotation is there then call the job detail api to update the state
-        if (getAllAnnotations.data.shapes.length === 0) {
-          handleStateChange("state", "in progress");
+      onSuccess: (data) => {
+        for (let index = 0; index < dataChangedLog.created.length; index++) {
+          const element = dataChangedLog.created[index];
+          const regionIndex = regions.findIndex((reg) => reg.id === element.id);
+          regions[regionIndex].id = data.shapes[index].id;
+          regions[regionIndex].data.systemRegionId = data.shapes[index].id;
+          regions[regionIndex].attributes.label = `#${data.shapes[index].id}`;
         }
+
         // Add the new annotation to the list of annotations
-        queryClient.setQueryData(["annotations"], (oldData) => {
+        queryClient.setQueryData([ANNOTATIONS_KEY, jobId], (_oldData) => {
           return {
-            ...oldData,
-            shapes: [...oldData.shapes, updatedRegion[regionIndex]],
+            ..._oldData,
+            shapes: [..._oldData.shapes, ...data.shapes],
           };
         });
+
+        setDataChangedLog((prev) => ({
+          ...prev,
+          created: [],
+        }));
+        setMutationCount((prev) => ({
+          ...prev,
+          successMutation: prev.successMutation + 1,
+        }));
       },
     },
   });
@@ -1141,94 +849,210 @@ export default function AnnotatePage({}) {
   // put annotation data
   const putAnnotationMutation = usePutAnnotationMutation({
     mutationConfig: {
-      onSuccess: (data, { id, index }) => {
-        console.log("Update Annotation data", data);
-        toast.success(`Annotation edited successfully`);
+      onSuccess: (data) => {
+        // update the all annotations list
+        queryClient.setQueryData([ANNOTATIONS_KEY, jobId], (_oldData) => {
+          return {
+            ..._oldData,
+            shapes: _oldData.shapes.map((shape) => {
+              const updatedShape = data.shapes.find(
+                (updatedShape) => updatedShape.id === shape.id
+              );
+              if (updatedShape) {
+                return updatedShape;
+              }
+              return shape;
+            }),
+          };
+        });
+
+        setDataChangedLog((prev) => ({
+          ...prev,
+          updated: [],
+        }));
+        setMutationCount((prev) => ({
+          ...prev,
+          successMutation: prev.successMutation + 1,
+        }));
       },
     },
   });
 
-  // Patch Job Meta
-  const patchJobMeta = usePatchJobMetaMutation({
+  // remove annotation data
+  const removeAnnotationMutation = useRemoveAnnotationMutation({
     mutationConfig: {
-      onSuccess: (data, { action }) => {
-        console.log("patch job meta data", data, action);
+      onSuccess: (data) => {
+        // update the all annotations list
+        queryClient.setQueryData([ANNOTATIONS_KEY, jobId], (_oldData) => {
+          // Extract ids from data.shapes into a Set for efficient lookup
+          const dataShapeIds = new Set(data.shapes.map((shape) => shape.id));
 
-        if (action === "create") {
-          postAnnotationMutation.mutate({
-            data: annotationDataRef.current,
-            jobId: jobId,
-          });
-        } else if (action === "update") {
-          putAnnotationMutation.mutate({
-            data: annotationDataRef.current,
-            jobId: jobId,
-          });
-        }
+          return {
+            ..._oldData,
+            shapes: _oldData.shapes.filter(
+              (shape) => !dataShapeIds.has(shape.id)
+            ),
+          };
+        });
+
+        setDataChangedLog((prev) => ({
+          ...prev,
+          deleted: [],
+        }));
+        setMutationCount((prev) => ({
+          ...prev,
+          successMutation: prev.successMutation + 1,
+        }));
       },
     },
   });
+
+  const checkIfUpdateRequired = (local, server) => {
+    if (
+      local.points[0] !== server.points[0] ||
+      local.points[2] !== server.points[2]
+    ) {
+      return true;
+    } else if (
+      local.accent !== server.accent ||
+      local.age !== server.age ||
+      local.emotion !== server.emotion ||
+      local.gender !== server.gender ||
+      local.locale !== server.locale
+    ) {
+      return true;
+    } else if (local.transcript !== server.transcript) {
+      return true;
+    } else if (local.label_id !== server.label_id) {
+      return true;
+    }
+    for (let i = 0; i < local.attributes.length; i++) {
+      if (
+        local.attributes[i].spec_id !== server.attributes[i].spec_id ||
+        local.attributes[i].value !== server.attributes[i].value
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   const handleSave = () => {
-    console.log("selectedSegment", selectedSegment);
-    console.log("getAllAnnotations.data", getAllAnnotations.data);
-    // check if the region is already saved or not
-    const regionIndex = getAllAnnotations.data.shapes.findIndex(
-      (reg) => reg.id === selectedSegment.id
-    );
-
-    // index of current label selected
-    const labelIndex = selectedSegment.data.labels.findIndex(
-      (label) => label.id === currentLabel?.id
-    );
-
-    if (labelIndex < 0) {
-      toast.error("Please select a label to save the annotation");
+    if (currentTab === 1) {
+      toast.error("Please switch to regions tab to save annotations");
       return;
     }
+    const serverAnnotations = getAllAnnotations.data?.shapes;
+    const localAnnotations = regions;
+    const result = {
+      created: [],
+      updated: [],
+      deleted: [],
+    };
+    let tempTotalMutation = 0;
 
-    const payload = {
-      shapes: [
+    // Create maps for fast lookup
+    const localMap = new Map(
+      localAnnotations.map((item) => [
+        item.id,
         {
-          attributes: selectedSegment.data.labels[labelIndex].attributes
-            .filter((a) => a.values && a.values.length > 0)
-            .map((a) => {
-              return {
-                spec_id: a.id,
-                value: a.values[0],
-              };
-            }),
+          attributes: item.data.label.attributes.map((a) => {
+            return {
+              spec_id: a.id,
+              value: a.values[0] ?? "",
+            };
+          }),
           frame: 0,
-          label_id: selectedSegment.data.labels[labelIndex].id,
+          label_id: item.data.label.id,
           points: [
-            parseFloat(selectedSegment.start),
-            parseFloat(selectedSegment.start),
-            parseFloat(selectedSegment.end),
-            parseFloat(selectedSegment.end),
+            parseFloat(item.start),
+            parseFloat(item.start),
+            parseFloat(item.end),
+            parseFloat(item.end),
           ],
           type: "rectangle",
-          transcript: selectedSegment.data.transcription,
-          gender: selectedSegment.data.gender,
-          locale: selectedSegment.data.locale,
-          age: selectedSegment.data.age,
-          accent: selectedSegment.data.accent,
-          emotion: selectedSegment.data.emotion,
-          color: selectedSegment.color,
+          transcript: item.data.transcription,
+          gender: item.data.gender,
+          locale: item.data.locale,
+          age: item.data.age,
+          accent: item.data.accent,
+          emotion: item.data.emotion,
+          id: item.id,
         },
-      ],
-      tags: [],
-      tracks: [],
-    };
+      ])
+    );
+    const serverMap = new Map(serverAnnotations.map((item) => [item.id, item]));
 
-    annotationDataRef.current = payload;
-
-    const action = regionIndex < 0 ? "create" : "update";
-
-    if (action === "update") {
-      annotationDataRef.current.shapes[0].id = selectedSegment.id;
+    // Check for created and updated items
+    for (const [id, serverItem] of serverMap.entries()) {
+      if (!localMap.has(id)) {
+        result.deleted.push(serverItem);
+      } else {
+        const localItem = localMap.get(id);
+        if (checkIfUpdateRequired(localItem, serverItem)) {
+          result.updated.push(localItem);
+        }
+        localMap.delete(id); // Remove matched item to find deleted ones later
+      }
     }
-    patchJobMeta.mutate({ data: {}, jobId, action });
-    setIsInputGiven("");
+
+    // Remaining items in localMap are created
+    for (const [id, localItem] of localMap.entries()) {
+      result.created.push(localItem);
+    }
+
+    setDataChangedLog(result);
+
+    // change the job state to in progress if no server annotations
+    if (serverAnnotations.length === 0) {
+      handleStateChange("state", "in progress");
+    }
+
+    if (result.created.length > 0) {
+      // remove the id from the created data
+      let payload = JSON.parse(JSON.stringify([...result.created]));
+      payload.forEach((item) => {
+        delete item.id;
+      });
+      postAnnotationMutation.mutate({
+        data: {
+          shapes: payload,
+        },
+        jobId: jobId,
+      });
+      tempTotalMutation++;
+    }
+    if (result.updated.length > 0) {
+      putAnnotationMutation.mutate({
+        data: {
+          shapes: result.updated,
+        },
+        jobId: jobId,
+      });
+      tempTotalMutation++;
+    }
+    if (result.deleted.length > 0) {
+      removeAnnotationMutation.mutate({
+        data: {
+          shapes: result.deleted,
+        },
+        jobId: jobId,
+      });
+      tempTotalMutation++;
+    }
+
+    setMutationCount((prev) => ({
+      ...prev,
+      totalMutation: tempTotalMutation,
+    }));
+
+    if (
+      result.created.length === 0 &&
+      result.updated.length === 0 &&
+      result.deleted.length === 0
+    ) {
+      toast("No changes to save");
+    }
   };
 
   const jobUpdateMutation = useJobUpdateMutation({
@@ -1246,9 +1070,6 @@ export default function AnnotatePage({}) {
 
   const handleStateChange = (name, value) => {
     const jobData = queryClient.getQueryData([JOB_DETAIL_KEY, jobId]);
-    console.log("====================================");
-    console.log("jobData", jobData, value);
-    console.log("====================================");
 
     queryClient.setQueryData([JOB_DETAIL_KEY, jobId], {
       ...jobData,
@@ -1285,26 +1106,107 @@ export default function AnnotatePage({}) {
     };
   }, []);
 
-  useEffect(() => {
-    const unloadCallback = (event) => {
-      event.preventDefault();
-      event.returnValue = "";
-      return "";
-    };
-    // console.log("isInputGiven---", isInputGiven);
-    if (isInputGiven) window.addEventListener("beforeunload", unloadCallback);
+  const isChangeMade = () => {
+    let isChange = false;
 
-    return () => {
-      if (isInputGiven) {
-        window.removeEventListener("beforeunload", unloadCallback);
+    if (regions.length !== getAllAnnotations?.data?.shapes?.length) {
+      isChange = true;
+    } else if (regions.length > 0) {
+      regions.forEach((region, index) => {
+        const serverRegion = getAllAnnotations?.data?.shapes[index];
+        if (
+          region.start !== serverRegion.points[0] ||
+          region.end !== serverRegion.points[2]
+        ) {
+          console.log("start end not matching");
+          isChange = true;
+        } else if (
+          region.data.accent !== serverRegion.accent ||
+          region.data.age !== serverRegion.age ||
+          region.data.emotion !== serverRegion.emotion ||
+          region.data.locale !== serverRegion.locale ||
+          region.data.gender !== serverRegion.gender ||
+          region.data.transcription !== serverRegion.transcript
+        ) {
+          console.log("other data not matching");
+          isChange = true;
+        } else if (region.data.label.id !== serverRegion.label_id) {
+          console.log("label id not matching");
+          isChange = true;
+        }
+
+        if (region.data.label.id === serverRegion.label_id) {
+          for (let i = 0; i < region.data.label.attributes.length; i++) {
+            if (
+              region.data.label.attributes[i].id !==
+                serverRegion.attributes[i].spec_id ||
+              region.data.label.attributes[i].values[0] !==
+                serverRegion.attributes[i].value
+            ) {
+              console.log("attributes not matching");
+              isChange = true;
+            }
+          }
+        }
+      });
+    }
+
+    return isChange;
+  };
+
+  useEffect(() => {
+    const unloadCallback = (e) => {
+      if (isChangeMade()) {
+        e.preventDefault();
+        e.returnValue = true;
       }
     };
-  }, [isInputGiven]);
+
+    window.addEventListener("beforeunload", unloadCallback);
+
+    return () => {
+      window.removeEventListener("beforeunload", unloadCallback);
+    };
+  }, [regions]);
 
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
   }
 
+  const isSaveLoading = () => {
+    return (
+      postAnnotationMutation?.isLoading ||
+      putAnnotationMutation?.isLoading ||
+      removeAnnotationMutation?.isLoading
+    );
+  };
+
+  useEffect(() => {
+    if (
+      mutationCount.totalMutation > 0 &&
+      mutationCount.totalMutation === mutationCount.successMutation
+    ) {
+      toast.success("Data saved successfully");
+      setMutationCount({
+        totalMutation: 0,
+        successMutation: 0,
+      });
+    }
+  }, [mutationCount]);
+
+  useEffect(() => {
+    if (currentTab === 0 && conflicts.length > 0) {
+      removeMissingRegionsFromGroundTruth();
+    } else if (
+      currentTab === 1 &&
+      conflicts.length > 0 &&
+      gtAnnotations.length > 0
+    ) {
+      generateMissingRegionsFromGroundTruth();
+    }
+  }, [currentTab, conflicts, gtAnnotations]);
+
+  console.log("log data", currentTab);
   return (
     <>
       <TopBar
@@ -1313,6 +1215,8 @@ export default function AnnotatePage({}) {
         handleStateChange={handleStateChange}
         isScrolled={isScrolled}
         jobId={jobId}
+        onSave={handleSave}
+        saveLoading={isSaveLoading()}
       />
 
       <main className=" -mt-32 grid grid-cols-12 gap-4 sm:px-6 lg:px-8">
@@ -1337,13 +1241,15 @@ export default function AnnotatePage({}) {
                       cursorColor="transparent"
                       waveColor="#65B892"
                     >
-                      {regions.map((regionProps) => {
+                      {regions.map((regionProps, regionIdx) => {
                         const tempRegion = { ...regionProps };
-                        // const attributes = tempRegion.attributes;
-                        // delete tempRegion.attributes;
+                        if (
+                          currentAnnotationIndex >= 0 &&
+                          regionIdx === currentAnnotationIndex
+                        ) {
+                          tempRegion.color = "rgba(16,255,0, 0.5)";
+                        }
 
-                        // const labelSuffix = tempRegion.data.isSaved ? " (saved)" : " (unsaved)";
-                        // const updatedLabel = `${attributes?.label}${labelSuffix}`;
                         return (
                           <Region
                             // onOut={() => {
@@ -1351,30 +1257,12 @@ export default function AnnotatePage({}) {
                             //   // setIsPlaying(false);
                             // }}
                             onUpdateEnd={handleRegionUpdate}
-                            className="text-base font-semibold leading-6 text-gray-900 "
+                            className="text-base font-semibold leading-6 text-gray-900"
                             key={tempRegion.id}
                             // attributes={{
                             //   label: updatedLabel,
                             // }}
                             {...tempRegion}
-                          />
-                        );
-                      })}
-                      {markers.map((marker, index) => {
-                        return (
-                          <Marker
-                            key={index}
-                            {...marker}
-                            region
-                            onClick={(...args) => {
-                              console.log("onClick", ...args);
-                            }}
-                            onDrag={(...args) => {
-                              console.log("onDrag", ...args);
-                            }}
-                            onDrop={(...args) => {
-                              console.log("onDrop", ...args);
-                            }}
                           />
                         );
                       })}
@@ -1405,14 +1293,10 @@ export default function AnnotatePage({}) {
                       setVolume={setVolume}
                       regions={regions}
                       setRegions={setRegions}
-                      changeHistory={changeHistory}
-                      setChangeHistory={setChangeHistory}
-                      currentHistoryIndex={currentHistoryIndex}
-                      setCurrentHistoryIndex={setCurrentHistoryIndex}
                       horizontalZoom={horizontalZoom}
                       setHorizontalZoom={setHorizontalZoom}
-                      setSelectedSegment={setSelectedSegment}
-                      setIsInputGiven={setIsInputGiven}
+                      undoStackRef={undoStackRef}
+                      redoStackRef={redoStackRef}
                       //
                       handleBackward={handleBackward}
                       handleForward={handleForward}
@@ -1421,21 +1305,16 @@ export default function AnnotatePage({}) {
                   )}
                 </div>
 
-                {selectedSegment ? (
+                {regions[currentAnnotationIndex]?.data?.label ? (
                   <div className="w-1/2 mx-auto">
                     <EditableFields
                       inputTextRef={inputTextRef}
                       totalDuration={totalDuration}
                       regions={regions}
                       setRegions={setRegions}
-                      selectedSegment={selectedSegment}
-                      setSelectedSegment={setSelectedSegment}
-                      currentLabel={currentLabel}
-                      setCurrentLabel={setCurrentLabel}
-                      changeHistory={changeHistory}
-                      setChangeHistory={setChangeHistory}
-                      setCurrentHistoryIndex={setCurrentHistoryIndex}
-                      setIsInputGiven={setIsInputGiven}
+                      currentAnnotationIndex={currentAnnotationIndex}
+                      undoStackRef={undoStackRef}
+                      redoStackRef={redoStackRef}
                       getLabelsQuery={getLabelsQuery}
                     />
 
@@ -1445,23 +1324,12 @@ export default function AnnotatePage({}) {
                         <button
                           type="button"
                           className="rounded-md bg-white px-3 py-2 text-sm font-medium text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
-                          onClick={removeCurrentRegion}
+                          onClick={() => setDeleteModal(true)}
                           disabled={removeAnnotationMutation.isLoading}
                           ref={deleteButtonRef}
                         >
-                          {removeAnnotationMutation.isLoading
-                            ? "Deleting..."
-                            : "Delete"}
+                          Delete
                         </button>
-                        <PrimaryButton
-                          onClick={() => handleSave()}
-                          loading={
-                            postAnnotationMutation.isLoading ||
-                            patchJobMeta.isLoading
-                          }
-                        >
-                          Save
-                        </PrimaryButton>
                       </div>
                     </div>
                   </div>
@@ -1557,32 +1425,70 @@ export default function AnnotatePage({}) {
               <RegionsList
                 regions={regions}
                 setRegions={setRegions}
-                changeHistory={changeHistory}
-                setChangeHistory={setChangeHistory}
-                setCurrentHistoryIndex={setCurrentHistoryIndex}
-                isScrolled={isScrolled}
-                selectedSegment={selectedSegment}
-                removeAnnotationMutation={removeAnnotationMutation}
-                removeCurrentRegion={removeCurrentRegion}
+                currentAnnotationIndex={currentAnnotationIndex}
                 handleRegionClick={handleRegionClick}
+                onDelete={(index) => {
+                  setCurrentAnnotationIndex(index);
+                  setDeleteModal(true);
+                }}
               />
             ) : (
               <ConflictsList
                 conflicts={conflicts}
                 setConflicts={setConflicts}
                 oneTimeApiCallRef={oneTimeApiCallRef}
-                taskId={getJobDetailQuery.data?.task_id}
-                jobId={jobId}
                 handleRegionClick={handleRegionClick}
-                selectedSegment={selectedSegment}
-                generateMissingRegionsFromGroundTruth={
-                  generateMissingRegionsFromGroundTruth
-                }
+                currentAnnotationIndex={currentAnnotationIndex}
+                setGtAnnotations={setGtAnnotations}
+                regions={regions}
               />
             )}
           </div>
         </div>
       </main>
+
+      <AlertModal
+        open={deleteModal}
+        setOpen={setDeleteModal}
+        onSuccess={() => removeCurrentRegion()}
+        onCancel={() => setDeleteModal(false)}
+        text="Are you sure, you want to delete this annotation?"
+        isLoading={removeAnnotationMutation.isLoading}
+      />
+
+      {isSaveLoading() && (
+        <div
+          aria-live="assertive"
+          className="fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6  bg-gray-500 bg-opacity-75 z-50"
+        >
+          {/* Notification panel, dynamically insert this into the live region when it needs to be displayed */}
+          <Transition
+            show={isSaveLoading()}
+            className="flex w-full flex-col items-center space-y-4 sm:items-end"
+          >
+            <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition data-[closed]:data-[enter]:translate-y-2 data-[enter]:transform data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-100 data-[enter]:ease-out data-[leave]:ease-in data-[closed]:data-[enter]:sm:translate-x-2 data-[closed]:data-[enter]:sm:translate-y-0">
+              <div className="p-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <Spinner
+                      aria-hidden="true"
+                      className="h-6 w-6 text-green-400"
+                    />
+                  </div>
+                  <div className="ml-3 w-0 flex-1 pt-0.5">
+                    <p className="text-sm font-medium text-gray-900">
+                      Processing...
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Please wait while we save your changes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      )}
     </>
   );
 }

@@ -9,7 +9,7 @@ import EmailVerificataionSentPage from "./pages/EmailVerificataionPage/EmailVeri
 import EmailVerificationFailPage from "./pages/EmailVerificataionPage/EmailVerificationFailPage";
 import EmailConfirmationPage from "./pages/EmailVerificataionPage/EmailConfirmationPage";
 import AcceptInvitationPage from "./pages/AcceptInvitationPage/AcceptInvitationPage";
-import ScrollToTop from "./functions/scrollToTop";
+import ScrollToTop from "./functions/scrollToUp";
 
 function App() {
   return (
@@ -105,8 +105,8 @@ const CustomToast = () => {
         className: "toaster-style text-sm rounded-md",
         duration: 5000,
         style: {
-          background: "#333",
-          color: "#fff",
+          background: "#fff",
+          color: "#333",
         },
 
         // Default options for specific types

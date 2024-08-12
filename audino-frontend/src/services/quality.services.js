@@ -2,8 +2,6 @@ import axios from "axios";
 import authHeader from "./auth-header";
 import globalParams from "./global-params";
 import { handleDjangoErrors } from "../utils/errorHandler";
-import './axios-config';
-
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const fetchQualityReport = async ({ params }) => {

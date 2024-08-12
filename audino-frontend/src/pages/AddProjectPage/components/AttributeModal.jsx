@@ -1,7 +1,7 @@
 
 import { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { PlusIcon } from '@heroicons/react/20/solid'
 import PrimaryButton from '../../../components/PrimaryButton/PrimaryButton'
 import { attributeAllValidation } from '../../../validation/allValidation'

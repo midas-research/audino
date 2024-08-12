@@ -1,9 +1,12 @@
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import CustomSelect from "../../../components/CustomInput/CustomSelect";
 import CustomInput from "../../../components/CustomInput/CustomInput";
 import { toast } from "react-hot-toast";
+import { ReactTransliterate } from "react-transliterate";
+import "react-transliterate/dist/index.css";
+import langOptions from "../../../constants/langOptions";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -15,113 +18,40 @@ export default function EditableFields({
 
   regions,
   setRegions,
-  selectedSegment,
-  setSelectedSegment,
-  currentLabel,
-  setCurrentLabel,
-  setIsInputGiven,
-  changeHistory,
-  setChangeHistory,
-  setCurrentHistoryIndex,
+  undoStackRef,
+  redoStackRef,
+  currentAnnotationIndex,
 
   getLabelsQuery,
 }) {
-  // fetch current label name from its id
-  const getLabelName = (labelId) => {
-    const labelIndex = getLabelsQuery?.data.findIndex(
-      (label) => label.id === labelId
-    );
-    return getLabelsQuery?.data[labelIndex].name;
+  const [lang, setLang] = useState("en");
+
+  const getAttributeValues = (labelId, attrIdx) => {
+    return getLabelsQuery.data
+      .find((label) => label.id === labelId)
+      .attributes[attrIdx].values.map((label_value) => {
+        return {
+          label: label_value,
+          value: label_value,
+        };
+      });
   };
 
-  const renderAttributesofLabel = (label) => {
-    return getLabelsQuery?.data
-      ?.find((l) => l.id === label.id)
-      ?.attributes.map((attr) => attr);
-  };
-
-  const currentRegionValue = (labelId, attrId) => {
-    const regionIndex = regions.findIndex(
-      (reg) => reg.id === selectedSegment.id
-    );
-    // console.log("labelId", labelId, attrId, regionIndex, regions);
-    if (!regions[regionIndex]?.data?.labels) {
-      return "";
-    } else {
-      const labelIndex = regions[regionIndex]?.data?.labels.findIndex(
-        (reg) => reg.id === labelId
-      );
-      if (labelIndex < 0) return "";
-      // console.log("att", regions[regionIndex].data.labels, labelIndex);
-      const attrIndex = regions[regionIndex]?.data?.labels[
-        labelIndex
-      ].attributes.findIndex((reg) => reg.id === attrId);
-      const attrValue =
-        regions[regionIndex].data.labels[labelIndex].attributes[attrIndex]
-          ?.values;
-      // console.log("attrValue", attrValue);
-      if (attrValue) return attrValue;
-      else return "";
-    }
-    // return {name: attrValue, label: attrValue};
-  };
-
-  const handleOnChangeLabel = (attr, event, id, labelId) => {
-    const { name, value } = event.target;
+  const handleOnChangeLabel = (event, attrIndex) => {
     const values = [...event.target.selectedOptions]
       .map((opt) => opt.value)
       .filter((value) => value !== "");
 
-    let newValue = values;
-    // if (attr.input_type === "select") {
-    //   // Multiple select
-    //   newValue = [...event.target.options]
-    //     .filter((option) => option.selected)
-    //     .map((x) => x.value);
-    // }
-
     const updatedRegion = [...regions];
-    const regionIndex = regions.findIndex((reg) => reg.id === id);
-    const newState = { ...updatedRegion[regionIndex] }; // Shallow copy of the region object
+    updatedRegion[currentAnnotationIndex].data.label.attributes[
+      attrIndex
+    ].values = values;
 
-    const labelIndex = newState.data.labels.findIndex((l) => l.id === labelId);
-    // console.log(attr, event, id, labelId, labelIndex, newState.data.labels);
-
-    // If the label is found, find the attribute with the specified attributeId
-    if (labelIndex !== -1) {
-      const label = { ...newState.data.labels[labelIndex] }; // Shallow copy of the label object
-      const attributeIndex = label.attributes.findIndex(
-        (a) => a.id === attr.id
-      );
-
-      // If the attribute is found, update its values array
-      if (attributeIndex !== -1) {
-        const updatedAttribute = {
-          ...label.attributes[attributeIndex],
-          values: newValue,
-        }; // Shallow copy of the attribute object with updated values
-        const updatedAttributes = [...label.attributes];
-        updatedAttributes[attributeIndex] = updatedAttribute;
-
-        // Update the label with updated attributes
-        label.attributes = updatedAttributes;
-      }
-
-      // Update the label in the region
-      const updatedLabels = [...newState.data.labels];
-      updatedLabels[labelIndex] = label;
-      newState.data.labels = updatedLabels;
-    }
-
-    updatedRegion[regionIndex] = newState;
     setRegions(updatedRegion);
   };
 
   const getInputValue = (key, isDataAttr = true) => {
-    const regionIndex = regions.findIndex(
-      (reg) => reg.id === selectedSegment.id
-    );
-    const currentRegion = regions[regionIndex];
+    const currentRegion = regions[currentAnnotationIndex];
     let currentValue = null;
 
     if (isDataAttr) currentValue = currentRegion.data[key];
@@ -135,9 +65,7 @@ export default function EditableFields({
 
   const handleValueChange = (key, value, isDataAttr = true) => {
     const updatedRegion = [...regions];
-    const regionIndex = updatedRegion.findIndex(
-      (reg) => reg.id === selectedSegment.id
-    );
+    const regionIndex = currentAnnotationIndex;
 
     if ((key === "start" || key === "end") && parseFloat(value) > totalDuration)
       value = totalDuration;
@@ -145,29 +73,20 @@ export default function EditableFields({
     if (isDataAttr) updatedRegion[regionIndex].data[key] = value;
     else updatedRegion[regionIndex][key] = value;
 
-    setIsInputGiven((prev) => prev + " nv");
     setRegions(updatedRegion);
   };
 
   const handleValueChangeOnBlur = (key, value) => {
     const updatedRegion = [...regions];
-    const regionIndex = updatedRegion.findIndex(
-      (reg) => reg.id === selectedSegment.id
-    );
+    const regionIndex = currentAnnotationIndex;
     let errorMsg = "";
 
-    if (
-      key === "start" &&
-      value > parseFloat(updatedRegion[regionIndex].end)
-    ) {
+    if (key === "start" && value > parseFloat(updatedRegion[regionIndex].end)) {
       value = parseFloat(updatedRegion[regionIndex].end);
       errorMsg = "Start time should be less than end time.";
     }
 
-    if (
-      key === "end" &&
-      value < parseFloat(updatedRegion[regionIndex].start)
-    ) {
+    if (key === "end" && value < parseFloat(updatedRegion[regionIndex].start)) {
       value = parseFloat(updatedRegion[regionIndex].start);
       errorMsg = "End time should be greater than start time.";
     }
@@ -175,45 +94,33 @@ export default function EditableFields({
     if (errorMsg !== "") toast.error(errorMsg);
 
     updatedRegion[regionIndex][key] = value;
-    setIsInputGiven((prev) => prev + " nv");
     setRegions(updatedRegion);
   };
 
   const handleLabelChange = (value) => {
-    setCurrentLabel(value);
     // replace the old label with the new label in the annotation coming from server
     const updatedRegion = [...regions];
-    const regionIndex = regions.findIndex(
-      (reg) => reg.id === selectedSegment.id
-    );
-    setCurrentHistoryIndex(changeHistory.length);
-    setChangeHistory([
-      ...changeHistory,
-      {
-        type: "annotation",
-        subType: "update",
-        data: { ...updatedRegion[regionIndex] },
-      },
-    ]);
+    const regionIndex = currentAnnotationIndex;
+
+    undoStackRef.current.push(JSON.parse(JSON.stringify(updatedRegion)));
+    redoStackRef.current = [];
+    
     const newState = { ...updatedRegion[regionIndex] }; // Shallow copy of the region object
     newState.color = value.color + "80"; // Update the color of the region with 50% opacity
-    newState.data.labels = [
-      {
-        ...value,
-        attributes: [
-          ...value["attributes"].map((attr) => {
-            return {
-              ...attr,
-              values: [],
-            };
-          }),
-        ],
-      },
-    ];
+    newState.data.label = {
+      ...value,
+      attributes: [
+        ...value["attributes"].map((attr) => {
+          return {
+            ...attr,
+            values: [],
+          };
+        }),
+      ],
+    };
+
     updatedRegion[regionIndex] = newState;
     setRegions(updatedRegion);
-    setSelectedSegment(newState);
-    setIsInputGiven((prev) => prev + " lb");
   };
 
   return (
@@ -232,12 +139,15 @@ export default function EditableFields({
               Segment name
             </dt>
             <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {selectedSegment.attributes.label}
+              {regions[currentAnnotationIndex].attributes.label}
             </dd>
           </div>
           <div className="mb-4 pt-4 border-t border-gray-100">
             {" "}
-            <Listbox value={currentLabel} onChange={handleLabelChange}>
+            <Listbox
+              value={regions[currentAnnotationIndex].data.label}
+              onChange={handleLabelChange}
+            >
               {({ open }) => (
                 <>
                   <Listbox.Label className="block text-sm font-medium leading-6 text-gray-900">
@@ -246,10 +156,7 @@ export default function EditableFields({
                   <div className="relative mt-2">
                     <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-audino-primary sm:text-sm sm:leading-6">
                       <span className="block truncate">
-                        {currentLabel
-                          ? getLabelName(currentLabel.id)
-                          : "Select a label"}{" "}
-                        {/* Render placeholder text when currentLabel is null */}
+                        {regions[currentAnnotationIndex].data.label.name}
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                         <ChevronUpDownIcon
@@ -320,13 +227,13 @@ export default function EditableFields({
 
           <div className="mt-6 border-t border-gray-100">
             <dl className="divide-y divide-gray-100">
-              {currentLabel ? (
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                  <dt className="text-sm font-medium leading-6 text-gray-900">
-                    {getLabelName(currentLabel.id)}
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                    {renderAttributesofLabel(currentLabel).map((attr) => (
+              <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt className="text-sm font-medium leading-6 text-gray-900">
+                  {regions[currentAnnotationIndex].data.label.name}
+                </dt>
+                <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {regions[currentAnnotationIndex].data.label.attributes.map(
+                    (attr, attrIndex) => (
                       <div className="mb-4" key={`projectatt-${attr.id}`}>
                         <label
                           htmlFor={attr.name}
@@ -337,30 +244,25 @@ export default function EditableFields({
                         <CustomSelect
                           id={attr.name}
                           name={attr.name}
-                          options={attr.values.map((label_value) => {
-                            return {
-                              label: label_value,
-                              value: label_value,
-                            };
-                          })}
-                          // formError={formError}
-                          value={currentRegionValue(currentLabel.id, attr.id)}
-                          // value={selectedSegment.proj.name}
-                          // isMultiple={attr.input_type === "select"}
-                          onChange={(e) =>
-                            handleOnChangeLabel(
-                              attr,
-                              e,
-                              selectedSegment.id,
-                              currentLabel.id
-                            )
+                          options={getAttributeValues(
+                            regions[currentAnnotationIndex].data.label.id,
+                            attrIndex
+                          )}
+                          // only one value is selected
+                          value={
+                            regions[currentAnnotationIndex].data.label
+                              .attributes[attrIndex].values.length > 0
+                              ? regions[currentAnnotationIndex].data.label
+                                  .attributes[attrIndex].values[0]
+                              : ""
                           }
+                          onChange={(e) => handleOnChangeLabel(e, attrIndex)}
                         />
                       </div>
-                    ))}
-                  </dd>
-                </div>
-              ) : null}
+                    )
+                  )}
+                </dd>
+              </div>
             </dl>
           </div>
           <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -379,9 +281,6 @@ export default function EditableFields({
               }
               onBlur={(e) => handleValueChangeOnBlur("start", e.target.value)}
             />
-            {/* <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {parseFloat(selectedSegment.start).toFixed(2)} sec
-            </dd> */}
           </div>
           <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
             <dt className="text-sm font-medium leading-6 text-gray-900">
@@ -397,21 +296,40 @@ export default function EditableFields({
               onChange={(e) => handleValueChange("end", e.target.value, false)}
               onBlur={(e) => handleValueChangeOnBlur("end", e.target.value)}
             />
-            {/* <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {parseFloat(selectedSegment.end).toFixed(2)} sec
-            </dd> */}
           </div>
         </dl>
       </div>
 
       <div className="pt-4 border-t border-gray-100">
-        <label
-          htmlFor="transcription"
-          className="block text-sm font-medium leading-6 text-gray-900 mb-2"
-        >
-          Segment transcription
-        </label>
-        <CustomInput
+        <div className="flex justify-between mb-2">
+          <label
+            htmlFor="transcription"
+            className="block text-sm font-medium leading-6 text-gray-900 "
+          >
+            Segment transcription
+          </label>
+
+          <CustomSelect
+            id={"language"}
+            options={langOptions}
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
+            className={"!text-xs w-min !mt-0"}
+          />
+        </div>
+        <ReactTransliterate
+          value={getInputValue("transcription")}
+          onChangeText={(text) => {
+            handleValueChange("transcription", text);
+          }}
+          lang={lang}
+          className="block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
+          renderComponent={(props) => {
+            inputTextRef.current = props.ref.current;
+            return <textarea {...props} />;
+          }}
+        />
+        {/* <CustomInput
           type="text"
           inputType="textarea"
           refs={inputTextRef}
@@ -423,7 +341,7 @@ export default function EditableFields({
           onChange={(e) => {
             handleValueChange("transcription", e.target.value);
           }}
-        />
+        /> */}
       </div>
 
       <div className="pt-4">
