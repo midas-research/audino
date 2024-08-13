@@ -2,6 +2,7 @@
   "name": "audino-frontend",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/audino",
   "dependencies": {
     "@emoji-mart/react": "^1.1.1",
     "@headlessui/react": "^1.7.15",
