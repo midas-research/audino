@@ -15,7 +15,7 @@ COPY . /tmp/
 
 # Install commonc dependencies
 WORKDIR /tmp
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Build source code
 RUN npm run build
