@@ -4,7 +4,8 @@ import { useNavigate } from "react-router";
 import PrimaryIconButton from "../../components/PrimaryButton/PrimaryIconButton";
 import relativeTime from "dayjs/plugin/relativeTime";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-
+// import { Menu, Transition } from '@headlessui/react';
+// import { Fragment } from 'react';
 import dayjs from "dayjs";
 import { useTasksStore } from "../../zustand-store/tasks";
 import TopBar from "../../components/TopBar/TopBar";
@@ -13,9 +14,10 @@ import useUrlQuery from "../../hooks/useUrlQuery";
 import ProgressIndicator from "./components/ProgressIndicator";
 import TaskMenu from "../../components/TaskComponent/TaskMenu";
 import AlertExportTaskModal from "../../components/TaskComponent/AlertExportTaskModal";
-import ExportAnnotationModal from "../JobPage/components/ExportAnnotationModal";
 import { useTasks } from "../../services/Task/useQueries";
-import { useDeleteTasks } from "../../services/Task/useMutations";
+import { Popover } from "@headlessui/react";
+import { PlusCircleIcon } from "@heroicons/react/20/solid";
+import PrimarButton from "../../components/PrimaryButton/PrimaryButton";
 
 const pageSize = 10;
 
@@ -36,10 +38,8 @@ export default function TaskPage({
   );
   const [searchValue, setSearchValue] = useState("");
 
-
   const tasks_obj = useTasksStore((state) => state.tasks_obj);
   const setTasks = useTasksStore((state) => state.setTasks);
-
 
   const filters = [
     {
@@ -68,7 +68,6 @@ export default function TaskPage({
     return false;
   };
 
-
   const getTasksQuery = useTasks({
     queryConfig: {
       queryKey: [currentPage, pageSize, appliedFilters, searchValue],
@@ -78,18 +77,18 @@ export default function TaskPage({
         searchValue: searchValue,
         ...(appliedFilters.length > 1
           ? {
-            filter: JSON.stringify({
-              and: appliedFilters.map((filter) => JSON.parse(filter)),
-            }),
-          }
+              filter: JSON.stringify({
+                and: appliedFilters.map((filter) => JSON.parse(filter)),
+              }),
+            }
           : {
-            filter: appliedFilters[0],
-          })
+              filter: appliedFilters[0],
+            }),
       },
       enabled: true,
       onSuccess: (data) => setTasks(data),
-    }
-  })
+    },
+  });
 
   // const deleteTaskMutation = use
   const filterHandler = (event) => {
@@ -136,138 +135,158 @@ export default function TaskPage({
             appliedFilters={appliedFilters}
             setSearchValue={setSearchValue}
           >
-            <PrimaryIconButton
-              onClick={() =>
-                navigate("/tasks/create", {
-                  state: { projectId },
-                })
-              }
-            >
-              Add new task
-            </PrimaryIconButton>
+            <Popover className="relative">
+              <Popover.Button className="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900">
+                <PlusCircleIcon className="h-7 w-7 text-audino-primary-dark" />
+              </Popover.Button>
+
+              <Popover.Panel
+                transition
+                className="absolute bg-primary-background left-1/2 z-10  flex w-screen max-w-max -translate-x-1/2 px-4 transition data-[closed]:translate-y-1 data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-150 data-[enter]:ease-out data-[leave]:ease-in rounded-md p-2  flex-col gap-2 shadow-md"
+              >
+                <PrimarButton
+                  onClick={() =>
+                    navigate("/tasks/create", {
+                      state: { projectId },
+                    })
+                  }
+                >
+                  Add new task
+                </PrimarButton>
+                <PrimarButton
+                  onClick={() =>
+                    navigate("/tasks/create?multi=true", {
+                      state: { projectId },
+                    })
+                  }
+                >
+                  Add multiple task
+                </PrimarButton>
+              </Popover.Panel>
+            </Popover>
           </TopBar>
 
           {/* list of tasks */}
           <ul className="divide-y divide-gray-100 mt-2">
             {getTasksQuery.isLoading || getTasksQuery.isRefetching
               ? [...Array(8).keys()].map((val) => (
-                <div
-                  key={`taskloading-${val}`}
-                  className="h-16 bg-gray-200 rounded-md w-full mb-2.5 mt-4 animate-pulse"
-                ></div>
-              ))
-              : tasks_obj.results.map((task, index) => (
-                <li
-                  key={task.id}
-                  className={classNames(
-                    "grid grid-cols-12 grid-rows-1 items-center justify-between gap-2 py-5 group",
-                    isTaskEmpty(task) ? "opacity-50" : ""
-                  )}
-                >
                   <div
-                    className="hover:cursor-pointer md:col-span-6 lg:col-span-8 col-span-12"
-                    onClick={() => navigate(`/tasks/${task.id}?page=1`)}
+                    key={`taskloading-${val}`}
+                    className="h-16 bg-gray-200 rounded-md w-full mb-2.5 mt-4 animate-pulse"
+                  ></div>
+                ))
+              : tasks_obj.results.map((task, index) => (
+                  <li
+                    key={task.id}
+                    className={classNames(
+                      "grid grid-cols-12 grid-rows-1 items-center justify-between gap-2 py-5 group",
+                      isTaskEmpty(task) ? "opacity-50" : ""
+                    )}
                   >
-                    <div className="flex items-start gap-x-3">
-                      <p className="text-sm font-medium leading-6 text-gray-900 group-hover:underline">
-                        {/* <NavLink
+                    <div
+                      className="hover:cursor-pointer md:col-span-6 lg:col-span-8 col-span-12"
+                      onClick={() => navigate(`/tasks/${task.id}?page=1`)}
+                    >
+                      <div className="flex items-start gap-x-3">
+                        <p className="text-sm font-medium leading-6 text-gray-900 group-hover:underline">
+                          {/* <NavLink
                             to={`/annotate/${task.id}`}
                             className="hover:underline"
                           > */}
-                        <span className="text-gray-500">#{task.id}:</span>{" "}
-                        {task.name}
-                        {/* </NavLink> */}
-                      </p>
-                      {task.subset && (
-                        <p
-                          className={classNames(
-                            statuses[task.subset],
-                            "rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset"
-                          )}
-                        >
-                          {task.subset}
+                          <span className="text-gray-500">#{task.id}:</span>{" "}
+                          {task.name}
+                          {/* </NavLink> */}
                         </p>
-                      )}
-                      {isTaskEmpty(task) ? (
-                        <p
-                          className={classNames(
-                            "mt-0.5 px-1.5 py-0.5 text-xs font-normal text-red-500 "
-                          )}
-                        >
-                          Task are not fully created yet
-                        </p>
-                      ) : null}
-                    </div>
+                        {task.subset && (
+                          <p
+                            className={classNames(
+                              statuses[task.subset],
+                              "rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                            )}
+                          >
+                            {task.subset}
+                          </p>
+                        )}
+                        {isTaskEmpty(task) ? (
+                          <p
+                            className={classNames(
+                              "mt-0.5 px-1.5 py-0.5 text-xs font-normal text-red-500 "
+                            )}
+                          >
+                            Task are not fully created yet
+                          </p>
+                        ) : null}
+                      </div>
 
-                    <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
-                      <p>
-                        Created by {task.owner?.username} on{" "}
-                        {dayjs(task.created_date).format("Do MMMM YYYY")}
-                      </p>
+                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                        <p>
+                          Created by {task.owner?.username} on{" "}
+                          {dayjs(task.created_date).format("Do MMMM YYYY")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                        <p>
+                          Last updated{" "}
+                          <time dateTime={task.updated_date}>
+                            {dayjs(task.updated_date).fromNow()}
+                          </time>
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-x-2 text-xs leading-5 text-gray-500">
-                      <p>
-                        Last updated{" "}
-                        <time dateTime={task.updated_date}>
-                          {dayjs(task.updated_date).fromNow()}
-                        </time>
-                      </p>
-                    </div>
-                  </div>
-                  <dl className="flex w-full justify-between gap-x-8 sm:w-auto md:col-span-6 lg:col-span-4 col-span-12">
-                    <div className="w-full">
-                      <>
-                        {" "}
-                        <div className="flex items-center gap-x-1.5">
-                          {task.jobs.completed ? (
-                            <>
-                              <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                              </div>
-                              <p className="text-xs leading-5 text-gray-500">
-                                {/* {getProgressText(task.jobs)} {task.jobs.completed}{" "}
+                    <dl className="flex w-full justify-between gap-x-8 sm:w-auto md:col-span-6 lg:col-span-4 col-span-12">
+                      <div className="w-full">
+                        <>
+                          {" "}
+                          <div className="flex items-center gap-x-1.5">
+                            {task.jobs.completed ? (
+                              <>
+                                <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </div>
+                                <p className="text-xs leading-5 text-gray-500">
+                                  {/* {getProgressText(task.jobs)} {task.jobs.completed}{" "}
                               of {task.jobs.count} */}
-                                {/* {task.jobs.completed ? task.jobs.completed + " done": ""}  */}
-                                {task.jobs.completed + " done"}
-                              </p>
-                            </>
-                          ) : null}
+                                  {/* {task.jobs.completed ? task.jobs.completed + " done": ""}  */}
+                                  {task.jobs.completed + " done"}
+                                </p>
+                              </>
+                            ) : null}
 
-                          {task.jobs.validation ? (
-                            <>
-                              <div className="flex-none rounded-full bg-yellow-500/20 p-1">
-                                <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-                              </div>
-                              <p className="text-xs leading-5 text-gray-500">
-                                {task.jobs.validation + " in review"}
-                              </p>
-                            </>
-                          ) : null}
-                          <div className="flex-none rounded-full bg-gray-400/20 p-1">
-                            <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                            {task.jobs.validation ? (
+                              <>
+                                <div className="flex-none rounded-full bg-yellow-500/20 p-1">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
+                                </div>
+                                <p className="text-xs leading-5 text-gray-500">
+                                  {task.jobs.validation + " in review"}
+                                </p>
+                              </>
+                            ) : null}
+                            <div className="flex-none rounded-full bg-gray-400/20 p-1">
+                              <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                            </div>
+                            <p className="text-xs leading-5 text-gray-500">
+                              {task.jobs.count -
+                                (task.jobs.completed + task.jobs.validation) +
+                                " annotating"}
+                            </p>
+
+                            <p className="text-xs leading-5 text-gray-500">
+                              {"out of " + task.jobs.count}
+                            </p>
                           </div>
-                          <p className="text-xs leading-5 text-gray-500">
-                            {task.jobs.count -
-                              (task.jobs.completed + task.jobs.validation) +
-                              " annotating"}
-                          </p>
-
-                          <p className="text-xs leading-5 text-gray-500">
-                            {"out of " + task.jobs.count}
-                          </p>
-                        </div>
-                      </>
-                      <ProgressIndicator
-                        done={task.jobs.completed}
-                        inReview={task.jobs.validation}
-                        annotating={
-                          task.jobs.count -
-                          (task.jobs.completed + task.jobs.validation)
-                        }
-                        total={task.jobs.count}
-                      />
-                    </div>
-                    {/* <div className="flex -space-x-0.5">
+                        </>
+                        <ProgressIndicator
+                          done={task.jobs.completed}
+                          inReview={task.jobs.validation}
+                          annotating={
+                            task.jobs.count -
+                            (task.jobs.completed + task.jobs.validation)
+                          }
+                          total={task.jobs.count}
+                        />
+                      </div>
+                      {/* <div className="flex -space-x-0.5">
                         <dt className="sr-only">Commenters</dt>
                         {discussions[0].commenters.map((commenter) => (
                           <dd key={commenter.id}>
@@ -291,10 +310,14 @@ export default function TaskPage({
                           {discussions[0].totalComments}
                         </dd>
                       </div> */}
-                    <TaskMenu task={task} isShowText={false} isShowEdit={true} />
-                  </dl>
-                </li>
-              ))}
+                      <TaskMenu
+                        task={task}
+                        isShowText={false}
+                        isShowEdit={true}
+                      />
+                    </dl>
+                  </li>
+                ))}
           </ul>
 
           {/* pagination */}

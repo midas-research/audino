@@ -33,8 +33,6 @@ export default function ExportAnnotationModal({
     }
   };
 
-
-
   const downloadAnnotationMutation = useDownloadAnnotationMutation({
     mutationConfig: {
       onSuccess: (data) => {
@@ -53,8 +51,8 @@ export default function ExportAnnotationModal({
           format: null,
         });
       },
-    }
-  })
+    },
+  });
 
   const handleDownloadAnnotations = () => {
     const { isValid, error } = exportAnnotationAllValidation(formValue);
@@ -67,7 +65,7 @@ export default function ExportAnnotationModal({
     } else setFormError(error);
   };
 
-  console.log("open", open, currentId);
+  // console.log("open", open, currentId);
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -134,6 +132,9 @@ export default function ExportAnnotationModal({
                           { label: "Librispeech", value: "Librispeech" },
                           { label: "VoxPopuli", value: "VoxPopuli" },
                           { label: "Ted-Lium", value: "Ted-Lium" },
+                          { label: "VoxCeleb", value: "VoxCeleb" },
+                          { label: "VCTK Corpus", value: "VCTK_Corpus" },
+                          { label: "LibriVox", value: "LibriVox" },
                         ]}
                         formError={formError}
                         value={formValue.format}

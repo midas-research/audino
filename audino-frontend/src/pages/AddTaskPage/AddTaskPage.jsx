@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AppBar from "../../components/AppBar/AppBar";
 import { useNavigate, useParams, useLocation } from "react-router";
 import PrimaryButton from "../../components/PrimaryButton/PrimaryButton";
@@ -33,6 +33,8 @@ import TaskMenu from "../../components/TaskComponent/TaskMenu";
 import AlertExportTaskModal from "../../components/TaskComponent/AlertExportTaskModal";
 import { useAddTaskMutation } from "../../services/Task/useMutations";
 import DragInput from "./components/DragInput";
+import CustomCheckbox from "../../components/CustomInput/CustomCheckbox";
+import { DATASET_MAPING } from "../../constants/constants";
 
 const initialData = {
   name: "",
@@ -45,12 +47,23 @@ const initialData = {
   start_frame: 0,
   stop_frame: 0,
   frame_step: "",
+  flags: {
+    is_librivox: false,
+    is_vctx: false,
+    is_voxceleb: false,
+    is_librispeech: false,
+    is_voxpopuli: false,
+    is_tedlium: false,
+    is_commonvoice: false,
+  },
 };
 
 export default function AddTaskPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const isMulti = searchParams.get("multi");
 
   const { id: taskId } = useParams();
 
@@ -63,8 +76,18 @@ export default function AddTaskPage() {
     files: null,
   });
   const [responseMsg, setResponseMsg] = useState({ msg: "", status: null });
-  const [audioPreview, setAudioPreview] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
+  const [audioPreview, setAudioPreview] = useState([]);
+  const [audioDuration, setAudioDuration] = useState([]);
+
+  const [taskStatus, setTaskStatus] = useState({
+    totalTasks: 0,
+    successfulTasks: 0,
+    failedTasks: 0,
+    pendingTasks: 0,
+    saveClicked: false,
+  });
+
+  const [highlighted, setHighlighted] = useState({});
 
   const { debouncedValidation: debouncedAddValidation } =
     useSingleFieldValidation(
@@ -96,13 +119,17 @@ export default function AddTaskPage() {
     });
   }
 
+  const threshold = 600000;
   const handleInputChange = async (name, value) => {
-    const threshold = 600000;
     if (name === "files") {
-      const file = value[0];
-      if (file) {
+      const files = Array.from(value);
+      const previews = [];
+      const durations = [];
+
+      for (const file of files) {
         const previewURL = URL.createObjectURL(file);
-        setAudioPreview(previewURL);
+        previews.push(previewURL);
+
         const duration = await getDuration(previewURL);
 
         if (duration === Infinity) {
@@ -111,22 +138,23 @@ export default function AddTaskPage() {
           );
           return;
         }
+        durations.push(duration * 1000);
+      }
+      setAudioDuration(durations);
+      setAudioPreview(previews);
 
-        const tempAudioDuration = duration * 1000;
-        setAudioDuration(tempAudioDuration);
-        if (tempAudioDuration > threshold) {
-          setFormValue((prev) => ({ ...prev, segment_duration: threshold }));
-        } else {
-          setFormValue((prev) => ({ ...prev, segment_duration: 0 }));
-        }
+      if (!isMulti && durations[0] > threshold) {
+        setFormValue((prev) => ({ ...prev, segment_duration: threshold }));
+      } else {
+        setFormValue((prev) => ({ ...prev, segment_duration: 0 }));
       }
     }
     if (name === "segment_duration") {
-      if (value > audioDuration) {
+      if (value > audioDuration?.[0] && !isMulti) {
         toast.error("Segment duration cannot be greater than audio duration");
         setFormValue((prev) => ({
           ...prev,
-          [name]: Math.trunc(audioDuration),
+          [name]: Math.trunc(audioDuration[0]),
         }));
         return;
       } else if (value > threshold) {
@@ -137,13 +165,32 @@ export default function AddTaskPage() {
         return;
       }
     }
+    if (name === "flags") {
+      const keys = Object.keys(value);
+      const highlighted = {};
+      keys.forEach((key) => {
+        if (value[key]) {
+          DATASET_MAPING[key].split(", ").forEach((field) => {
+            highlighted[field] = true;
+          });
+        }
+      });
+      setHighlighted(highlighted);
+    }
+
     setFormValue((prev) => ({ ...prev, [name]: value }));
     if (taskId) {
       debouncedEditValidation({ name, value });
     } else debouncedAddValidation({ name, value });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    const hasTrueValue = Object.values(formValue.flags).includes(true);
+    if (!hasTrueValue) {
+      toast.error("At least one dataset must be selected");
+      return;
+    }
+
     if (taskId) {
       const { isValid, error } = taskEditAllValidation(formValue);
       if (isValid)
@@ -151,13 +198,11 @@ export default function AddTaskPage() {
           updateTaskRequest({
             payload: {
               data: {
-                labels: [],
                 name: formValue.name,
                 project_id: formValue.project,
-                source_storage: { location: "local" },
-                target_storage: { location: "local" },
                 subset: formValue.subset,
                 assignee_id: parseInt(formValue.assign_to),
+                flags: formValue.flags,
               },
               id: taskId,
             },
@@ -168,30 +213,80 @@ export default function AddTaskPage() {
     } else {
       const { isValid, error } = taskAddAllValidation(formValue);
       if (isValid) {
-        addTaskMutation.mutate({
-          taskSpec: {
-            labels: [],
-            name: formValue.name,
-            project_id: formValue.project,
-            source_storage: { location: "local" },
-            target_storage: { location: "local" },
-            subset: formValue.subset,
-            assignee_id: parseInt(formValue.assign_to),
-            segment_duration: formValue.segment_duration,
-            overlap: "0",
-          },
-          taskDataSpec: {
-            image_quality: 70,
-            use_zip_chunks: false,
-            use_cache: false,
-            sorting_method: "lexicographical",
-            client_files: formValue.files,
-            ...(formValue.start_frame && {
-              start_frame: formValue.start_frame,
-            }),
-            ...(formValue.stop_frame && { stop_frame: formValue.stop_frame }),
-          },
-          onUpdate: (msg, status) => setResponseMsg({ msg, status }),
+        const taskPromises = [];
+        setTaskStatus(() => ({
+          totalTasks: formValue.files.length,
+          pendingTasks: formValue.files.length,
+          successfulTasks: 0,
+          failedTasks: 0,
+          saveClicked: true,
+        }));
+
+        for (let i = 0; i < formValue.files.length; i++) {
+          const currentFile = formValue.files[i];
+          let currentTaskName = formValue.name;
+          currentTaskName = currentTaskName
+            .replace(/{{index}}/g, i)
+            .replace(/{{file_name}}/g, currentFile.name);
+
+          // Update the form value with the current file and task name
+          const updatedFormValue = {
+            ...formValue,
+            name: currentTaskName,
+            files: [currentFile],
+          };
+
+          if (audioDuration[i] > threshold) {
+            updatedFormValue.segment_duration = threshold;
+          } else {
+            updatedFormValue.segment_duration = Math.trunc(audioDuration[i]);
+          }
+
+          const taskPromise = addTaskMutation
+            .mutateAsync({
+              taskSpec: {
+                name: updatedFormValue.name,
+                project_id: updatedFormValue.project,
+                subset: updatedFormValue.subset,
+                assignee_id: parseInt(updatedFormValue.assign_to),
+                segment_duration: updatedFormValue.segment_duration,
+                overlap: "0",
+                flags: updatedFormValue.flags,
+              },
+              taskDataSpec: {
+                image_quality: 70,
+                sorting_method: "lexicographical",
+                client_files: updatedFormValue.files,
+              },
+              onUpdate: (msg, status) => setResponseMsg({ msg, status }),
+            })
+            .then((res) => {
+              console.log(`Task ${i} is succeeded`, res);
+              setTaskStatus((prevStatus) => ({
+                ...prevStatus,
+                successfulTasks: prevStatus.successfulTasks + 1,
+              }));
+            })
+            .catch((err) => {
+              console.error(`Task ${i} is failed`, err);
+              setTaskStatus((prevStatus) => ({
+                ...prevStatus,
+                failedTasks: prevStatus.failedTasks + 1,
+              }));
+            })
+            .finally(() => {
+              setTaskStatus((prevStatus) => ({
+                ...prevStatus,
+                pendingTasks: prevStatus.pendingTasks - 1,
+              }));
+            });
+
+          taskPromises.push(taskPromise);
+        }
+
+        // Wait for all promises to resolve
+        await Promise.all(taskPromises).then(() => {
+          navigate("/tasks?page=1");
         });
       } else {
         setFormError(error);
@@ -199,13 +294,7 @@ export default function AddTaskPage() {
     }
   };
 
-  const addTaskMutation = useAddTaskMutation({
-    mutationConfig: {
-      onSuccess: (data) => {
-        navigate("/tasks?page=1");
-      },
-    },
-  });
+  const addTaskMutation = useAddTaskMutation({});
 
   const getProjectsQuery = useProjects({
     queryConfig: {
@@ -249,8 +338,20 @@ export default function AddTaskPage() {
             project: data.project_id ?? "",
             subset: data.subset ?? "",
             assign_to: data.assignee?.id ?? "",
+            flags: data.flags ?? initialData.flags,
           };
         });
+        if (data.flags) {
+          const highlighted = {};
+          Object.keys(data.flags).forEach((key) => {
+            if (data.flags[key]) {
+              DATASET_MAPING[key].split(", ").forEach((field) => {
+                highlighted[field] = true;
+              });
+            }
+          });
+          setHighlighted(highlighted);
+        }
       },
     },
   });
@@ -277,6 +378,25 @@ export default function AddTaskPage() {
       setFormValue((prev) => ({ ...prev, project: location.state.projectId }));
     }
   }, [location.state]);
+
+  useEffect(() => {
+    if (isMulti) {
+      setFormValue((prev) => ({ ...prev, name: "{{file_name}}" }));
+    }
+  }, [isMulti]);
+
+  function getUniqueMetadataFields(metadataMap) {
+    const allFields = new Set();
+    Object.values(metadataMap).forEach((fields) => {
+      fields.split(", ").forEach((field) => allFields.add(field));
+    });
+    return Array.from(allFields);
+  }
+
+  const uniqueFields = useMemo(
+    () => getUniqueMetadataFields(DATASET_MAPING),
+    [DATASET_MAPING]
+  );
 
   return (
     <>
@@ -424,26 +544,160 @@ export default function AddTaskPage() {
                 />
               )}
             </div>
+            <div className="mb-4">
+              <div className="">
+                <p className="text-sm font-medium leading-6 text-gray-900 mb-2">
+                  Select Datasets <span className="text-red-600">*</span>
+                </p>
+                <fieldset>
+                  <legend className="sr-only">Datasets</legend>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                    <CustomCheckbox
+                      name="librivox"
+                      id="librivox"
+                      formError={formError}
+                      label="LibriVox"
+                      description={DATASET_MAPING["is_librivox"]}
+                      value={formValue.flags.is_librivox}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_librivox: e.target.checked,
+                        })
+                      }
+                    />
+
+                    <CustomCheckbox
+                      name="vctx"
+                      id="vctx"
+                      formError={formError}
+                      label="VCTK"
+                      description={DATASET_MAPING["is_vctx"]}
+                      value={formValue.flags.is_vctx}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_vctx: e.target.checked,
+                        })
+                      }
+                    />
+
+                    <CustomCheckbox
+                      name="voxceleb"
+                      id="voxceleb"
+                      formError={formError}
+                      label="VoxCeleb"
+                      description={DATASET_MAPING["is_voxceleb"]}
+                      value={formValue.flags.is_voxceleb}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_voxceleb: e.target.checked,
+                        })
+                      }
+                    />
+
+                    <CustomCheckbox
+                      name="librispeech"
+                      id="librispeech"
+                      formError={formError}
+                      label="LibriSpeech"
+                      description={DATASET_MAPING["is_librispeech"]}
+                      value={formValue.flags.is_librispeech}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_librispeech: e.target.checked,
+                        })
+                      }
+                    />
+
+                    <CustomCheckbox
+                      name="voxpopuli"
+                      id="voxpopuli"
+                      formError={formError}
+                      label="VoxPopuli"
+                      description={DATASET_MAPING["is_voxpopuli"]}
+                      value={formValue.flags.is_voxpopuli}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_voxpopuli: e.target.checked,
+                        })
+                      }
+                    />
+
+                    <CustomCheckbox
+                      name="tedlium"
+                      id="tedlium"
+                      formError={formError}
+                      label="TED-LIUM"
+                      description={DATASET_MAPING["is_tedlium"]}
+                      value={formValue.flags.is_tedlium}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_tedlium: e.target.checked,
+                        })
+                      }
+                    />
+
+                    <CustomCheckbox
+                      name="commonvoice"
+                      id="commonvoice"
+                      formError={formError}
+                      label="Common Voice"
+                      description={DATASET_MAPING["is_commonvoice"]}
+                      value={formValue.flags.is_commonvoice}
+                      onChange={(e) =>
+                        handleInputChange("flags", {
+                          ...formValue.flags,
+                          is_commonvoice: e.target.checked,
+                        })
+                      }
+                    />
+                  </div>
+                </fieldset>
+              </div>
+              <div className="mt-4 flex gap-2">
+                {uniqueFields.map((field) => (
+                  <span
+                    className={`inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium ring-1 ring-inset 
+                    ${
+                      highlighted && highlighted[field]
+                        ? "bg-green-50 text-green-700 ring-green-600/20"
+                        : "ring-gray-500/10 bg-gray-50 text-gray-600"
+                    }`}
+                  >
+                    {field}
+                  </span>
+                ))}
+              </div>
+            </div>
 
             {!taskId && (
               <div className="mb-4">
                 <label className="block text-sm font-medium leading-6 text-gray-900">
-                  Select file <span className="text-red-600">*</span>
+                  Select {isMulti ? "files" : "file"}{" "}
+                  <span className="text-red-600">*</span>
                 </label>
-                <DragInput handleInputChange={handleInputChange} />
+                <DragInput
+                  handleInputChange={handleInputChange}
+                  isMultiple={isMulti}
+                />
 
-                {audioPreview ? (
-                  // <AudioPlayer audioUrl={audioPreview} />
-
-                  <audio
-                    controls
-                    className="mt-2 rounded-md border-2 border-gray-300 border-dashed"
-                    src={audioPreview}
-                    onLoadedMetadata={onloadedmetadata}
-                  >
-                    Your browser does not support the audio element.
-                  </audio>
-                ) : null}
+                {audioPreview.length >= 0
+                  ? audioPreview.map((url, index) => (
+                      <audio
+                        controls
+                        className="mt-2 rounded-md border-2 border-gray-300 border-dashed"
+                        src={url}
+                        onLoadedMetadata={onloadedmetadata}
+                      >
+                        Your browser does not support the audio element.
+                      </audio>
+                    ))
+                  : null}
                 {formError && formError["files"] && (
                   <p className="mt-2 text-sm text-red-600" id="files-error">
                     {formError["files"][0]}
@@ -607,10 +861,18 @@ export default function AddTaskPage() {
                 </div>
               </section>
             )}
-
-            {/* Action buttons */}
-            <div className="flex justify-between border-t border-gray-200 mt-8 pt-4">
-              <p className="mt-2 text-sm text-gray-500" id="files-error">
+            <div className="flex justify-between mt-2 pt-4">
+              <p className=" text-sm text-gray-500" id="files-error">
+                {taskStatus.saveClicked && isMulti && (
+                  <div className="mt-6">
+                    <div className="mt-2 flex gap-4">
+                      <p>Total: {taskStatus.totalTasks}</p>
+                      <p>Completed: {taskStatus.successfulTasks}</p>
+                      <p>Failed: {taskStatus.failedTasks}</p>
+                      <p>Pending: {taskStatus.pendingTasks}</p>
+                    </div>
+                  </div>
+                )}
                 {responseMsg.msg}{" "}
                 {responseMsg.status ? (
                   <span className="text-audino-primary-dark">
@@ -620,7 +882,11 @@ export default function AddTaskPage() {
                   ""
                 )}
               </p>
-              <div className="flex space-x-3">
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex justify-end border-t border-gray-200 mt-8 pt-4">
+              <div className="flex space-x-3 ">
                 <button
                   type="button"
                   className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -639,6 +905,7 @@ export default function AddTaskPage() {
           </div>
         )}
       </main>
+
       <AlertExportTaskModal isBackAfterSuccess={true} />
       {taskId && (
         <JobPage

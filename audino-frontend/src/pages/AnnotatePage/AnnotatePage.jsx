@@ -1206,7 +1206,6 @@ export default function AnnotatePage({}) {
     }
   }, [currentTab, conflicts, gtAnnotations]);
 
-  console.log("log data", currentTab);
   return (
     <>
       <TopBar
@@ -1316,6 +1315,7 @@ export default function AnnotatePage({}) {
                       undoStackRef={undoStackRef}
                       redoStackRef={redoStackRef}
                       getLabelsQuery={getLabelsQuery}
+                      getJobDetailQuery={getJobDetailQuery}
                     />
 
                     {/* Action buttons */}

@@ -11,10 +11,10 @@ export const handleDjangoErrors = (errorData) => {
     Object.keys(error).forEach((field) => {
       if (Array.isArray(error[field])) {
         error[field].forEach((message) => {
-          toast.error(`${message}`);
+          toast.error(`${field}: ${message}`);
         });
       } else {
-        toast.error(`${error[field]}`);
+        toast.error(`${field}: ${error[field]}`);
       }
     });
   } else {

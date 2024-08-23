@@ -154,8 +154,8 @@ function LoginPage({}) {
                   : ""}
               </div>
 
-              {/* <div className="flex items-center justify-between">
-                <div className="flex items-center">
+              <div className="flex items-center justify-end">
+                {/* <div className="flex items-center">
                   <input
                     id="remember-me"
                     name="remember-me"
@@ -168,17 +168,17 @@ function LoginPage({}) {
                   >
                     Remember me
                   </label>
-                </div>
+                </div> */}
 
                 <div className="text-sm leading-6">
                   <NavLink
-                    to="/"
+                    to="/auth/forgot-password"
                     className="font-semibold text-audino-primary hover:text-audino-primary-dark"
                   >
                     Forgot password?
                   </NavLink>
                 </div>
-              </div> */}
+              </div>
 
               <PrimaryButton
                 type="submit"

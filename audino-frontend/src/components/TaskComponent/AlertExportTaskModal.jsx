@@ -5,6 +5,7 @@ import { useTasksStore } from '../../zustand-store/tasks';
 import { useMutation } from '@tanstack/react-query';
 import { deleteTaskApi } from '../../services/task.services';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 export default function AlertExportTaskModal({ isBackAfterSuccess }) {
     const navigate = useNavigate();
@@ -12,7 +13,8 @@ export default function AlertExportTaskModal({ isBackAfterSuccess }) {
     const setTasks = useTasksStore((state) => state.setTasks);
     const current_task = useTasksStore((state) => state.current_task_details);
     const setCurrentTask = useTasksStore((state) => state.setCurrentTask);
-    const handleDeleteProject = () => {
+
+    const handleDeleteTask = () => {
         deleteTaskMutation.mutate({ id: current_task?.currentTaskId });
     };
 
@@ -23,6 +25,7 @@ export default function AlertExportTaskModal({ isBackAfterSuccess }) {
             return { id };
         },
         onSuccess: (data, { id, index }) => {
+            toast.success("Task deleted successfully");
             setCurrentTask({ ...current_task, isDeleteModal: false })
             if (isBackAfterSuccess) {
                 navigate(-1);
@@ -39,7 +42,7 @@ export default function AlertExportTaskModal({ isBackAfterSuccess }) {
             <AlertModal
                 open={current_task?.isDeleteModal}
                 setOpen={() => setCurrentTask({ ...current_task, isDeleteModal: false })}
-                onSuccess={handleDeleteProject}
+                onSuccess={handleDeleteTask}
                 onCancel={() => setCurrentTask({ ...current_task, isDeleteModal: false })}
                 text="Are you sure, you want to delete this task?"
                 isLoading={deleteTaskMutation.isLoading}

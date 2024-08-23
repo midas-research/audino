@@ -10,6 +10,8 @@ import EmailVerificationFailPage from "./pages/EmailVerificataionPage/EmailVerif
 import EmailConfirmationPage from "./pages/EmailVerificataionPage/EmailConfirmationPage";
 import AcceptInvitationPage from "./pages/AcceptInvitationPage/AcceptInvitationPage";
 import ScrollToTop from "./functions/scrollToUp";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
+import ChangePasswordPage from "./pages/ForgotPasswordPage/ChangePasswordPage";
 
 function App() {
   return (
@@ -69,6 +71,24 @@ function App() {
           element={
             <ErrorBoundary>
               <AcceptInvitationPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          exact
+          path="/auth/forgot-password"
+          element={
+            <ErrorBoundary>
+              <ForgotPasswordPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          exact
+          path="/auth/password/reset/confirm"
+          element={
+            <ErrorBoundary>
+              <ChangePasswordPage />
             </ErrorBoundary>
           }
         />

@@ -1,12 +1,13 @@
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import CustomSelect from "../../../components/CustomInput/CustomSelect";
 import CustomInput from "../../../components/CustomInput/CustomInput";
 import { toast } from "react-hot-toast";
 import { ReactTransliterate } from "react-transliterate";
 import "react-transliterate/dist/index.css";
 import langOptions from "../../../constants/langOptions";
+import { DATASET_MAPING } from "../../../constants/constants";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -23,6 +24,7 @@ export default function EditableFields({
   currentAnnotationIndex,
 
   getLabelsQuery,
+  getJobDetailQuery,
 }) {
   const [lang, setLang] = useState("en");
 
@@ -104,7 +106,7 @@ export default function EditableFields({
 
     undoStackRef.current.push(JSON.parse(JSON.stringify(updatedRegion)));
     redoStackRef.current = [];
-    
+
     const newState = { ...updatedRegion[regionIndex] }; // Shallow copy of the region object
     newState.color = value.color + "80"; // Update the color of the region with 50% opacity
     newState.data.label = {
@@ -122,6 +124,27 @@ export default function EditableFields({
     updatedRegion[regionIndex] = newState;
     setRegions(updatedRegion);
   };
+
+  const showGender = useShouldShowField(
+    getJobDetailQuery.data?.task_flags ?? {},
+    "Gender"
+  );
+  const showLang = useShouldShowField(
+    getJobDetailQuery.data?.task_flags ?? {},
+    "Language/Locale"
+  );
+  const showAccent = useShouldShowField(
+    getJobDetailQuery.data?.task_flags ?? {},
+    "Accent"
+  );
+  const showEmotion = useShouldShowField(
+    getJobDetailQuery.data?.task_flags ?? {},
+    "Emotion"
+  );
+  const showAge = useShouldShowField(
+    getJobDetailQuery.data?.task_flags ?? {},
+    "Age"
+  );
 
   return (
     <>
@@ -344,138 +367,159 @@ export default function EditableFields({
         /> */}
       </div>
 
-      <div className="pt-4">
-        <label
-          htmlFor="gender"
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          Gender
-        </label>
-        <CustomSelect
-          id="gender"
-          name="gender"
-          options={[
-            { label: "Male", value: "male" },
-            { label: "Female", value: "female" },
-            { label: "Others", value: "others" },
-          ]}
-          // formError={formError}
-          value={getInputValue("gender")}
-          onChange={(e) => handleValueChange("gender", e.target.value)}
-        />
-      </div>
+      {showGender && (
+        <div className="pt-4">
+          <label
+            htmlFor="gender"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Gender
+          </label>
+          <CustomSelect
+            id="gender"
+            name="gender"
+            options={[
+              { label: "Male", value: "male" },
+              { label: "Female", value: "female" },
+              { label: "Others", value: "others" },
+            ]}
+            // formError={formError}
+            value={getInputValue("gender")}
+            onChange={(e) => handleValueChange("gender", e.target.value)}
+          />
+        </div>
+      )}
+      {showLang && (
+        <div className="pt-4">
+          <label
+            htmlFor="locale"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Locale
+          </label>
+          <CustomSelect
+            id="locale"
+            name="locale"
+            options={[
+              { label: "English (US)", value: "en-US" },
+              { label: "Spanish (Spain)", value: "es-ES" },
+              { label: "French (France)", value: "fr-FR" },
+              { label: "Chinese (Simplified)", value: "zh-CN" },
+              { label: "Hindi (India)", value: "hi-IN" },
+              { label: "Arabic (Egypt)", value: "ar-EG" },
+              { label: "Portuguese (Brazil)", value: "pt-BR" },
+              { label: "Japanese (Japan)", value: "ja-JP" },
+              { label: "German (Germany)", value: "de-DE" },
+              { label: "Russian (Russia)", value: "ru-RU" },
+            ]}
+            // formError={formError}
+            value={getInputValue("locale")}
+            onChange={(e) => handleValueChange("locale", e.target.value)}
+          />
+        </div>
+      )}
 
-      <div className="pt-4">
-        <label
-          htmlFor="locale"
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          Locale
-        </label>
-        <CustomSelect
-          id="locale"
-          name="locale"
-          options={[
-            { label: "English (US)", value: "en-US" },
-            { label: "Spanish (Spain)", value: "es-ES" },
-            { label: "French (France)", value: "fr-FR" },
-            { label: "Chinese (Simplified)", value: "zh-CN" },
-            { label: "Hindi (India)", value: "hi-IN" },
-            { label: "Arabic (Egypt)", value: "ar-EG" },
-            { label: "Portuguese (Brazil)", value: "pt-BR" },
-            { label: "Japanese (Japan)", value: "ja-JP" },
-            { label: "German (Germany)", value: "de-DE" },
-            { label: "Russian (Russia)", value: "ru-RU" },
-          ]}
-          // formError={formError}
-          value={getInputValue("locale")}
-          onChange={(e) => handleValueChange("locale", e.target.value)}
-        />
-      </div>
+      {showAccent && (
+        <div className="pt-4">
+          <label
+            htmlFor="accent"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Accent
+          </label>
+          <CustomSelect
+            id="accent"
+            name="accent"
+            options={[
+              { label: "American English", value: "en-US" },
+              { label: "British English", value: "en-GB" },
+              { label: "Australian English", value: "en-AU" },
+              { label: "Canadian English", value: "en-CA" },
+              { label: "Irish English", value: "en-IE" },
+              { label: "Scottish English", value: "en-SC" },
+              { label: "South African English", value: "en-ZA" },
+              { label: "Indian English", value: "en-IN" },
+              { label: "French", value: "fr" },
+              { label: "Spanish", value: "es" },
+              { label: "German", value: "de" },
+              { label: "Italian", value: "it" },
+              { label: "Chinese (Mandarin)", value: "zh-CN" },
+              { label: "Chinese (Cantonese)", value: "zh-HK" },
+              { label: "Japanese", value: "ja" },
+              { label: "Russian", value: "ru" },
+              { label: "Others", value: "others" },
+            ]}
+            // formError={formError}
+            value={getInputValue("accent")}
+            onChange={(e) => handleValueChange("accent", e.target.value)}
+          />
+        </div>
+      )}
 
-      <div className="pt-4">
-        <label
-          htmlFor="accent"
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          Accent
-        </label>
-        <CustomSelect
-          id="accent"
-          name="accent"
-          options={[
-            { label: "American English", value: "en-US" },
-            { label: "British English", value: "en-GB" },
-            { label: "Australian English", value: "en-AU" },
-            { label: "Canadian English", value: "en-CA" },
-            { label: "Irish English", value: "en-IE" },
-            { label: "Scottish English", value: "en-SC" },
-            { label: "South African English", value: "en-ZA" },
-            { label: "Indian English", value: "en-IN" },
-            { label: "French", value: "fr" },
-            { label: "Spanish", value: "es" },
-            { label: "German", value: "de" },
-            { label: "Italian", value: "it" },
-            { label: "Chinese (Mandarin)", value: "zh-CN" },
-            { label: "Chinese (Cantonese)", value: "zh-HK" },
-            { label: "Japanese", value: "ja" },
-            { label: "Russian", value: "ru" },
-            { label: "Others", value: "others" },
-          ]}
-          // formError={formError}
-          value={getInputValue("accent")}
-          onChange={(e) => handleValueChange("accent", e.target.value)}
-        />
-      </div>
+      {showEmotion && (
+        <div className="pt-4">
+          <label
+            htmlFor="emotion"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Emotion
+          </label>
+          <CustomSelect
+            id="emotion"
+            name="emotion"
+            options={[
+              { label: "Happy 😄", value: "happy" },
+              { label: "Sad 😢", value: "sad" },
+              { label: "Angry 😠", value: "angry" },
+              { label: "Surprised 😲", value: "surprised" },
+              { label: "Fearful 😨", value: "fearful" },
+              { label: "Disgusted 🤢", value: "disgusted" },
+              { label: "Excited 😃", value: "excited" },
+              { label: "Calm 😌", value: "calm" },
+              { label: "Confused 🤔", value: "confused" },
+              { label: "Neutral 😐", value: "neutral" },
+              { label: "Others", value: "others" },
+            ]}
+            // formError={formError}
+            value={getInputValue("emotion")}
+            onChange={(e) => handleValueChange("emotion", e.target.value)}
+          />
+        </div>
+      )}
 
-      <div className="pt-4">
-        <label
-          htmlFor="emotion"
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          Emotion
-        </label>
-        <CustomSelect
-          id="emotion"
-          name="emotion"
-          options={[
-            { label: "Happy 😄", value: "happy" },
-            { label: "Sad 😢", value: "sad" },
-            { label: "Angry 😠", value: "angry" },
-            { label: "Surprised 😲", value: "surprised" },
-            { label: "Fearful 😨", value: "fearful" },
-            { label: "Disgusted 🤢", value: "disgusted" },
-            { label: "Excited 😃", value: "excited" },
-            { label: "Calm 😌", value: "calm" },
-            { label: "Confused 🤔", value: "confused" },
-            { label: "Neutral 😐", value: "neutral" },
-            { label: "Others", value: "others" },
-          ]}
-          // formError={formError}
-          value={getInputValue("emotion")}
-          onChange={(e) => handleValueChange("emotion", e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4 pt-4">
-        <label
-          htmlFor="age"
-          className="block text-sm font-medium leading-6 text-gray-900 mb-2"
-        >
-          Age
-        </label>
-        <CustomInput
-          type="number"
-          name="age"
-          id="age"
-          // formError={formError}
-          placeholder="age"
-          value={getInputValue("age")}
-          onChange={(e) => {
-            handleValueChange("age", e.target.value.toString());
-          }}
-        />
-      </div>
+      {showAge && (
+        <div className="mb-4 pt-4">
+          <label
+            htmlFor="age"
+            className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+          >
+            Age
+          </label>
+          <CustomInput
+            type="number"
+            name="age"
+            id="age"
+            // formError={formError}
+            placeholder="age"
+            value={getInputValue("age")}
+            onChange={(e) => {
+              handleValueChange("age", e.target.value.toString());
+            }}
+          />
+        </div>
+      )}
     </>
   );
+}
+
+function useShouldShowField(flags, fieldName) {
+  return useMemo(() => {
+    return Object.entries(flags).some(([key, value]) => {
+      if (value === true) {
+        const activeFields = DATASET_MAPING[key].split(", ");
+        return activeFields.includes(fieldName);
+      }
+      return false;
+    });
+  }, [flags, fieldName]);
 }

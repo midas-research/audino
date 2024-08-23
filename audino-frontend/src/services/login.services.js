@@ -1,7 +1,7 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 import { handleDjangoErrors } from "../utils/errorHandler";
-import './axios-config'
+import "./axios-config";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -26,5 +26,30 @@ export const signupRequestApi = async (data) => {
   } catch (e) {
     handleDjangoErrors(e);
     throw Error(e.response?.data ?? "Something went wrong");
+  }
+};
+
+export const forgotPasswordApi = async ({ email }) => {
+  try {
+    const res = await axios.post(BASE_URL + "/auth/password/reset", {
+      email: email,
+    });
+    return res.data;
+  } catch (errorData) {
+    handleDjangoErrors(errorData);
+    throw Error(errorData?.message ?? "Something went wrong");
+  }
+};
+
+export const resetPasswordApi = async (data) => {
+  try {
+    const res = await axios.post(
+      BASE_URL + "/auth/password/reset/confirm",
+      data
+    );
+    return res.data;
+  } catch (errorData) {
+    handleDjangoErrors(errorData);
+    // throw Error(errorData?.message ?? "Something went wrong");
   }
 };

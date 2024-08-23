@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function DragInput({ handleInputChange }) {
+export default function DragInput({ handleInputChange, isMultiple }) {
   const [dragActive, setDragActive] = useState(false);
 
   const handleDragEnter = (event) => {
@@ -25,7 +25,15 @@ export default function DragInput({ handleInputChange }) {
     event.stopPropagation();
     setDragActive(false);
     if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-      handleInputChange("files", event.dataTransfer.files);
+      let audioFiles = Array.from(event.dataTransfer.files).filter(file =>
+        file.type.startsWith('audio/')
+      );
+      if (!isMultiple && audioFiles.length > 1) {
+        audioFiles = [audioFiles[0]]; // Restrict to a single file if isMulti is false
+      }
+      if (audioFiles.length > 0) {
+        handleInputChange("files", audioFiles);
+      }
     }
   };
 
@@ -66,7 +74,7 @@ export default function DragInput({ handleInputChange }) {
         <input
           id="dropzone-file"
           type="file"
-          multiple
+          multiple={isMultiple}
           className="hidden"
           accept=".mp3,audio/*"
           onChange={(e) => handleInputChange("files", e.target.files)}

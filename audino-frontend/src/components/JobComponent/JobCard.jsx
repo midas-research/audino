@@ -71,8 +71,6 @@ export default function JobCard({
         limit: 10,
         is_active: true,
       },
-      enabled: false,
-      staleTime: Infinity,
     },
   });
 
@@ -135,10 +133,6 @@ export default function JobCard({
       },
     });
   };
-
-  useEffect(() => {
-    getUsersQuery.refetch();
-  }, []);
 
   const isJobGroundTruth = job.type === "ground_truth";
   const isJobAnnotation = job.type === "annotation";
