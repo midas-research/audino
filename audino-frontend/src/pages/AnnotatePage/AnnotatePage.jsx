@@ -1368,6 +1368,7 @@ export default function AnnotatePage({}) {
                 ))}
               </select>
             </div>
+
             <div className="hidden sm:block">
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex pt-4 " aria-label="Tabs">
@@ -1419,8 +1420,10 @@ export default function AnnotatePage({}) {
                     />
                   </div>
                 </nav>
+          
               </div>
             </div>
+
             {currentTab === 0 ? (
               <RegionsList
                 regions={regions}

@@ -13,3 +13,23 @@ export const DATASET_MAPING = {
   is_commonvoice:
     "Gender, Age, Accent, Language/Locale, Start, End, Transcription",
 };
+
+export const OPTIONS_TASK_TYPE = [
+  {name : 'Speech Recognition(ASR)', datasets: ['is_librivox', 'is_vctx', 'is_voxceleb', 'is_librispeech', 'is_voxpopuli', 'is_tedlium','is_commonvoice' ]},
+  {name : 'Language Identification',datasets: ['is_voxpopuli','is_commonvoice']},
+  {name : 'Accent & dialect identification',datasets: ['is_commonvoice']},
+  {name : 'Multilingual speech processing', datasets: ['is_commonvoice']},
+  {name : 'Speech Synthesis(TTS)', datasets: ['is_commonvoice','is_librispeech','is_librivox']},
+  {name : 'Speaker Identification', datasets: [ 'is_voxpopuli', 'is_tedlium','is_librispeech','is_voxceleb','is_vctx']},
+  {name : 'Speech Segmentation', datasets: ['is_tedlium']},
+  {name : 'Language Modeling', datasets: ['is_tedlium','is_librispeech','is_librivox']},
+  {name : 'ASR Error Analysis', datasets: ['is_tedlium']},
+  {name : 'Speech translation', datasets: ['is_voxpopuli']},
+  {name : 'Political Speech Analysis', datasets: ['is_voxpopuli']},
+  {name : 'Acoustic Modeling', datasets: ['is_librispeech']},
+  {name : 'Speaker Verification', datasets: ['is_voxceleb','is_vctx']},
+  {name : 'Emotion Recognition', datasets: ['is_voxceleb','is_vctx']},
+  {name : 'Multimodal Learning', datasets: ['is_voxceleb','is_vctx']},
+  {name : 'Text Alignment', datasets: ['is_librivox']},
+  {name : 'Narrative Analysis', datasets: ['is_librivox']}
+]

@@ -1,4 +1,4 @@
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, Fragment, useCallback } from "react";
 import Tooltip from "../../../components/Tooltip/Tooltip";
 import {
   ChevronDoubleDownIcon,
@@ -11,6 +11,8 @@ import {
   LockOpenIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
+import { Popover } from "@headlessui/react";
 import { Menu, Transition } from "@headlessui/react";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-hot-toast";
@@ -29,7 +31,84 @@ export default function RegionsList({
 }) {
   const unique_id = uuid();
   const [dragData, setDragData] = useState({});
-  const [hiddenRegions, setHiddenRegions] = useState([]); // Array to store the hidden regions
+  const [hiddenRegions, setHiddenRegions] = useState([]);
+  const [filterOptions, setFilterOptions] = useState({
+    filterById: false,
+    filterByColor: false,
+    filterByStart: false,
+  });
+
+  const handleFilterChange = (filterType) => {
+    setFilterOptions((prevOptions) => ({
+      ...prevOptions,
+      [filterType]: !prevOptions[filterType],
+    }));
+
+    let filteredRegions = [...regions];
+    if (filterType === "filterById") {
+      filteredRegions.sort((a, b) => {
+        // Convert IDs to numbers if possible, otherwise keep as strings for comparison
+        const idA = isNaN(a.id) ? a.id : parseInt(a.id, 10);
+        const idB = isNaN(b.id) ? b.id : parseInt(b.id, 10);
+
+        // Compare the IDs
+        if (typeof idA === "number" && typeof idB === "number") {
+          return idA - idB;
+        } else if (typeof idA === "string" && typeof idB === "string") {
+          return idA.localeCompare(idB);
+        } else {
+          // Handle cases where one ID is a string and the other is a number
+          return typeof idA === "number" ? -1 : 1;
+        }
+      });
+    }
+
+    if (filterType === "filterByColor") {
+      const colorCount = {};
+      filteredRegions.forEach((region) => {
+        colorCount[region.color] = (colorCount[region.color] || 0) + 1;
+      });
+
+      filteredRegions = filteredRegions.sort((a, b) => {
+        return (
+          colorCount[b.color] - colorCount[a.color] ||
+          a.color.localeCompare(b.color)
+        );
+      });
+    }
+
+    if (filterType === "filterByStart") {
+      filteredRegions.sort((a, b) => {
+        const startA =
+          typeof a.start === "string" ? parseFloat(a.start) : a.start;
+        const startB =
+          typeof b.start === "string" ? parseFloat(b.start) : b.start;
+
+        if (isNaN(startA) || isNaN(startB)) {
+          console.error("Invalid start value encountered during sorting.", {
+            startA,
+            startB,
+          });
+        }
+
+        return startA - startB;
+      });
+    }
+
+    if (regions.length > 0) {
+      filteredRegions.forEach((region, index) => {
+        let updatedIndex = filteredRegions.length - index;
+        const regionElement = document.querySelector(
+          `.wavesurfer-region[data-id="${region.id}"]`
+        );
+        if (regionElement) {
+          regionElement.style.zIndex = updatedIndex + 3; // z-index starts from 3
+        }
+      });
+    }
+
+    setRegions(filteredRegions);
+  };
 
   const handleShowColor = (color) => {
     // check if color is rgba or hex
@@ -40,13 +119,16 @@ export default function RegionsList({
     }
   };
 
-  const handleLock = (regionIndex) => {
-    const updatedRegion = [...regions];
-    const newState = { ...updatedRegion[regionIndex] }; // Shallow copy of the region object
-    newState.drag = !updatedRegion[regionIndex]?.drag;
-    updatedRegion[regionIndex] = newState;
-    setRegions(updatedRegion);
-  };
+  const handleLock = useCallback(
+    (regionIndex) => {
+      const updatedRegion = [...regions];
+      const newState = { ...updatedRegion[regionIndex] }; // Shallow copy of the region object
+      newState.drag = !updatedRegion[regionIndex]?.drag;
+      updatedRegion[regionIndex] = newState;
+      setRegions(updatedRegion);
+    },
+    [regions]
+  );
 
   function modifyZIndex(firstId, secondId) {
     const firstRegionElement = document.querySelector(
@@ -64,38 +146,41 @@ export default function RegionsList({
     }
   }
 
-  const handleMove = (index, direction) => {
-    const tempRegions = [...regions];
+  const handleMove = useCallback(
+    (index, direction) => {
+      const tempRegions = [...regions];
 
-    if (index < 0 || index >= tempRegions.length) {
-      return; // Index out of bounds
-    }
+      if (index < 0 || index >= tempRegions.length) {
+        return; // Index out of bounds
+      }
 
-    if (direction === "up" && index === 0) {
-      return; // Item already at the first position
-    }
+      if (direction === "up" && index === 0) {
+        return; // Item already at the first position
+      }
 
-    if (direction === "down" && index === tempRegions.length - 1) {
-      return; // Item already at the last position
-    }
+      if (direction === "down" && index === tempRegions.length - 1) {
+        return; // Item already at the last position
+      }
 
-    if (direction === "up") {
-      [tempRegions[index], tempRegions[index - 1]] = [
-        tempRegions[index - 1],
-        tempRegions[index],
-      ];
+      if (direction === "up") {
+        [tempRegions[index], tempRegions[index - 1]] = [
+          tempRegions[index - 1],
+          tempRegions[index],
+        ];
 
-      modifyZIndex(tempRegions[index].id, tempRegions[index - 1].id);
-    }
-    if (direction === "down") {
-      [tempRegions[index], tempRegions[index + 1]] = [
-        tempRegions[index + 1],
-        tempRegions[index],
-      ];
-      modifyZIndex(tempRegions[index].id, tempRegions[index + 1].id);
-    }
-    setRegions(tempRegions);
-  };
+        modifyZIndex(tempRegions[index].id, tempRegions[index - 1].id);
+      }
+      if (direction === "down") {
+        [tempRegions[index], tempRegions[index + 1]] = [
+          tempRegions[index + 1],
+          tempRegions[index],
+        ];
+        modifyZIndex(tempRegions[index].id, tempRegions[index + 1].id);
+      }
+      setRegions(tempRegions);
+    },
+    [regions]
+  );
 
   const onDragStart = (event, regionIndex) => {
     setDragData(JSON.stringify({ regionIndex }));
@@ -136,20 +221,23 @@ export default function RegionsList({
     }
   }, [regions.length]);
 
-  const handleHide = (index) => {
-    const regionElement = document.querySelector(
-      `.wavesurfer-region[data-id="${regions[index].id}"]`
-    );
-    if (regionElement) {
-      if (hiddenRegions.includes(index)) {
-        regionElement.style.display = "block";
-        setHiddenRegions(hiddenRegions.filter((item) => item !== index));
-      } else {
-        regionElement.style.display = "none";
-        setHiddenRegions([...hiddenRegions, index]);
+  const handleHide = useCallback(
+    (index) => {
+      const regionElement = document.querySelector(
+        `.wavesurfer-region[data-id="${regions[index].id}"]`
+      );
+      if (regionElement) {
+        if (hiddenRegions.includes(index)) {
+          regionElement.style.display = "block";
+          setHiddenRegions(hiddenRegions.filter((item) => item !== index));
+        } else {
+          regionElement.style.display = "none";
+          setHiddenRegions([...hiddenRegions, index]);
+        }
       }
-    }
-  };
+    },
+    [regions, hiddenRegions]
+  );
 
   const handleDuplicate = (index) => {
     const currentRegion = regions[index];
@@ -190,6 +278,85 @@ export default function RegionsList({
           }
         />
       </div> */}
+      <div className="mx-auto my-2  text-center">
+        <section aria-labelledby="filter-heading" className="">
+          <h2 id="filter-heading" className="sr-only">
+            project filters
+          </h2>
+
+          <div className="flex justify-end">
+            <Popover.Group className="hidden sm:flex sm:items-baseline sm:space-x-8">
+              <Popover as="div" className="relative inline-block ">
+                <div>
+                  <Popover.Button className=" inline-flex items-center justify-center text-sm font-medium text-gray-500 hover:text-gray-700 gap-1">
+                    Sort by
+                    <AdjustmentsHorizontalIcon
+                      className="h-4 w-4 flex-shrink-0  "
+                      aria-hidden="true"
+                    />
+                  </Popover.Button>
+                </div>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Popover.Panel className="absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white p-4 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="space-y-4">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-audino-primary focus:ring-audino-primary-dark"
+                          checked={filterOptions.filterById}
+                          onChange={() => handleFilterChange("filterById")}
+                        />
+                        <label
+                          htmlFor="ShotbyID"
+                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                        >
+                          Shot by ID
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-audino-primary focus:ring-audino-primary-dark"
+                          checked={filterOptions.filterByStart}
+                          onChange={() => handleFilterChange("filterByStart")}
+                        />
+                        <label
+                          htmlFor="Shortbystart"
+                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                        >
+                          Short by start
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300 text-audino-primary focus:ring-audino-primary-dark"
+                          checked={filterOptions.filterByColor}
+                          onChange={() => handleFilterChange("filterByColor")}
+                        />
+                        <label
+                          htmlFor="Shortbycolor"
+                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                        >
+                          Short by color
+                        </label>
+                      </div>
+                    </div>
+                  </Popover.Panel>
+                </Transition>
+              </Popover>
+            </Popover.Group>
+          </div>
+        </section>
+      </div>
 
       {/* FIX: negative margin & padding to overflow the tooltip */}
       <div className="flex my-2 flex-col h-[calc(100vh-180px)] rounded-lg overflow-y-scroll no-scrollbar pr-12 -mr-12 bg-clip-content">
@@ -350,7 +517,7 @@ export default function RegionsList({
                             "hover:bg-gray-100 hover:text-gray-900 text-gray-700 group flex items-center px-4 py-2 text-sm w-full"
                           )}
                           onClick={(e) => {
-                            e.stopPropagation()
+                            e.stopPropagation();
                             onDelete(index);
                           }}
                         >

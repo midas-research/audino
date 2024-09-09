@@ -34,7 +34,8 @@ import AlertExportTaskModal from "../../components/TaskComponent/AlertExportTask
 import { useAddTaskMutation } from "../../services/Task/useMutations";
 import DragInput from "./components/DragInput";
 import CustomCheckbox from "../../components/CustomInput/CustomCheckbox";
-import { DATASET_MAPING } from "../../constants/constants";
+import { DATASET_MAPING, OPTIONS_TASK_TYPE } from "../../constants/constants";
+
 
 const initialData = {
   name: "",
@@ -88,6 +89,7 @@ export default function AddTaskPage() {
   });
 
   const [highlighted, setHighlighted] = useState({});
+  const [selectedTaskTypes, setSelectedTaskTypes] = useState({});
 
   const { debouncedValidation: debouncedAddValidation } =
     useSingleFieldValidation(
@@ -184,7 +186,37 @@ export default function AddTaskPage() {
     } else debouncedAddValidation({ name, value });
   };
 
+  const handleTaskTypeChange = (name, value) => {
+    // Update the selected task types state
+    setSelectedTaskTypes((prev) => ({ ...prev, [name]: value }));
+
+    // Create a copy of the current flags
+    const updatedFlags = { ...formValue.flags };
+
+    // Find the task type object based on the name
+    const taskType = OPTIONS_TASK_TYPE.find((task) => task.name === name);
+
+    if (taskType) {
+      // Update the flags based on the task type change
+      if (value) {
+        // If the task type is selected, set the corresponding datasets to true
+        taskType.datasets.forEach((dataset) => {
+          updatedFlags[dataset] = true;
+        });
+      } else {
+        // If the task type is deselected, set the corresponding datasets to false
+        taskType.datasets.forEach((dataset) => {
+          updatedFlags[dataset] = false;
+        });
+      }
+    }
+
+    // Update the form value with the new flags
+    handleInputChange("flags", updatedFlags);
+  };
+
   const handleSave = async () => {
+
     const hasTrueValue = Object.values(formValue.flags).includes(true);
     if (!hasTrueValue) {
       toast.error("At least one dataset must be selected");
@@ -339,22 +371,45 @@ export default function AddTaskPage() {
             subset: data.subset ?? "",
             assign_to: data.assignee?.id ?? "",
             flags: data.flags ?? initialData.flags,
+
           };
         });
         if (data.flags) {
           const highlighted = {};
+          const newSelectedTaskTypes = {};
+
+
           Object.keys(data.flags).forEach((key) => {
             if (data.flags[key]) {
               DATASET_MAPING[key].split(", ").forEach((field) => {
                 highlighted[field] = true;
+
+              });
+
+
+              OPTIONS_TASK_TYPE.forEach((taskType) => {
+                if (taskType.datasets.includes(key)) {
+                  newSelectedTaskTypes[taskType.name] = true;
+                }
+
+
+
               });
             }
-          });
+
+          })
+
+
+
+          setSelectedTaskTypes(newSelectedTaskTypes);
           setHighlighted(highlighted);
+
         }
+
       },
     },
   });
+
 
   useEffect(() => {
     // Manually execute the query when the component mounts
@@ -547,6 +602,31 @@ export default function AddTaskPage() {
             <div className="mb-4">
               <div className="">
                 <p className="text-sm font-medium leading-6 text-gray-900 mb-2">
+                  Task Types
+                </p>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                  {OPTIONS_TASK_TYPE.map((taskType, index) => (
+                    <CustomCheckbox
+                      key={index}
+                      name={taskType.name}
+                      id={index}
+                      formError={formError}
+                      label={taskType.name}
+                      value={selectedTaskTypes[taskType.name] || false}
+                      onChange={(e) => handleTaskTypeChange(taskType.name, e.target.checked)}
+                    />
+                  ))}
+                </div>
+
+              </div>
+            </div>
+
+
+
+            <div className="mb-4">
+              <div className="">
+                <p className="text-sm font-medium leading-6 text-gray-900 mb-2">
                   Select Datasets <span className="text-red-600">*</span>
                 </p>
                 <fieldset>
@@ -663,11 +743,10 @@ export default function AddTaskPage() {
                 {uniqueFields.map((field) => (
                   <span
                     className={`inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium ring-1 ring-inset 
-                    ${
-                      highlighted && highlighted[field]
+                    ${highlighted && highlighted[field]
                         ? "bg-green-50 text-green-700 ring-green-600/20"
                         : "ring-gray-500/10 bg-gray-50 text-gray-600"
-                    }`}
+                      }`}
                   >
                     {field}
                   </span>
@@ -688,15 +767,15 @@ export default function AddTaskPage() {
 
                 {audioPreview.length >= 0
                   ? audioPreview.map((url, index) => (
-                      <audio
-                        controls
-                        className="mt-2 rounded-md border-2 border-gray-300 border-dashed"
-                        src={url}
-                        onLoadedMetadata={onloadedmetadata}
-                      >
-                        Your browser does not support the audio element.
-                      </audio>
-                    ))
+                    <audio
+                      controls
+                      className="mt-2 rounded-md border-2 border-gray-300 border-dashed"
+                      src={url}
+                      onLoadedMetadata={onloadedmetadata}
+                    >
+                      Your browser does not support the audio element.
+                    </audio>
+                  ))
                   : null}
                 {formError && formError["files"] && (
                   <p className="mt-2 text-sm text-red-600" id="files-error">

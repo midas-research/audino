@@ -136,7 +136,7 @@ export default function ConflictsList({
                       }}
                       className={`flex  border-l-4 flex-col py-2 my-2 justify-center shadow rounded p-2 
                       ${
-                        currentAnnotationIndex >=0 &&
+                        currentAnnotationIndex >= 0 &&
                         regions[currentAnnotationIndex]?.id ===
                           getAnnotationId(conflict)
                           ? conflict?.severity === "error"

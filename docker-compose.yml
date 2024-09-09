@@ -74,7 +74,7 @@ services:
 
   cvat_server:
     container_name: cvat_server
-    image: rk220217/audino-cvat:1.0
+    image: rk220217/audino-cvat:2.0
     restart: always
     depends_on:
       <<: *backend-deps
