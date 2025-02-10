@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
@@ -6,7 +6,8 @@ import capitalizeFirstLetter from "../../utils/capitalizeFirstLetter";
 import { useDispatch, useSelector } from "react-redux";
 import { userLogout } from "../../store/Actions/loginAction";
 import { AUDINO_ORG } from "../../constants/constants";
-
+import Notification from "../../pages/Notification/Notification";
+import { useNotificationsStore } from "../../zustand-store/notifications";
 const user = {
   name: "User",
   email: "user@audino.com",
@@ -17,6 +18,7 @@ const navigation = [
   { name: "Projects", href: "/projects?page=1" },
   { name: "Tasks", href: "/tasks?page=1" },
   { name: "Jobs", href: "/jobs?page=1" },
+  { name: "Cloud Storages", href: "/cloud-storages?page=1" },
   // { name: "Reports", href: "/reports" },
 ];
 const userNavigation = [
@@ -33,7 +35,14 @@ function classNames(...classes) {
 export default function AppBar({ children }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { notifications_obj } = useNotificationsStore();
   const { audinoUserData } = useSelector((state) => state.loginReducer);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const unreadCount =
+    notifications_obj.results.filter(
+      (notification) => !notification.status.is_read
+    ).length || 0;
 
   const { username, first_name, last_name } = audinoUserData;
   const CURRENT_ORG = localStorage.getItem(AUDINO_ORG) || "Personal Workspace";
@@ -41,9 +50,16 @@ export default function AppBar({ children }) {
     let path = `https://github.com/midas-research/audino/tree/main`;
     window.location.href = path;
   };
+
+  const handleNotification = () => {
+    setIsNotificationOpen((prevState) => !prevState);
+  };
   return (
-    <div className="min-h-full pb-32 bg-audino-primary">
-      <Disclosure as="nav" className="bg-white shadow-sm">
+    <div className="min-h-full pb-32 bg-audino-primary dark:bg-audino-gradient">
+      <Disclosure
+        as="nav"
+        className="bg-white dark:bg-audino-deep-navy shadow-sm"
+      >
         {({ open }) => (
           <>
             <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
@@ -65,8 +81,8 @@ export default function AppBar({ children }) {
                         className={({ isActive }) =>
                           classNames(
                             isActive
-                              ? "border-audino-primary text-audino-primary"
-                              : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                              ? "border-audino-primary  dark:border-[#569c7c] text-audino-primary"
+                              : "border-transparent text-gray-500 dark:text-gray-300 dark:hover:text-gray-100 hover:border-gray-300 hover:text-gray-700",
                             "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium"
                           )
                         }
@@ -81,7 +97,24 @@ export default function AppBar({ children }) {
                 <div className="hidden md:ml-6 md:flex md:items-center">
                   <button
                     type="button"
-                    className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-audino-primary focus:ring-offset-2"
+                    className="relative bg-transparent  text-gray-400 dark:text-gray-300  focus:outline-none mx-2"
+                    onClick={handleNotification}
+                  >
+                    <BellIcon className="h-6 w-6 focus:text-audino-primary" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {isNotificationOpen && (
+                    <div className="absolute top-12 right-0 z-[9999]">
+                      <Notification />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="rounded-full bg-transparent  text-gray-400 dark:bg-gray-300 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-audino-primary dark:focus:ring-audino-primary "
                     onClick={routeChange}
                   >
                     <span className="sr-only">View notifications</span>
@@ -102,7 +135,7 @@ export default function AppBar({ children }) {
                   {/* Profile dropdown */}
                   <Menu as="div" className="relative ml-3">
                     <div>
-                      <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-audino-primary focus:ring-offset-2">
+                      <Menu.Button className="flex rounded-full bg-white dark:bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-audino-primary dark:focus:ring-[#569c7c] ">
                         <span className="sr-only">Open user menu</span>
                         <div className="flex items-center px-4">
                           <div className="flex-shrink-0">
@@ -113,10 +146,10 @@ export default function AppBar({ children }) {
                             />
                           </div>
                           <div className="ml-3 text-left w-28 ">
-                            <div className="text-sm font-medium text-gray-800 truncate">
+                            <div className="text-sm font-medium text-gray-800 dark:text-gray-300  truncate">
                               {username ? username : "User"}
                             </div>
-                            <div className="text-xs font-medium text-gray-500 truncate">
+                            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">
                               {CURRENT_ORG}
                             </div>
                           </div>
@@ -132,7 +165,7 @@ export default function AppBar({ children }) {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-audino-midnight py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         {userNavigation.map((item) => (
                           <Menu.Item key={item.name}>
                             {({ close }) => (
@@ -141,8 +174,10 @@ export default function AppBar({ children }) {
                                 to={item.href}
                                 className={({ isActive }) =>
                                   classNames(
-                                    isActive ? "bg-gray-100" : "",
-                                    "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    isActive
+                                      ? "bg-gray-100 dark:bg-audino-teal-blue"
+                                      : "",
+                                    "block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-audino-teal-blue dark:hover:text-white"
                                   )
                                 }
                                 onClick={() => {
@@ -165,7 +200,24 @@ export default function AppBar({ children }) {
                 {/* Mobile view of right part- Hamburger icon */}
                 <div className="-mr-2 flex items-center md:hidden">
                   {/* Mobile menu button */}
-                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-audino-primary focus:ring-offset-2">
+                  <button
+                    type="button"
+                    className="relative inline-flex items-center justify-center rounded-md bg-white dark:bg-audino-light-navy dark:text-audino-primary text-gray-400 hover:bg-gray-100 hover:text-gray-500  mr-4"
+                    onClick={handleNotification}
+                  >
+                    <BellIcon className="h-6 w-6" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {isNotificationOpen && (
+                    <div className="absolute top-12 right-0 z-[9999]">
+                      <Notification />
+                    </div>
+                  )}
+                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-white dark:bg-audino-light-navy dark:text-audino-primary p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-audino-primary focus:ring-offset-2 dark:focus:ring-offset-transparent">
                     <span className="sr-only">Open main menu</span>
                     {open ? (
                       <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -190,7 +242,7 @@ export default function AppBar({ children }) {
                           classNames(
                             isActive
                               ? "border-audino-primary bg-[#EFFAF5] text-audino-primary"
-                              : "border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800",
+                              : "border-transparent text-gray-600 dark:text-gray-300 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 dark:hover:text-gray-950",
                             "block border-l-4 py-2 pl-3 pr-4 text-base font-medium"
                           )
                         }
@@ -211,10 +263,10 @@ export default function AppBar({ children }) {
                         />
                       </div>
                       <div className="ml-3">
-                        <div className="text-base font-medium text-gray-800">
+                        <div className="text-base font-medium dark:text-gray-300 text-gray-800">
                           {username ? username : "User"}
                         </div>
-                        <div className="text-sm font-medium text-gray-500">
+                        <div className="text-sm font-medium dark:text-gray-400 text-gray-100 ">
                           {CURRENT_ORG}
                         </div>
                       </div>
@@ -247,7 +299,7 @@ export default function AppBar({ children }) {
                             classNames(
                               isActive
                                 ? "border-audino-primary bg-[#EFFAF5] text-audino-primary"
-                                : "border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800",
+                                : "border-transparent text-gray-600 dark:text-gray-300 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 dark:hover:text-gray-950",
                               "block border-l-4 py-2 pl-3 pr-4 text-base font-medium"
                             )
                           }

@@ -278,17 +278,20 @@ export default function RegionsList({
           }
         />
       </div> */}
-      <div className="mx-auto my-2  text-center">
+     
+      {/* FIX: negative margin & padding to overflow the tooltip */}
+      <div className="flex my-2 flex-col h-[calc(100vh-180px)] rounded-lg overflow-y-scroll no-scrollbar pr-6 md:pr-12 -mr-6 md:-mr-12 bg-clip-content">
+      <div className="mx-auto my-2  text-center w-full">
         <section aria-labelledby="filter-heading" className="">
           <h2 id="filter-heading" className="sr-only">
             project filters
           </h2>
 
-          <div className="flex justify-end">
-            <Popover.Group className="hidden sm:flex sm:items-baseline sm:space-x-8">
+          <div className="flex justify-end ">
+            <Popover.Group className=" flex items-baseline space-x-8">
               <Popover as="div" className="relative inline-block ">
                 <div>
-                  <Popover.Button className=" inline-flex items-center justify-center text-sm font-medium text-gray-500 hover:text-gray-700 gap-1">
+                  <Popover.Button className=" flex items-center justify-center  text-sm font-medium text-gray-500 dark:text-audino-light-silver hover:text-gray-700 dark:hover:text-gray-100 gap-1">
                     Sort by
                     <AdjustmentsHorizontalIcon
                       className="h-4 w-4 flex-shrink-0  "
@@ -305,7 +308,7 @@ export default function RegionsList({
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Popover.Panel className="absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white p-4 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <Popover.Panel className="absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white dark:bg-audino-navy p-4 shadow-2xl ring-1 ring-black dark:ring-audino-deep-space ring-opacity-5 focus:outline-none">
                     <div className="space-y-4">
                       <div className="flex items-center">
                         <input
@@ -315,10 +318,10 @@ export default function RegionsList({
                           onChange={() => handleFilterChange("filterById")}
                         />
                         <label
-                          htmlFor="ShotbyID"
-                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                          htmlFor="SortbyID"
+                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium dark:text-audino-light-silver text-gray-900"
                         >
-                          Shot by ID
+                          Sort by ID
                         </label>
                       </div>
                       <div className="flex items-center">
@@ -329,10 +332,10 @@ export default function RegionsList({
                           onChange={() => handleFilterChange("filterByStart")}
                         />
                         <label
-                          htmlFor="Shortbystart"
-                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                          htmlFor="Sortbystart"
+                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium dark:text-audino-light-silver text-gray-900"
                         >
-                          Short by start
+                          Sort by start
                         </label>
                       </div>
                       <div className="flex items-center">
@@ -343,10 +346,10 @@ export default function RegionsList({
                           onChange={() => handleFilterChange("filterByColor")}
                         />
                         <label
-                          htmlFor="Shortbycolor"
-                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                          htmlFor="Sortbycolor"
+                          className="ml-3 whitespace-nowrap pr-6 text-sm font-medium dark:text-audino-light-silver text-gray-900"
                         >
-                          Short by color
+                          Sort by color
                         </label>
                       </div>
                     </div>
@@ -358,8 +361,6 @@ export default function RegionsList({
         </section>
       </div>
 
-      {/* FIX: negative margin & padding to overflow the tooltip */}
-      <div className="flex my-2 flex-col h-[calc(100vh-180px)] rounded-lg overflow-y-scroll no-scrollbar pr-12 -mr-12 bg-clip-content">
         {regions.map((regionProps, index) => {
           return (
             <div
@@ -374,10 +375,10 @@ export default function RegionsList({
                 regionProps?.data?.label
                   ? "cursor-pointer"
                   : "cursor-not-allowed"
-              }  py-3 mb-2 items-center justify-between shadow rounded p-2 border-l-4 ${
+              }  py-3 mb-2 items-center justify-between dark:bg-audino-light-navy shadow rounded p-2 border-l-4 ${
                 currentAnnotationIndex === index
                   ? "border-l-[#10ff00]"
-                  : "border-l-white"
+                  : "border-l-white dark:border-audino-light-navy"
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -387,7 +388,7 @@ export default function RegionsList({
                     backgroundColor: handleShowColor(regionProps.color),
                   }}
                 ></div>
-                <p className="text-black">
+                <p className="text-black dark:text-audino-light-silver">
                   {regionProps?.attributes.label}
                   {regionProps?.data?.label ? "" : "(GT)"}
                 </p>
@@ -472,7 +473,7 @@ export default function RegionsList({
 
                 <Menu as="div" className=" inline-block text-left ">
                   <Menu.Button
-                    className="flex items-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 "
+                    className="flex items-center rounded-full hover:bg-gray-100 dark:hover:bg-audino-light-navy text-gray-400 hover:text-gray-600 "
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Tooltip message="More">
@@ -493,11 +494,11 @@ export default function RegionsList({
                     leaveTo="transform opacity-0 scale-95"
                     className={"relative z-40"}
                   >
-                    <Menu.Items className="absolute right-0 z-10 top-0 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Menu.Items className="absolute right-0 z-10 top-0 w-56 origin-top-right rounded-md bg-white dark:bg-audino-navy shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <Menu.Item>
                         <div
                           className={classNames(
-                            "hover:bg-gray-100 hover:text-gray-900 text-gray-700 group flex items-center px-4 py-2 text-sm"
+                            "hover:bg-gray-100 dark:hover:bg-[#2C4557] hover:text-gray-900 dark:hover:text-gray-100 text-gray-700 dark:text-white group flex items-center px-4 py-2 text-sm"
                           )}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -505,7 +506,7 @@ export default function RegionsList({
                           }}
                         >
                           <DocumentDuplicateIcon
-                            className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                            className="mr-3 h-5 w-5 text-gray-400 dark:text-white group-hover:text-gray-500 dark:group-hover:text-white"
                             aria-hidden="true"
                           />
                           Duplicate
@@ -514,7 +515,7 @@ export default function RegionsList({
                       <Menu.Item>
                         <button
                           className={classNames(
-                            "hover:bg-gray-100 hover:text-gray-900 text-gray-700 group flex items-center px-4 py-2 text-sm w-full"
+                            "hover:bg-gray-100 dark:hover:bg-[#2C4557] hover:text-gray-900 dark:hover:text-white text-gray-700 dark:text-white group flex items-center px-4 py-2 text-sm w-full"
                           )}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -522,7 +523,7 @@ export default function RegionsList({
                           }}
                         >
                           <TrashIcon
-                            className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                            className="mr-3 h-5 w-5 text-gray-400 dark:text-white group-hover:text-gray-500 dark:group-hover:text-white"
                             aria-hidden="true"
                           />
                           Delete

@@ -52,6 +52,7 @@ export default function TopBar({
   setSearchValue,
   appliedFilters,
   children,
+  showFilters=true,
 }) {
   const { audinoUserData } = useSelector((state) => state.loginReducer);
   const [open, setOpen] = useState(false);
@@ -91,12 +92,12 @@ export default function TopBar({
               leaveFrom="translate-x-0"
               leaveTo="translate-x-full"
             >
-              <Dialog.Panel className="relative ml-auto flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white py-4 pb-6 shadow-xl">
+              <Dialog.Panel className="relative ml-auto flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white dark:bg-audino-navy py-4 pb-6 shadow-xl">
                 <div className="flex items-center justify-between px-4">
-                  <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">Filters</h2>
                   <button
                     type="button"
-                    className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-audino-primary-dark"
+                    className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md dark:bg-audino-light-navy bg-white p-2 text-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-audino-primary-dark"
                     onClick={() => setOpen(false)}
                   >
                     <span className="sr-only">Close menu</span>
@@ -110,13 +111,13 @@ export default function TopBar({
                     <Disclosure
                       as="div"
                       key={section.name}
-                      className="border-t border-gray-200 px-4 py-6"
+                      className="border-t dark:border-audino-gray border-gray-200 px-4 py-6"
                     >
                       {({ open }) => (
                         <>
                           <h3 className="-mx-2 -my-3 flow-root">
-                            <Disclosure.Button className="flex w-full items-center justify-between bg-white px-2 py-3 text-sm text-gray-400">
-                              <span className="font-medium text-gray-900">
+                            <Disclosure.Button className="flex w-full items-center justify-between bg-white dark:bg-audino-light-navy px-2 py-3 text-sm text-gray-400">
+                              <span className="font-medium text-gray-900 dark:text-white">
                                 {section.name}
                               </span>
                               <span className="ml-6 flex items-center">
@@ -181,7 +182,7 @@ export default function TopBar({
             project filters
           </h2>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[4.5px] sm:justify-between">
             <div className="w-full max-w-lg lg:max-w-xs">
               <label htmlFor="search" className="sr-only">
                 Search
@@ -192,7 +193,7 @@ export default function TopBar({
                 </div>
                 <input
                   id="search"
-                  className="block w-full rounded-md border-2 border-gray-300 py-1 pl-10 pr-3 text-gray-900 focus:ring-offset-1 focus:ring-offset-audino-primary focus:border-transparent focus:ring-0 sm:text-sm sm:leading-6"
+                  className="block w-full dark:bg-audino-light-navy rounded-md border-2 border-gray-300 dark:border-audino-gray py-1 pl-10 pr-3 text-gray-900 dark:text-audino-storm-gray focus:ring-offset-1 focus:ring-offset-audino-primary focus:border-transparent focus:ring-0 sm:text-sm sm:leading-6"
                   placeholder="Search"
                   type="search"
                   name="search"
@@ -202,7 +203,7 @@ export default function TopBar({
               </div>
             </div>
 
-            <div className="flex gap-5">
+            <div className="flex items-center gap-2 sm:gap-5">
               {/* <Menu as="div" className="relative inline-block text-left">
                     <div>
                       <Menu.Button className="group inline-flex justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
@@ -243,9 +244,10 @@ export default function TopBar({
                       </Menu.Items>
                     </Transition>
                   </Menu> */}
-              <button
+            {showFilters && (
+                <button
                 type="button"
-                className="inline-flex text-sm font-medium text-gray-700 hover:text-gray-900 sm:hidden"
+                className="inline-flex text-sm font-medium dark:px-4 dark:py-2 dark:bg-audino-gradient text-gray-700 dark:text-gray-100 dark:rounded-md hover:text-gray-900 sm:hidden"
                 onClick={() => setOpen(true)}
               >
                 Filters{" "}
@@ -255,7 +257,9 @@ export default function TopBar({
                   </span>
                 ) : null}
               </button>
-              <div className="flex gap-5">
+            )}
+            
+              <div className="flex items-center gap-5">
                 <Popover.Group className="hidden sm:flex sm:items-baseline sm:space-x-8">
                   {filters.map((section, sectionIdx) => (
                     <Popover
@@ -265,7 +269,7 @@ export default function TopBar({
                       className="relative inline-block text-left"
                     >
                       <div>
-                        <Popover.Button className="group inline-flex items-center justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
+                        <Popover.Button className="group inline-flex items-center justify-center text-xs  lg:text-sm font-medium text-gray-700 dark:text-gray-100 dark:px-2 dark:lg:px-4 dark:py-2 dark:bg-audino-gradient dark:rounded-md hover:text-gray-900">
                           <span>{section.name}</span>
                           {appliedFilters.length > 0 ? (
                             <span className="ml-1.5 rounded bg-gray-200 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-gray-700">
@@ -273,7 +277,7 @@ export default function TopBar({
                             </span>
                           ) : null}
                           <ChevronDownIcon
-                            className="-mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
+                            className="-mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-100 group-hover:text-gray-500 dark:group-hover:text-gray-200"
                             aria-hidden="true"
                           />
                         </Popover.Button>
@@ -287,7 +291,7 @@ export default function TopBar({
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                       >
-                        <Popover.Panel className="absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white p-4 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Popover.Panel className="absolute right-0 z-10 mt-2 origin-top-right rounded-md bg-white dark:bg-audino-navy p-4 shadow-2xl ring-1 dark:ring-audino-midnight ring-black ring-opacity-5 focus:outline-none">
                           <form className="space-y-4">
                             {section.options.map((option, optionIdx) => {
                               const filterWithUsername = getPredefinedFilter(
@@ -312,7 +316,7 @@ export default function TopBar({
                                   />
                                   <label
                                     htmlFor={`filter-${section.id}-${optionIdx}`}
-                                    className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900"
+                                    className="ml-3 whitespace-nowrap pr-6 text-sm font-medium text-gray-900 dark:text-audino-light-gray"
                                   >
                                     {option.label}
                                   </label>

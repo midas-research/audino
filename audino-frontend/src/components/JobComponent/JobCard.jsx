@@ -1,4 +1,4 @@
-import { Menu, Transition } from "@headlessui/react";
+import { Menu, Transition, Popover} from "@headlessui/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import CustomSelect from "../../components/CustomInput/CustomSelect";
 import { toast } from "react-hot-toast";
@@ -11,6 +11,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useEffect, Fragment, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AlertModal from "../Alert/AlertModal";
+import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 
 export default function JobCard({
   index,
@@ -20,6 +21,7 @@ export default function JobCard({
   handleAutoAnnotationClick,
   handleExportAnnotationClick,
 }) {
+
   const navigate = useNavigate();
   const [deleteModal, setDeleteModal] = useState(false);
 
@@ -146,8 +148,8 @@ export default function JobCard({
         onClick={() => navigate(`/annotate/${job.task_id}/${job.id}`)}
       >
         <div className="flex items-start gap-x-3">
-          <p className="text-sm font-medium leading-6 text-gray-900">
-            <span className="text-gray-500">Id:</span> #{job.id}
+          <p className="text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver">
+            <span className="text-gray-500 dark:text-audino-light-silver">Id:</span> #{job.id}
           </p>
           <p
             className={classNames(
@@ -197,63 +199,134 @@ export default function JobCard({
       </div>
 
       {isRemoveAppbar ? (
-        <div className="col-span-4 flex gap-2 items-center">
-          <div className="w-full">
-            <p className="text-xs font-normal leading-5 text-gray-500 mb-1">
-              Assignee:
-            </p>
-            {getUsersQuery.isRefetching || jobUpdateMutation.isLoading ? (
-              <div className="h-8 bg-gray-200 rounded-md w-full animate-pulse"></div>
-            ) : (
-              <CustomSelect
-                id="assignee"
-                name="assignee"
-                options={(getUsersQuery.data?.results ?? []).map((val) => {
-                  return { label: val.username, value: val.id };
-                })}
-                formError={{}}
-                value={job.assignee?.id ?? ""}
-                onChange={(e) =>
-                  handleInputChange("assignee", e.target.value, index, job.id)
-                }
-                defaultValue="Select an assignee"
-                className={"!mt-0 !text-xs"}
-              />
-            )}
-          </div>
-          <div className="w-full">
-            <p className="text-xs font-normal leading-5 text-gray-500 mb-1">
-              Stage:
-            </p>
-
-            {jobUpdateMutation.isLoading ? (
-              <div className="h-8 bg-gray-200 rounded-md w-full animate-pulse"></div>
-            ) : (
-              <CustomSelect
-                id="stage"
-                name="stage"
-                options={["annotation", "validation", "acceptance"].map(
-                  (val) => {
-                    return { label: val, value: val };
-                  }
-                )}
-                formError={{}}
-                value={job.stage ?? ""}
-                onChange={(e) =>
-                  handleInputChange("stage", e.target.value, index, job.id)
-                }
-                defaultValue="Select an assignee"
-                className={"!mt-0 !text-xs"}
-              />
-            )}
-          </div>
+    <div className="col-span-4 flex gap-2 justify-center  items-center">
+     
+      <div className="block lg:hidden">
+        <Popover className="relative">
+          <Popover.Button className="text-gray-500 mt-1 hover:text-gray-900">
+            <ChevronUpDownIcon className="h-5 w-5" aria-hidden="true" />
+          </Popover.Button>
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Popover.Panel className="absolute z-10 w-48 origin-top left-1/2 transform -translate-x-1/2 bg-white dark:bg-audino-navy shadow-lg rounded-md ring-1 ring-black dark:ring-audino-light-navy ring-opacity-5 focus:outline-none">
+              <div className="p-2">
+                <div className="w-full mb-2">
+                  <p className="text-xs font-normal leading-5 dark:text-white text-gray-500 mb-1">
+                    Assignee:
+                  </p>
+                  {getUsersQuery.isRefetching || jobUpdateMutation.isLoading ? (
+                    <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full animate-pulse"></div>
+                  ) : (
+                    <CustomSelect
+                      id="assignee"
+                      name="assignee"
+                      options={(getUsersQuery.data?.results ?? []).map((val) => {
+                        return { label: val.username, value: val.id };
+                      })}
+                      formError={{}}
+                      value={job.assignee?.id ?? ""}
+                      onChange={(e) =>
+                        handleInputChange("assignee", e.target.value, index, job.id)
+                      }
+                      defaultValue="Select an assignee"
+                      className={"!mt-0 !text-xs"}
+                    />
+                  )}
+                </div>
+                <div className="w-full">
+                  <p className="text-xs font-normal leading-5 dark:text-white text-gray-500 mb-1">
+                    Stage:
+                  </p>
+                  {jobUpdateMutation.isLoading ? (
+                    <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full animate-pulse"></div>
+                  ) : (
+                    <CustomSelect
+                      id="stage"
+                      name="stage"
+                      options={["annotation", "validation", "acceptance"].map(
+                        (val) => {
+                          return { label: val, value: val };
+                        }
+                      )}
+                      formError={{}}
+                      value={job.stage ?? ""}
+                      onChange={(e) =>
+                        handleInputChange("stage", e.target.value, index, job.id)
+                      }
+                      defaultValue="Select a stage"
+                      className={"!mt-0 !text-xs"}
+                    />
+                  )}
+                </div>
+              </div>
+            </Popover.Panel>
+          </Transition>
+        </Popover>
+      </div>
+      
+      <div className="hidden lg:flex gap-2 items-center">
+        <div className="w-full">
+          <p className="text-xs font-normal leading-5 text-gray-500 mb-1">
+            Assignee:
+          </p>
+          {getUsersQuery.isRefetching || jobUpdateMutation.isLoading ? (
+            <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full animate-pulse"></div>
+          ) : (
+            <CustomSelect
+              id="assignee"
+              name="assignee"
+              options={(getUsersQuery.data?.results ?? []).map((val) => {
+                return { label: val.username, value: val.id };
+              })}
+              formError={{}}
+              value={job.assignee?.id ?? ""}
+              onChange={(e) =>
+                handleInputChange("assignee", e.target.value, index, job.id)
+              }
+              defaultValue="Select an assignee"
+              className={"!mt-0 !text-xs"}
+            />
+          )}
         </div>
-      ) : (
-        <div className="col-span-4 "></div>
-      )}
-
+        <div className="w-full">
+          <p className="text-xs font-normal leading-5 text-gray-500 mb-1">
+            Stage:
+          </p>
+          {jobUpdateMutation.isLoading ? (
+            <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full animate-pulse"></div>
+          ) : (
+            <CustomSelect
+              id="stage"
+              name="stage"
+              options={["annotation", "validation", "acceptance"].map(
+                (val) => {
+                  return { label: val, value: val };
+                }
+              )}
+              formError={{}}
+              value={job.stage ?? ""}
+              onChange={(e) =>
+                handleInputChange("stage", e.target.value, index, job.id)
+              }
+              defaultValue="Select a stage"
+              className={"!mt-0 !text-xs"}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="col-span-4"></div>
+  )}
       <Menu as="div" className="relative flex justify-end">
-        <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-gray-900">
+        <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 dark:text-white dark:hover:text-gray-500 hover:text-gray-900">
           <span className="sr-only">Open options</span>
           <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
         </Menu.Button>
@@ -266,7 +339,7 @@ export default function JobCard({
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md dark:bg-audino-light-navy bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
             <Menu.Item>
               {({ active }) => (
                 <button
@@ -276,8 +349,8 @@ export default function JobCard({
                   }}
                   disabled={isJobGroundTruth}
                   className={classNames(
-                    active ? "bg-gray-50" : "",
-                    `block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed`
+                    active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",
+                    `block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-white w-full text-left disabled:opacity-50 disabled:cursor-not-allowed`
                   )}
                 >
                   Automatic annotation
@@ -292,8 +365,8 @@ export default function JobCard({
                     handleExportAnnotationClick(job.id);
                   }}
                   className={classNames(
-                    active ? "bg-gray-50" : "",
-                    "block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left"
+                    active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",
+                    "block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-white w-full text-left"
                   )}
                 >
                   Export annotation
@@ -302,7 +375,7 @@ export default function JobCard({
             </Menu.Item>
             <Menu.Item>
               {jobUpdateMutation.isLoading ? (
-                <div className="h-8 bg-gray-200 rounded-md w-full animate-pulse"></div>
+                <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full animate-pulse"></div>
               ) : (
                 <button
                   onClick={(e) => {
@@ -310,8 +383,8 @@ export default function JobCard({
                     handleFinishRenewJob(job.id);
                   }}
                   className={classNames(
-                    "hover:bg-gray-50",
-                    "block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left"
+                    "hover:bg-gray-50 dark:hover:bg-audino-teal-blue",
+                    "block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-white w-full text-left"
                   )}
                 >
                   {job.stage === "acceptance"
@@ -330,8 +403,8 @@ export default function JobCard({
                   }}
                   disabled={isJobAnnotation}
                   className={classNames(
-                    active ? "bg-gray-50" : "",
-                    `block px-3 py-1 text-sm leading-6text-gray-900 w-full text-left disabled:opacity-50 disabled:cursor-not-allowed`
+                    active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",
+                    `block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-white w-full text-left disabled:opacity-50 disabled:cursor-not-allowed`
                   )}
                 >
                   Delete

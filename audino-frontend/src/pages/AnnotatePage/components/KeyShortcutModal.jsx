@@ -28,98 +28,98 @@ export default function KeyShortcutModal({ open, setOpen }) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:full sm:p-6 ">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg dark:bg-audino-deep-space bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8  sm:p-6 ">
                 <div>
                   {" "}
                   <div className="px-4 sm:px-0">
-                    <h3 className="text-base font-semibold leading-7 text-gray-900">
+                    <h3 className="text-base font-semibold leading-7 dark:text-white text-gray-900">
                       Audino Shortcuts
                     </h3>
-                    <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-300">
                       Here are some shortcuts to help you navigate Audino
                     </p>
                   </div>
-                  <div className="grid grid-cols-12 mt-6 border-t border-gray-100">
-                    <dl className="divide-y col-span-6 divide-gray-100">
-                      <div className="bg-gray-50 px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                  <div className="grid grid-cols-12 mt-6 border-t dark:border-none border-gray-100">
+                    <dl className="divide-y col-span-6 dark:divide-audino-gray divide-gray-100">
+                      <div className="bg-gray-50 dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           Space Bar
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0">
                           Play/Pause the audio
                         </dd>
                       </div>
-                      <div className="bg-white px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-white dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           Delete Key
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Delete the current annotation
                         </dd>
                       </div>
-                      <div className="bg-gray-50 px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-gray-50 dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           ctrl/command + z
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Undo the last action
                         </dd>
                       </div>
-                      <div className="bg-white px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-white dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           ctrl/command + y
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Redo the last action
                         </dd>
                       </div>
-                      <div className="bg-gray-50 px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-gray-50 dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid=cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           Arrow right
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Forward 10 seconds
                         </dd>
                       </div>
                     </dl>
-                    <dl className="divide-y col-span-6 divide-gray-100">
-                      <div className="bg-white px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                    <dl className="divide-y col-span-6 dark:divide-audino-gray divide-gray-100">
+                      <div className="bg-white dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           ctrl/command + Arrow right
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Go to next region
                         </dd>
                       </div>
-                      <div className="bg-gray-50 px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-gray-50 dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           ctrl/command + Arrow left
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Go to previous region
                         </dd>
                       </div>
-                      <div className="bg-white px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-white dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           Shift + Mousewheel
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Zoom in/out audio wave vertically
                         </dd>
                       </div>
-                      <div className="bg-gray-50 px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-gray-50 dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           Alt + Mousewheel
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Zoom in/out audio wave horizontally
                         </dd>
                       </div>
-                      <div className="bg-white px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-6 sm:px-3">
-                        <dt className="text-sm font-medium leading-6 text-gray-900">
+                      <div className="bg-white dark:bg-audino-midnight px-4 py-6 sm:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6 sm:px-3">
+                        <dt className="text-sm font-medium leading-6 dark:text-white text-gray-900">
                           Arrow left
                         </dt>
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           Backward 10 seconds
                         </dd>
                       </div>

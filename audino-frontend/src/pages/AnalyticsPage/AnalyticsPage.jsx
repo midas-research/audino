@@ -113,13 +113,13 @@ export default function AnalyticsPage() {
       </AppBar>
       <main className=" -mt-32 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         {getAnalytics.isLoading ? (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+          <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
             <p className="text-gray-700">Loading...</p>
           </div>
         ) : isAnalyticsData ? (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+          <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
             <div className="flex justify-between mb-4">
-              <h2 className="text-lg font-semibold">Quality</h2>
+              <h2 className="text-lg font-semibold dark:text-white">Quality</h2>
 
               <div className="flex items-start gap-2">
                 <PrimaryIconButton
@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
                     setAnalyticsSettingModal(true);
                   }}
                   icon={
-                    <Cog6ToothIcon className="h-6 w-5 text-audino-primary" />
+                    <Cog6ToothIcon className="h-6 w-5 text-audino-primary dark:text-white" />
                   }
                 ></PrimaryIconButton>
                 <div className="flex flex-col-reverse items-end gap-1">
@@ -188,10 +188,10 @@ export default function AnalyticsPage() {
                 }
                 bottomElement={
                   <>
-                    <dt className="text-gray-500">
+                    <dt className="text-gray-500 dark:text-gray-300">
                       Character Error Rate: {qualitySummary?.cer}
                     </dt>
-                    <dd className="text-gray-700">
+                    <dd className="text-gray-700 dark:text-gray-400">
                       Word Error Rate: {qualitySummary?.wer}
                     </dd>
                   </>
@@ -241,7 +241,7 @@ export default function AnalyticsPage() {
                 }
                 bottomElement={
                   <>
-                    <dt className="text-gray-500">
+                    <dt className="text-gray-500 dark:text-gray-300">
                       {" "}
                       Errors: {qualitySummary?.errorCount}
                       {qualitySummary?.errorCount
@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
                         )})`
                         : ""}
                     </dt>
-                    <dd className="text-gray-700">
+                    <dd className="text-gray-700 dark:text-gray-400">
                       {" "}
                       Warnings: {qualitySummary?.warningCount}
                       {qualitySummary?.warningCount
@@ -281,8 +281,8 @@ export default function AnalyticsPage() {
           </div> */}
           </div>
         ) : (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
-            <p className="text-gray-700">No data available</p>
+          <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
+            <p className="text-gray-700 dark:text-gray-300">No data available</p>
             <p className="text-gray-500 text-sm mt-1">
               {" "}
               Quality reports are not computed unless the GT job is in the&nbsp;

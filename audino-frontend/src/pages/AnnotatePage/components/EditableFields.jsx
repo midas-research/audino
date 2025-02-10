@@ -150,18 +150,18 @@ export default function EditableFields({
     <>
       {/* table info */}
       <div className="px-4 sm:px-0">
-        <h3 className="text-base font-semibold leading-7 text-gray-900">
+        <h3 className="text-base font-semibold leading-7 dark:text-audino-light-silver text-gray-900">
           Segment Details
         </h3>
         {/* <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">Personal details and application.</p> */}
       </div>
-      <div className="mt-6 border-t border-gray-100">
-        <dl className="divide-y divide-gray-100">
+      <div className="mt-6 border-t dark:border-audino-neutral-gray border-gray-100">
+        <dl className="divide-y dark:divide-audino-neutral-gray divide-gray-100">
           <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-            <dt className="text-sm font-medium leading-6 text-gray-900">
+            <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver">
               Segment name
             </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+            <dd className="mt-1 text-sm leading-6 dark:text-audino-gray text-gray-700 sm:col-span-2 sm:mt-0">
               {regions[currentAnnotationIndex].attributes.label}
             </dd>
           </div>
@@ -173,11 +173,11 @@ export default function EditableFields({
             >
               {({ open }) => (
                 <>
-                  <Listbox.Label className="block text-sm font-medium leading-6 text-gray-900">
+                  <Listbox.Label className="block text-sm font-medium leading-6 dark:text-audino-light-silver text-gray-900">
                     Select a label
                   </Listbox.Label>
                   <div className="relative mt-2">
-                    <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-audino-primary sm:text-sm sm:leading-6">
+                    <Listbox.Button className="relative w-full cursor-default rounded-md dark:bg-audino-light-navy bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 dark:text-[#575e77] shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-charcoal focus:outline-none focus:ring-2 focus:ring-audino-primary sm:text-sm sm:leading-6">
                       <span className="block truncate">
                         {regions[currentAnnotationIndex].data.label.name}
                       </span>
@@ -196,15 +196,15 @@ export default function EditableFields({
                       leaveFrom="opacity-100"
                       leaveTo="opacity-0"
                     >
-                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-audino-light-navy py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                         {getLabelsQuery?.data.map((label) => (
                           <Listbox.Option
                             key={label.id}
                             className={({ active }) =>
                               classNames(
                                 active
-                                  ? "bg-audino-primary text-white"
-                                  : "text-gray-900",
+                                  ? "bg-audino-primary dark:bg-audino-green-translucent text-white"
+                                  : "text-gray-900 dark:text-[#575e77]",
                                 "relative cursor-default select-none py-2 pl-3 pr-9"
                               )
                             }
@@ -248,19 +248,19 @@ export default function EditableFields({
             </Listbox>
           </div>
 
-          <div className="mt-6 border-t border-gray-100">
-            <dl className="divide-y divide-gray-100">
+          <div className="mt-6 border-t dark:border-[#181111] border-gray-100">
+            <dl className="divide-y dark:divide-audino-neutral-gray divide-gray-100">
               <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                <dt className="text-sm font-medium leading-6 text-gray-900">
+                <dt className="text-sm font-medium leading-6 dark:text-audino-light-silver text-gray-900">
                   {regions[currentAnnotationIndex].data.label.name}
                 </dt>
-                <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                <dd className="mt-1 text-sm leading-6 dark:text-audino-light-silver text-gray-700 sm:col-span-2 sm:mt-0">
                   {regions[currentAnnotationIndex].data.label.attributes.map(
                     (attr, attrIndex) => (
                       <div className="mb-4" key={`projectatt-${attr.id}`}>
                         <label
                           htmlFor={attr.name}
-                          className="block text-sm font-medium leading-6 text-gray-900"
+                          className="block text-sm font-medium leading-6 dark:text-audino-light-silver text-gray-900"
                         >
                           {attr.name}
                         </label>
@@ -289,7 +289,7 @@ export default function EditableFields({
             </dl>
           </div>
           <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-            <dt className="text-sm font-medium leading-6 text-gray-900">
+            <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver">
               Start time
             </dt>
             <CustomInput
@@ -306,7 +306,7 @@ export default function EditableFields({
             />
           </div>
           <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-            <dt className="text-sm font-medium leading-6 text-gray-900">
+            <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver">
               End time
             </dt>
             <CustomInput
@@ -323,11 +323,11 @@ export default function EditableFields({
         </dl>
       </div>
 
-      <div className="pt-4 border-t border-gray-100">
+      <div className="pt-4 border-t border-gray-100 dark:border-audino-neutral-gray">
         <div className="flex justify-between mb-2">
           <label
             htmlFor="transcription"
-            className="block text-sm font-medium leading-6 text-gray-900 "
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
           >
             Segment transcription
           </label>
@@ -340,38 +340,41 @@ export default function EditableFields({
             className={"!text-xs w-min !mt-0"}
           />
         </div>
-        <ReactTransliterate
-          value={getInputValue("transcription")}
-          onChangeText={(text) => {
-            handleValueChange("transcription", text);
-          }}
-          lang={lang}
-          className="block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
-          renderComponent={(props) => {
-            inputTextRef.current = props.ref.current;
-            return <textarea {...props} />;
-          }}
-        />
-        {/* <CustomInput
-          type="text"
-          inputType="textarea"
-          refs={inputTextRef}
-          name="transcription"
-          id="transcription"
-          // formError={formError}
-          placeholder="Transcription"
-          value={getInputValue("transcription")}
-          onChange={(e) => {
-            handleValueChange("transcription", e.target.value);
-          }}
-        /> */}
+        {lang == "kd010" ? (
+          <CustomInput
+            type="text"
+            inputType="textarea"
+            refs={inputTextRef}
+            name="transcription"
+            id="transcription"
+            // formError={formError}
+            value={getInputValue("transcription")}
+            onChange={(e) => {
+              handleValueChange("transcription", e.target.value);
+            }}
+            style={{ fontFamily: "Kruti Dev", fontSize: "1.2rem" }}
+          />
+        ) : (
+          <ReactTransliterate
+            value={getInputValue("transcription")}
+            onChangeText={(text) => {
+              handleValueChange("transcription", text);
+            }}
+            lang={lang}
+            className="block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none dark:bg-audino-light-navy dark:text-audino-cloud-gray ring-gray-300 dark:ring-audino-charcoal placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
+            renderComponent={(props) => {
+              inputTextRef.current = props.ref.current;
+              return <textarea {...props} />;
+            }}
+          />
+        )}
       </div>
 
       {showGender && (
         <div className="pt-4">
           <label
             htmlFor="gender"
-            className="block text-sm font-medium leading-6 text-gray-900"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
           >
             Gender
           </label>
@@ -393,7 +396,7 @@ export default function EditableFields({
         <div className="pt-4">
           <label
             htmlFor="locale"
-            className="block text-sm font-medium leading-6 text-gray-900"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
           >
             Locale
           </label>
@@ -423,7 +426,7 @@ export default function EditableFields({
         <div className="pt-4">
           <label
             htmlFor="accent"
-            className="block text-sm font-medium leading-6 text-gray-900"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
           >
             Accent
           </label>
@@ -460,7 +463,7 @@ export default function EditableFields({
         <div className="pt-4">
           <label
             htmlFor="emotion"
-            className="block text-sm font-medium leading-6 text-gray-900"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
           >
             Emotion
           </label>
@@ -491,7 +494,7 @@ export default function EditableFields({
         <div className="mb-4 pt-4">
           <label
             htmlFor="age"
-            className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver mb-2"
           >
             Age
           </label>

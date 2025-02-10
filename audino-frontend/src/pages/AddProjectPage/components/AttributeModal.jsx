@@ -135,23 +135,23 @@ export default function AttributeModal({ open, setOpen, currentLabelIndex, setCu
                             leaveTo="translate-x-full"
                         >
                             <Dialog.Panel className="pointer-events-auto w-screen max-w-2xl">
-                                <form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
+                                <form className="flex h-full flex-col overflow-y-scroll dark:bg-audino-navy bg-white shadow-xl">
                                     <div className="flex-1">
                                         {/* Header */}
-                                        <div className="bg-gray-50 px-4 py-6 sm:px-6">
+                                        <div className="bg-gray-50 dark:bg-audino-primary-dark px-4 py-6 sm:px-6">
                                             <div className="flex items-start justify-between space-x-3">
                                                 <div className="space-y-1">
-                                                    <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
+                                                    <Dialog.Title className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
                                                         Add attributes
                                                     </Dialog.Title>
-                                                    <p className="text-sm text-gray-500">
+                                                    <p className="text-sm text-gray-500 dark:text-gray-200">
                                                         Click on add new attribute button below to create your new attribute.
                                                     </p>
                                                 </div>
                                                 <div className="flex h-7 items-center">
                                                     <button
                                                         type="button"
-                                                        className="text-gray-400 hover:text-gray-500"
+                                                        className="text-gray-400 dark:text-audino-light-gray hover:text-gray-500 dark:hover:text-gray-700"
                                                         onClick={handleCancel}
                                                     >
                                                         <span className="sr-only">Close panel</span>
@@ -162,7 +162,7 @@ export default function AttributeModal({ open, setOpen, currentLabelIndex, setCu
                                         </div>
 
                                         {/* list of attribute fields */}
-                                        {attributes.length ? <div className="relative flex items-start flex-wrap gap-2 mb-2 space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0">
+                                        {attributes.length ? <div className="relative flex items-start flex-wrap gap-2 mb-2 space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 dark:divide-audino-graphite sm:py-0">
                                             {attributes.map((attr, index) =>
                                                 <AttributeFields
                                                     key={`attributefields-${index}`}
@@ -180,7 +180,7 @@ export default function AttributeModal({ open, setOpen, currentLabelIndex, setCu
 
                                         <button
                                             type="button"
-                                            className="group !mt-0 flex items-center rounded-md bg-white p-1 focus:outline-none focus:ring-2 focus:ring-audino-primary-dark mx-auto mb-6"
+                                            className="group !mt-0 flex items-center rounded-md dark:bg-transparent bg-white p-1 focus:outline-none focus:ring-2 focus:ring-audino-primary-dark mx-auto mb-6"
                                             onClick={handleAddAttribute}
                                         >
                                             <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-dashed border-audino-primary text-audino-primary">
@@ -193,11 +193,11 @@ export default function AttributeModal({ open, setOpen, currentLabelIndex, setCu
                                     </div>
 
                                     {/* Action buttons */}
-                                    <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+                                    <div className="flex-shrink-0 border-t dark:border-audino-graphite border-gray-200 px-4 py-5 sm:px-6">
                                         <div className="flex justify-end space-x-3">
                                             <button
                                                 type="button"
-                                                className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                className="rounded-md bg-white dark:bg-transparent px-3 py-2 text-sm font-medium text-gray-900 dark:text-audino-light-gray shadow-sm ring-1 ring-inset dark:ring-audino-graphite ring-gray-300 hover:bg-gray-50"
                                                 onClick={handleCancel}
                                             >
                                                 Cancel

@@ -32,7 +32,7 @@ export default function NewValueField({
             type="text"
             name="text"
             id="text"
-            className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-audino-primary sm:text-sm sm:leading-6"
+            className="block w-full rounded-none dark:bg-audino-light-navy  rounded-l-md border-0 py-1.5 text-gray-900 dark:text-audino-cloud-gray ring-1 ring-inset dark:ring-audino-charcoal ring-gray-300 placeholder:text-gray-400 dark:placeholder:text-audino-cloud-gray focus:ring-2 focus:ring-inset focus:ring-audino-primary text-sm sm:leading-6"
             placeholder={placeholder}
             value={value}
             onChange={(e) => {
@@ -43,7 +43,7 @@ export default function NewValueField({
         <>
           <button
             type="button"
-            className={`relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-gray-900 border-y border-gray-300 hover:bg-gray-50 border-r ${
+            className={`relative inline-flex dark:bg-audino-light-navy items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-gray-900 border-y border-gray-300 dark:border-audino-charcoal hover:bg-gray-50 border-r ${
               typeof onRemoveLabel === "function" ? "" : "rounded-r-md"
             }`}
             onClick={() =>
@@ -94,7 +94,7 @@ export default function NewValueField({
         {typeof onRemoveLabel === "function" ? (
           <button
             type="button"
-            className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset dark:ring-audino-graphite ring-gray-300 hover:bg-gray-50 dark:hover:bg-transparent"
             onClick={() => onRemoveLabel(index)}
           >
             <TrashIcon

@@ -42,7 +42,7 @@ export default function DragInput({ handleInputChange, isMultiple }) {
       <label
         htmlFor="dropzone-file"
         className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer ${
-          dragActive ? "bg-gray-50" : "border-gray-300"
+          dragActive ? "bg-gray-50" : "border-gray-300 dark:border-audino-charcoal"
         }`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}

@@ -1,5 +1,5 @@
 export default function AddTaskPageLoader() {
-    return <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full ">
+    return <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full ">
         <div role="status" className="max-w-md p-4 space-y-4 animate-pulse md:p-6 ">
 
             {[...Array(5).keys()].map(load =>

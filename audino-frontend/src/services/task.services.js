@@ -4,7 +4,7 @@ import globalParams from "./global-params";
 import chunkUpload from "../functions/chunkUpload";
 import { toast } from "react-hot-toast";
 import { handleDjangoErrors } from "../utils/errorHandler";
-import './axios-config'
+import "./axios-config";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -52,7 +52,6 @@ export const createTaskApi = async ({ taskSpec, taskDataSpec, onUpdate }) => {
     });
   }
   // console.log(taskSpec, taskDataSpec, onUpdate);
-
   const chunkSize = 100 * 1024 * 1024; // threshold for chunksize
   const clientFiles = taskDataSpec.client_files;
   const chunkFiles = [];
@@ -227,15 +226,19 @@ export const createTaskWithDataApi = async ({
   const bulkFiles = [];
   let totalSize = 0;
   let totalSentSize = 0;
-  for (const file of clientFiles) {
-    if (file.size > chunkSize) {
-      chunkFiles.push(file);
-    } else {
-      bulkFiles.push(file);
+  let isClient_files = taskDataSpec.client_files;
+
+  if (isClient_files) {
+    for (const file of clientFiles) {
+      if (file.size > chunkSize) {
+        chunkFiles.push(file);
+      } else {
+        bulkFiles.push(file);
+      }
+      totalSize += file.size;
     }
-    totalSize += file.size;
+    delete taskDataSpec.client_files;
   }
-  delete taskDataSpec.client_files;
 
   const taskData = new FormData();
   for (const [key, value] of Object.entries(taskDataSpec)) {
@@ -285,9 +288,9 @@ export const createTaskWithDataApi = async ({
         taskData.append(`client_files[${idx}]`, element);
       }
       const percentage = totalSentSize / totalSize;
-      console.log('====================================');
+      console.log("====================================");
       console.log("bulk upload", percentage, totalSentSize, totalSize);
-      console.log('====================================');
+      console.log("====================================");
       onUpdate("The data are being uploaded to the server", percentage);
       await axios.post(`${BASE_URL}/tasks/${taskId}/data`, taskData, {
         ...params,
@@ -306,22 +309,25 @@ export const createTaskWithDataApi = async ({
       ...params,
       headers: { "Upload-Start": true, ...authHeader() },
     });
-    const uploadConfig = {
-      endpoint: `${BASE_URL}/tasks/${response.data.id}/data/`,
-      onUpdate: (percentage) => {
-        onUpdate("The data are being uploaded to the server", percentage);
-      },
-      chunkSize,
-      totalSize,
-      totalSentSize,
-    };
-    for (const file of chunkFiles) {
-      console.log("chunk upload");
-      uploadConfig.totalSentSize += await chunkUpload(file, uploadConfig);
-    }
-    if (bulkFiles.length > 0) {
-      console.log("bulk upload");
-      await bulkUpload(response.data.id, bulkFiles);
+
+    if (isClient_files) {
+      const uploadConfig = {
+        endpoint: `${BASE_URL}/tasks/${response.data.id}/data/`,
+        onUpdate: (percentage) => {
+          onUpdate("The data are being uploaded to the server", percentage);
+        },
+        chunkSize,
+        totalSize,
+        totalSentSize,
+      };
+      for (const file of chunkFiles) {
+        console.log("chunk upload");
+        uploadConfig.totalSentSize += await chunkUpload(file, uploadConfig);
+      }
+      if (bulkFiles.length > 0) {
+        console.log("bulk upload");
+        await bulkUpload(response.data.id, bulkFiles);
+      }
     }
     await axios.post(`${BASE_URL}/tasks/${response.data.id}/data`, taskData, {
       ...params,

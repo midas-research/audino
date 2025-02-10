@@ -1,3 +1,5 @@
+import React,{useState} from 'react';
+import { SunIcon,MoonIcon } from '@heroicons/react/24/outline'
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import ErrorBoundary from "./routes/error-page";
@@ -14,7 +16,23 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/ForgotPasswordPage/ChangePasswordPage";
 
 function App() {
+  const [isDarkMode,setIsDarkMode] = useState(localStorage.getItem('theme') === 'dark');
+
+  const toggleDarkMode = () => {
+    const rootElement = document.documentElement;
+    
+    if (rootElement.classList.contains('dark')) {
+      rootElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      rootElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
   return (
+    <div className=''>
     <BrowserRouter>
       <ScrollToTop />
       {CustomToast()}
@@ -104,7 +122,17 @@ function App() {
         />
       </Routes>
     </BrowserRouter>
+    <button
+        onClick={toggleDarkMode}
+        id="darkModeToggle"
+        className="fixed bottom-4 right-4 p-2 bg-gray-200 dark:bg-gray-800 text-black dark:text-white rounded-full shadow-lg z-[9999]"
+      >
+        {isDarkMode ? <SunIcon className='h-7 w-7'/> : <MoonIcon className='h-5 w-5'/>}
+      </button>
+
+    </div>
   );
+ 
 }
 
 export default App;

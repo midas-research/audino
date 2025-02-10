@@ -109,7 +109,7 @@ export default function AnalyticsSettingModal({ open, setOpen, taskId }) {
               >
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-md transform transition duration-500 ease-in-out data-[closed]:translate-x-full sm:duration-700">
                   <form
-                    className="flex h-full flex-col divide-y divide-gray-200 bg-white shadow-xl"
+                    className="flex h-full flex-col divide-y dark:divide-audino-slate-gray divide-gray-200 dark:bg-audino-navy bg-white shadow-xl"
                     onSubmit={handleSave}
                   >
                     <div className="h-0 flex-1 overflow-y-auto">
@@ -140,12 +140,12 @@ export default function AnalyticsSettingModal({ open, setOpen, taskId }) {
                         </div> */}
                       </div>
                       <div className="flex flex-1 flex-col justify-between">
-                        <div className="divide-y divide-gray-200 px-4 sm:px-6">
+                        <div className="divide-y dark:divide-audino-slate-gray divide-gray-200 px-4 sm:px-6">
                           <div className="space-y-6 pb-5 pt-6">
                             <div>
                               <label
                                 htmlFor="project-name"
-                                className="block text-sm font-medium leading-6 text-gray-900"
+                                className="block text-sm font-medium leading-6 dark:text-audino-light-gray text-gray-900"
                               >
                                 WER threshold
                               </label>
@@ -171,7 +171,7 @@ export default function AnalyticsSettingModal({ open, setOpen, taskId }) {
                             <div>
                               <label
                                 htmlFor="project-name"
-                                className="block text-sm font-medium leading-6 text-gray-900"
+                                className="block text-sm font-medium leading-6 dark:text-audino-light-gray text-gray-900"
                               >
                                 CER threshold
                               </label>
@@ -210,7 +210,7 @@ export default function AnalyticsSettingModal({ open, setOpen, taskId }) {
                               />
                               <label
                                 htmlFor="compare_extra_parameters"
-                                className="ml-3 block text-sm leading-6 text-gray-900"
+                                className="ml-3 block text-sm leading-6 dark:text-audino-light-gray text-gray-900"
                               >
                                 Compare extra parameters
                               </label>
@@ -231,7 +231,7 @@ export default function AnalyticsSettingModal({ open, setOpen, taskId }) {
                               />
                               <label
                                 htmlFor="compare_attributes"
-                                className="ml-3 block text-sm leading-6 text-gray-900"
+                                className="ml-3 block text-sm leading-6 dark:text-audino-light-gray text-gray-900"
                               >
                                 Compare attributes
                               </label>
@@ -243,7 +243,7 @@ export default function AnalyticsSettingModal({ open, setOpen, taskId }) {
                     <div className="flex flex-shrink-0 justify-end px-4 py-4 gap-2">
                       <button
                         type="button"
-                        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                        className="rounded-md bg-white dark:bg-transparent px-3 py-2 text-sm font-semibold text-gray-900 dark:text-audino-light-gray shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-slate-gray hover:bg-gray-50"
                         onClick={() => setOpen(false)}
                       >
                         Cancel

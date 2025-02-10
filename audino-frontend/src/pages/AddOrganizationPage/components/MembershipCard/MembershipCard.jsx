@@ -119,7 +119,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
       {membership.invitation && invitationDetailsLoading ? (
         [...Array(1).keys()].map((load) => (
           <li
-            className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white cursor-pointer py-8 sm:py-0"
+            className="col-span-1 divide-y divide-gray-200 dark:divide-audino-charcoal rounded-lg dark:bg-audino-navy bg-white cursor-pointer py-8 sm:py-0"
             onClick={() => navigate("create")}
             key={`CardLoader-${load}`}
           >
@@ -128,7 +128,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
         ))
       ) : (
         <div
-          className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-11 gap-4 px-4 md:px-5 rounded-md p-2 mb-6 last:mb-0 items-center justify-between ${isOwner ? "bg-gray-100" : ""
+          className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-11 gap-4 px-4 md:px-5 rounded-md p-2 mb-6 last:mb-0 items-center justify-between ${isOwner ? "bg-gray-100 dark:bg-[#D9D9D940]" : ""
             }`}
         >
           <div className="col-span-1 sm:col-span-1 md:col-span-2 ">
@@ -166,7 +166,7 @@ const MembershipCard = ({ membership, onMembershipUpdate }) => {
           <div className="col-span-1 w-36 sm:col-span-2 md:col-span-2 align-left">
             <select
               id={membership.key}
-              className={`border-none focus:ring-0 bg-gray-50 block w-full text-green-600 rounded-md text-sm ${isOwner ? "cursor-not-allowed bg-white" : ""
+              className={`border-none focus:ring-0 bg-gray-50 dark:bg-audino-light-navy block w-full text-green-600 rounded-md text-sm ${isOwner ? "cursor-not-allowed bg-white" : ""
                 }`}
               value={selectedRole}
               onChange={handleRoleChange}

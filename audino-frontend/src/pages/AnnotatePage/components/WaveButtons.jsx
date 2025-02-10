@@ -4,6 +4,7 @@ import {
   ArrowUturnRightIcon,
   ChevronUpDownIcon,
   CodeBracketSquareIcon,
+  EllipsisVerticalIcon,
   MagnifyingGlassMinusIcon,
   PauseIcon,
   PlayIcon,
@@ -165,11 +166,11 @@ export default function WaveButtons({
 
   return (
     <>
-      <p className="truncate text-center text-sm font-bold leading-6 my-2">
+      <p className="truncate dark:text-white text-center text-sm font-bold leading-6 my-2">
         <span id="currentTime"></span> - {formatTime(totalDuration) || "00:00"}
       </p>
       <div className="relative w-full">
-        <div className="bg-slate-100 h-1.5 w-full rounded-lg"></div>
+        <div className="bg-slate-100 dark:bg-audino-midnight h-1.5 w-full rounded-lg"></div>
         <div
           className="bg-audino-primary h-1.5 rounded-lg absolute top-0"
           ref={progressBarRef}
@@ -195,70 +196,71 @@ export default function WaveButtons({
               <button
                 type="button"
                 ref={undoButtonRef}
-                className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center dark:bg-audino-navy bg-white p-2 text-gray-400 dark:text-white hover:bg-gray-50 rounded-full focus:z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleUndo}
                 disabled={undoStackRef.current.length === 0}
               >
                 <span className="sr-only">Undo</span>
-                <ArrowUturnLeftIcon className="h-5 w-5 stroke-slate-500 group-hover:stroke-slate-700" />
+                <ArrowUturnLeftIcon className="h-4 w-4 md:h-5 md:w-5 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white" />
               </button>
             </Tooltip>
           </div>
-          <div className="flex items-center gap-2 justify-center">
+          <div className="flex items-center gap-1 md:gap-2 justify-center">
             <Tooltip message="Redo">
               <button
                 type="button"
                 ref={redoButtonRef}
-                className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center dark:bg-audino-navy bg-white   p-2 text-gray-400 dark:text-white hover:bg-gray-50 rounded-full focus:z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleRedo}
                 disabled={redoStackRef.current.length === 0}
               >
                 <span className="sr-only">Redo</span>
-                <ArrowUturnRightIcon className="h-5 w-5 stroke-slate-500 group-hover:stroke-slate-700" />
+                <ArrowUturnRightIcon className="h-4 w-4 md:h-5 md:w-5 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white" />
               </button>
             </Tooltip>
           </div>
         </div>
 
-        <div className="col-span-2 flex justify-center items-center gap-4">
+        <div className="col-span-2 flex justify-center items-center md:gap-4 gap-1">
           <button
             type="button"
-            className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10"
+            className="relative inline-flex items-center dark:bg-audino-navy bg-white p-2 dark:text-white text-gray-400 hover:bg-gray-50 rounded-full focus:z-10"
             onClick={handleBackward}
           >
             <span className="sr-only">Backward</span>
-            <BackIcon className="h-6 w-6 stroke-slate-500 group-hover:stroke-slate-700" />
+            <BackIcon className="h-4 w-4 md:h-6 md:w-6 stroke-slate-500 dark:stroke-white group-hover:stroke-slate-700 dark:group-hover:stoke-white" />
           </button>
           <button
             type="button"
             className="relative inline-flex items-center text-gray-400 p-2 focus:z-10
-                   rounded-full bg-slate-700 hover:bg-slate-900 focus:outline-none
+                   rounded-full dark:bg-audino-gradient bg-slate-700 hover:bg-slate-900 focus:outline-none
         "
             onClick={handlePlay}
           >
             <span className="sr-only">Play/ Pause</span>
             {isPlaying ? (
-              <PauseIcon className="h-6 w-6 text-white" aria-hidden="true" />
+              <PauseIcon className="h-4 w-4 md:h-6 md:w-6 text-white" aria-hidden="true" />
             ) : (
-              <PlayIcon className="h-6 w-6 text-white" aria-hidden="true" />
+              <PlayIcon className="h-4 w-4 md:h-6 md:w-6 text-white" aria-hidden="true" />
             )}
           </button>
           <button
             type="button"
-            className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10"
+            className="relative inline-flex items-center dark:bg-audino-navy bg-white p-2 dark:text-white text-gray-400 hover:bg-gray-50 rounded-full focus:z-10"
             onClick={handleForward}
           >
             <span className="sr-only">Forward</span>
-            <ForwardIcon className="h-6 w-6 stroke-slate-500 group-hover:stroke-slate-700" />
+            <ForwardIcon className="h-4 w-4 md:h-6 md:w-6 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white" />
           </button>
         </div>
+       
 
-        <div className="col-span-2 flex items-center gap-2 justify-end">
+        <div className="col-span-2 flex items-center gap-2  justify-end">
           {/* <Tooltip message="Change vertical zoom"> */}
           <Menu as="div" className="relative inline-block text-left">
             <div>
-              <Menu.Button className="relative inline-flex items-center bg-white p-2 text-gray-500 hover:bg-gray-50 rounded-full focus:z-10">
-                <ChevronUpDownIcon className="h-6 w-6 stroke-slate-500 group-hover:stroke-slate-700" />
+              <Menu.Button className="relative inline-flex items-center dark:bg-audino-navy bg-white pt-2 sm:p-2 text-gray-500 dark:text-white hover:bg-gray-50 dark:hover:bg-audino-navy rounded-full focus:z-10">
+                <ChevronUpDownIcon className="h-4 w-4 md:h-6 md:w-6 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white" />
               </Menu.Button>
             </div>
             <Transition
@@ -269,11 +271,11 @@ export default function WaveButtons({
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute right-0 z-10 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-2">
+              <Menu.Items className="absolute right-0 z-10 origin-top-right rounded-md dark:bg-audino-deep-space bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-2">
                 <div className="flex flex-col items-start justify-center ">
                   <label
                     htmlFor="vertical_range"
-                    className="text-sm font-medium leading-6 text-gray-900"
+                    className="text-sm font-medium leading-6 dark:text-white text-gray-900"
                   >
                     Vertical Zoom
                   </label>
@@ -293,14 +295,15 @@ export default function WaveButtons({
                   />
                 </div>
               </Menu.Items>
+              
             </Transition>
           </Menu>
 
           {/* <Tooltip message="Change horizontal zoom"> */}
           <Menu as="div" className="relative inline-block text-left">
             <div>
-              <Menu.Button className="relative inline-flex items-center bg-white p-2 text-gray-500 hover:bg-gray-50 rounded-full focus:z-10">
-                <ChevronUpDownIcon className="h-6 w-6 stroke-slate-500 group-hover:stroke-slate-700 rotate-90" />
+              <Menu.Button className="relative inline-flex items-center dark:bg-audino-navy bg-white pt-2 sm:p-2 text-gray-500 dark:text-white hover:bg-gray-50 dark:hover:bg-audino-navy rounded-full focus:z-10">
+                <ChevronUpDownIcon className="h-4 w-4 md:h-6 md:w-6 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white rotate-90" />
               </Menu.Button>
             </div>
             <Transition
@@ -311,11 +314,11 @@ export default function WaveButtons({
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute right-0 z-10 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-2">
+              <Menu.Items className="absolute right-0 z-10 origin-top-right rounded-md dark:bg-audino-deep-space  bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-2">
                 <div className="flex flex-col items-start justify-center ">
                   <label
                     htmlFor="vertical_range"
-                    className="text-sm font-medium leading-6 text-gray-900"
+                    className="text-sm font-medium leading-6 dark:text-white text-gray-900"
                   >
                     Horizontal Zoom
                   </label>{" "}
@@ -341,8 +344,8 @@ export default function WaveButtons({
           {/* <Tooltip message="Change volume"> */}
           <Menu as="div" className="relative inline-block text-left">
             <div>
-              <Menu.Button className="relative inline-flex items-center bg-white p-2 text-gray-500 hover:bg-gray-50 rounded-full focus:z-10">
-                <SpeakerWaveIcon className="h-6 w-6 stroke-slate-500 group-hover:stroke-slate-700" />
+              <Menu.Button className="relative inline-flex items-center dark:bg-audino-navy bg-white pt-2 sm:p-2 text-gray-500 dark:text-white hover:bg-gray-50 dark:hover:bg-audino-navy rounded-full focus:z-10">
+                <SpeakerWaveIcon className="h-4 w-4 md:h-6 md:w-6 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white" />
               </Menu.Button>
             </div>
             <Transition
@@ -353,11 +356,11 @@ export default function WaveButtons({
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute right-0 z-10  origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none flex items-center p-2">
+              <Menu.Items className="absolute right-0 z-10  origin-top-right rounded-md dark:bg-audino-deep-space bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none flex items-center p-2">
                 <div className="flex flex-col items-start justify-center ">
                   <label
                     htmlFor="vertical_range"
-                    className="text-sm font-medium leading-6 text-gray-900"
+                    className="text-sm font-medium leading-6 dark:text-white text-gray-900"
                   >
                     Volume
                   </label>
@@ -380,7 +383,7 @@ export default function WaveButtons({
           {/* <Tooltip message="Change speed"> */}
           <Menu as="div" className="relative inline-block text-left">
             <div>
-              <Menu.Button className="relative inline-flex items-center bg-white p-2 text-gray-500 hover:bg-gray-50 rounded-full focus:z-10">
+              <Menu.Button className="relative inline-flex items-center dark:bg-audino-navy bg-white    sm:p-2 text-gray-500 dark:text-white  sm:text-sm text-xs hover:bg-gray-50 dark:hover:bg-audino-navy rounded-full focus:z-10">
                 {trackSpeed}x
               </Menu.Button>
             </div>
@@ -392,7 +395,7 @@ export default function WaveButtons({
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute right-0 z-10 w-24 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <Menu.Items className="absolute right-0 z-10 w-24 origin-top-right  rounded-md dark:bg-audino-deep-space bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                 <div className="py-1">
                   {["0.25", "0.5", "0.75", "1", "1.25", "1.5", "1.75", "2"].map(
                     (val) => {
@@ -406,9 +409,9 @@ export default function WaveButtons({
                               }}
                               className={classNames(
                                 val == trackSpeed
-                                  ? "bg-gray-100 text-gray-900"
-                                  : "text-gray-700",
-                                "block px-4 py-2 text-sm w-full text-left hover:bg-gray-100 hover:text-gray-900"
+                                  ? "bg-gray-100 dark:bg-audino-green-translucent text-gray-900 dark:text-white "
+                                  : "text-gray-700 dark:text-white",
+                                "block px-4 py-2 text-xs sm:text-sm w-full text-left dark:hover:bg-audino-green-translucent hover:bg-gray-100 hover:text-gray-900"
                               )}
                             >
                               {val === "1" ? "Normal" : val}
@@ -426,10 +429,10 @@ export default function WaveButtons({
           <Tooltip message="Audino Shortcuts">
             <button
               type="button"
-              className="relative inline-flex items-center bg-white p-2 text-gray-400 hover:bg-gray-50 rounded-full focus:z-10 outline-none"
+              className="relative  items-center dark:bg-audino-navy bg-white hidden lg:inline-flex p-2 text-gray-400 dark:text-white hover:bg-gray-50 dark:hover:bg-audino-navy rounded-full focus:z-10 outline-none"
               onClick={() => setKeyShortcutModalOpen(true)}
             >
-              <KeyboardIcon className="h-6 w-6 stroke-slate-500 group-hover:stroke-slate-700" />
+              <KeyboardIcon className="h-6 w-6 dark:stroke-white stroke-slate-500 group-hover:stroke-slate-700 dark:group-hover:stroke-white" />
             </button>
           </Tooltip>
         </div>

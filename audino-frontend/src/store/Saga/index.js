@@ -3,6 +3,7 @@ import loginSaga from "./loginSaga";
 import projectSaga from "./projectSaga";
 import taskSaga from "./taskSaga";
 import annotationSaga from "./annotationSaga";
+import cloudstorageSaga from "./cloudstorageSaga"
 
 export default function* rootSaga() {
   yield all([
@@ -10,5 +11,6 @@ export default function* rootSaga() {
     taskSaga(),
     projectSaga(),
     annotationSaga(),
+    cloudstorageSaga(),
   ]);
 }

@@ -98,13 +98,13 @@ export default function ExportAnnotationModal({
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                <div className="bg-white">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg dark:bg-audino-navy bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div className="bg-white dark:bg-audino-navy">
                   {/* Header */}
-                  <div className="bg-gray-50 px-4 py-6 sm:px-6">
+                  <div className="bg-gray-50 dark:bg-audino-navy px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between space-x-3">
                       <div className="space-y-1">
-                        <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
+                        <Dialog.Title className="text-base font-semibold leading-6 dark:text-audino-light-gray text-gray-900">
                           Export #{currentId} as a dataset{" "}
                         </Dialog.Title>
                         <p className="text-sm text-gray-500">
@@ -120,9 +120,9 @@ export default function ExportAnnotationModal({
                     <div className="mb-4">
                       <label
                         htmlFor="format"
-                        className="block text-sm font-medium leading-6 text-gray-900"
+                        className="block text-sm font-medium leading-6 dark:text-audino-light-gray text-gray-900"
                       >
-                        Export format <span className="text-red-600">*</span>
+                        Export format <span className="text-red-600 dark:text-audino-primary">*</span>
                       </label>
                       <CustomSelect
                         id="format"
@@ -145,10 +145,10 @@ export default function ExportAnnotationModal({
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <div className="bg-gray-50 dark:bg-audino-navy px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-audino-primary px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto"
+                    className="inline-flex w-full justify-center rounded-md dark:bg-audino-gradient bg-audino-primary px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto"
                     onClick={handleDownloadAnnotations}
                     disabled={downloadAnnotationMutation.isLoading}
                   >
@@ -158,7 +158,7 @@ export default function ExportAnnotationModal({
                   </button>
                   <button
                     type="button"
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                    className="mt-3 inline-flex w-full justify-center rounded-md dark:bg-transparent bg-white px-3 py-2 text-sm font-semibold text-gray-900 dark:text-audino-light-gray shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-gray hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     onClick={() => setOpen(false)}
                     ref={cancelButtonRef}
                   >

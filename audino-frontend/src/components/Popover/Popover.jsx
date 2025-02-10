@@ -25,7 +25,7 @@ export default function AudinoPopover({ button, content }) {
         className={"relative z-50"}
       >
         <Popover.Panel className="absolute right-0 mt-5 flex w-screen max-w-max px-4">
-          <div className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 px-4 py-2">
+          <div className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white dark:bg-audino-deep-space dark:bg-text-white dark:text-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 px-4 py-2 ">
             {content}
           </div>
         </Popover.Panel>

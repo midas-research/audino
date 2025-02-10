@@ -11,17 +11,20 @@ const CustomCheckbox = ({
   value,
   onChange,
   refs = null,
+  type,
+  onClick = () => {},
   ...restParams
 }) => {
+  const customTextColor = type === 'DIR' ? "text-audino-primary" : "text-gray-900 dark:text-audino-cloud-gray";
   return (
-    <div className="relative flex items-start">
+    <div  onClick={onClick} className="relative flex items-start ring-gray-300 ring-1 dark:ring-audino-charcoal p-2 dark:bg-audino-light-navy rounded-md">
       <div className="flex h-6 items-center">
         <input
           id={id}
           name={name}
           type="checkbox"
           ref={refs}
-          className={`h-4 w-4 rounded border-gray-300 text-audino-primary-dark focus:ring-0 focus:ring-offset-0 ${
+          className={`h-4 w-4 rounded border-gray-300 dark:bg-audino-cloud-gray dark:text-audino-cloud-gray  text-audino-primary-dark focus:ring-0 focus:ring-offset-0 ${
             formError && formError[name]
               ? "border-red-300 focus:ring-red-500"
               : ""
@@ -31,13 +34,13 @@ const CustomCheckbox = ({
           {...restParams}
         />
       </div>
-      <div className="ml-3 text-sm leading-6 flex justify-between w-full">
-        <label htmlFor={id} className="font-medium text-gray-900">
+      <div className="ml-3 leading-6 flex justify-between w-full">
+        <label htmlFor={id} className={`font-medium ${customTextColor}  text-xs`}>
           {label}
         </label>
         {description && (
           <Tooltip message={description}>
-            <InformationCircleIcon className="w-5 h-5" />
+            <InformationCircleIcon className="w-5 h-5 dark:text-audino-cloud-gray" />
           </Tooltip>
         )}
       </div>

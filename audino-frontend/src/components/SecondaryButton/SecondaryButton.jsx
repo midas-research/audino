@@ -10,7 +10,7 @@ export default function SecondaryButton({
 }) {
   return (
     <button
-      className={`flex items-center rounded-md bg-white px-3 text-sm font-medium shadow-sm ring-1 ring-inset ${className}`}
+      className={`flex items-center rounded-md bg-white dark:bg-audino-light-navy dark:text-audino-cloud-gray px-3 text-sm font-medium shadow-sm ring-1 ring-inset ${className}`}
       onClick={onClick}
       type={type}
       disabled={loading}

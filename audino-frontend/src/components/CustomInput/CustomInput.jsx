@@ -13,6 +13,7 @@ const CustomInput = ({
   refs = null,
   min = 0,
   step = 0,
+  disabled = false,
   ...restParams
 }) => {
   return (
@@ -25,17 +26,18 @@ const CustomInput = ({
             name={name}
             {...(step ? { step: step } : {})}
             id={id}
-            className={`block w-full rounded-md border-0 py-1.5 ring-1 ring-inset ${formError && formError[name]
+            className={`block w-full dark:bg-audino-light-navy dark:ring-audino-charcoal rounded-md border-0 py-1.5 ring-1 ring-inset ${formError && formError[name]
                 ? "ring-red-300 placeholder:text-red-300 focus:ring-red-500 text-red-900"
-                : "ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900"
+                : "ring-gray-300 placeholder:text-gray-300 dark:placeholder:text-audino-cloud-gray focus:ring-audino-primary text-gray-900 dark:text-audino-cloud-gray"
             }
             ${
               type === "number" && !formError?.[name] ? "" : "pr-10"
-            }  focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none`}
+            }  focus:ring-2 focus:ring-inset text-sm  sm:leading-6 !outline-none`}
             placeholder={placeholder}
             aria-invalid="true"
             aria-describedby={`${name}-error`}
             value={value}
+            disabled={disabled}
             onChange={(e) => {
               if (type === "number" && e.target.value < 0) {
               } else {
@@ -50,10 +52,10 @@ const CustomInput = ({
             name={name}
             ref={refs}
             id={id}
-            className={`block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset ${formError && formError["email"]
+            className={`block w-full dark:bg-audino-light-navy rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset ${formError && formError["email"]
                 ? "ring-red-300 placeholder:text-red-300 focus:ring-red-500 text-red-900"
-                : "ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
-              }  focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none`}
+                : "ring-gray-300 dark:ring-audino-charcoal placeholder:text-gray-300 dark:placeholder:text-audino-cloud-gray focus:ring-audino-primary text-gray-900 dark:text-audino-cloud-gray "
+              }  focus:ring-2 focus:ring-inset text-sm sm:leading-6 !outline-none`}
             placeholder={placeholder}
             aria-invalid="true"
             aria-describedby={`${name}-error`}

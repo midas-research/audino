@@ -437,13 +437,6 @@ export default function AnnotatePage({}) {
     },
   });
 
-  useEffect(() => {
-    if (jobId) {
-      getJobDetailQuery.refetch();
-      getJobMetaDataQuery.refetch();
-    }
-  }, [jobId]);
-
   // fetch project detail when job detail fetched
   const getLabelsQuery = useLabelsQuery({
     queryConfig: {
@@ -557,8 +550,11 @@ export default function AnnotatePage({}) {
     endNo,
     jobId,
     included_frames,
-    segment_size
+    segment_size,
+    overlap
   ) => {
+    console.log({ startNo, endNo });
+
     let combinedBuffer = null;
     let offset = 0;
     const audioUrls = [];
@@ -573,38 +569,81 @@ export default function AnnotatePage({}) {
       let start_frame = included_frames[0];
       let jobs = [];
 
-      for (let i = 1; i < included_frames.length; i++) {
-        if (included_frames[i] - start_frame >= segment_size) {
-          jobs.push({
-            start_frame,
-            endFrame: included_frames[i - 1],
-          });
-          start_frame = included_frames[i];
+      function generateJobs(included_frames, segment_size, overlap) {
+        if (!included_frames.length) return [];
+
+        const jobs = [];
+        let start_frame = included_frames[0];
+
+        while (
+          start_frame + segment_size <=
+          included_frames[included_frames.length - 1]
+        ) {
+          let end_frame = start_frame + segment_size - 1;
+
+          // Check if BOTH start_frame AND end_frame exist in included_frames
+          const startExists = included_frames.includes(start_frame);
+          const endExists = included_frames.includes(end_frame);
+
+          if (startExists && endExists) {
+            jobs.push({
+              start_frame,
+              endFrame: end_frame,
+            });
+          }
+
+          // Move start_frame back by the overlap for the next job
+          start_frame = end_frame - overlap + 1;
+
+          // Find the next valid start frame
+          while (
+            !included_frames.includes(start_frame) &&
+            start_frame <= included_frames[included_frames.length - 1]
+          ) {
+            start_frame++;
+          }
+
+          // Break if we can't find a valid next start frame
+          if (!included_frames.includes(start_frame)) {
+            break;
+          }
         }
+
+        // Handle the last section if necessary
+        const last_start = start_frame;
+        if (
+          included_frames.includes(last_start) &&
+          last_start < included_frames[included_frames.length - 1]
+        ) {
+          jobs.push({
+            start_frame: last_start,
+            endFrame: included_frames[included_frames.length - 1],
+          });
+        }
+
+        return jobs;
       }
 
-      if (start_frame !== included_frames[included_frames.length - 1]) {
-        jobs.push({
-          start_frame,
-          endFrame: included_frames[included_frames.length - 1],
-        });
-      }
-
-      noOfChunks = jobs.reduce(
-        (acc, job) =>
-          acc +
-          Math.trunc(job.endFrame / getJobMetaDataQuery.data.chunk_size) -
-          Math.trunc(job.start_frame / getJobMetaDataQuery.data.chunk_size) +
-          1,
-        0
-      );
+      jobs = generateJobs(included_frames, segment_size, overlap);
+      // noOfChunks = jobs.reduce(
+      //   (acc, job) =>
+      //     acc +
+      //     Math.trunc(job.endFrame / getJobMetaDataQuery.data.chunk_size) -
+      //     Math.trunc(job.start_frame / getJobMetaDataQuery.data.chunk_size) +
+      //     1,
+      //   0
+      // );
 
       for (let i = 0; i < jobs.length; i++) {
         start = Math.trunc(
-          jobs[i].start_frame / getJobMetaDataQuery.data.chunk_size
+          jobs[i].start_frame /
+            (getJobMetaDataQuery.data.chunk_size -
+              getJobDetailQuery.data.overlap)
         );
         end = Math.trunc(
-          jobs[i].endFrame / getJobMetaDataQuery.data.chunk_size
+          jobs[i].start_frame /
+            (getJobMetaDataQuery.data.chunk_size -
+              getJobDetailQuery.data.overlap)
         );
 
         const result = await computeAudioData(
@@ -615,7 +654,7 @@ export default function AnnotatePage({}) {
           offset,
           audioUrls,
           urlIndex,
-          noOfChunks
+          jobs.length
         );
 
         combinedBuffer = result.combinedBuffer;
@@ -646,15 +685,18 @@ export default function AnnotatePage({}) {
       fetchAudioDataRecursive(
         Math.trunc(
           getJobMetaDataQuery.data.start_frame /
-            getJobMetaDataQuery.data.chunk_size
+            (getJobMetaDataQuery.data.chunk_size -
+              getJobDetailQuery.data.overlap)
         ),
         Math.trunc(
-          getJobMetaDataQuery.data.stop_frame /
-            getJobMetaDataQuery.data.chunk_size
+          getJobMetaDataQuery.data.start_frame /
+            (getJobMetaDataQuery.data.chunk_size -
+              getJobDetailQuery.data.overlap)
         ),
         jobId,
         getJobMetaDataQuery.data.included_frames,
-        getJobMetaDataQuery.data.chunk_size
+        getJobMetaDataQuery.data.chunk_size,
+        getJobDetailQuery.data.overlap
       ),
     onSuccess: (arrayBuffer) => {
       // console.log(arrayBuffer);
@@ -721,16 +763,23 @@ export default function AnnotatePage({}) {
   });
 
   useEffect(() => {
+    if (jobId) {
+      getJobDetailQuery.refetch();
+      getJobMetaDataQuery.refetch();
+    }
+  }, [jobId]);
+
+  useEffect(() => {
     if (getJobDetailQuery.data?.task_id) {
       getLabelsQuery.refetch();
     }
   }, [getJobDetailQuery.data?.task_id]);
 
   useEffect(() => {
-    if (getJobMetaDataQuery.data?.size) {
+    if (getJobMetaDataQuery.data?.size && getJobDetailQuery.data?.id) {
       getAnnotationDataQuery.refetch();
     }
-  }, [getJobMetaDataQuery.data?.size]);
+  }, [getJobMetaDataQuery.data?.size, getJobDetailQuery.data?.id]);
 
   const generateMissingRegionsFromGroundTruth = () => {
     console.log("final data", conflicts, gtAnnotations);
@@ -1218,9 +1267,9 @@ export default function AnnotatePage({}) {
         saveLoading={isSaveLoading()}
       />
 
-      <main className=" -mt-32 grid grid-cols-12 gap-4 sm:px-6 lg:px-8">
-        <div className="pb-12 col-span-9 ">
-          <div className="bg-white shadow min-h-full rounded-lg">
+      <main className=" -mt-32 grid grid-cols-12 gap-0  xl:gap-4 px-2 sm:px-8">
+        <div className="pb-12 col-span-12  xl:col-span-9 ">
+          <div className="bg-white dark:bg-audino-navy shadow min-h-full rounded-lg">
             {
               <>
                 {(getAnnotationDataQuery.isLoading ||
@@ -1230,8 +1279,10 @@ export default function AnnotatePage({}) {
                   </div>
                 )}
                 <div
-                  className={`rounded-lg bg-white ${
-                    isScrolled ? "sticky top-[5rem] z-10 px-6 pt-4" : "p-6"
+                  className={`rounded-lg bg-white dark:bg-audino-navy ${
+                    isScrolled
+                      ? "sticky top-[5rem] z-10 lg:px-6 px-2 pt-4"
+                      : "md:p-6 px-2 py-6"
                   }`}
                 >
                   <WaveSurfer plugins={plugins} onMount={handleWSMount}>
@@ -1239,6 +1290,7 @@ export default function AnnotatePage({}) {
                       id="waveform"
                       cursorColor="transparent"
                       waveColor="#65B892"
+                      className="w-full"
                     >
                       {regions.map((regionProps, regionIdx) => {
                         const tempRegion = { ...regionProps };
@@ -1256,7 +1308,7 @@ export default function AnnotatePage({}) {
                             //   // setIsPlaying(false);
                             // }}
                             onUpdateEnd={handleRegionUpdate}
-                            className="text-base font-semibold leading-6 text-gray-900"
+                            className="text-[4px] md:text-base  font-semibold leading-6 text-gray-900"
                             key={tempRegion.id}
                             // attributes={{
                             //   label: updatedLabel,
@@ -1266,14 +1318,17 @@ export default function AnnotatePage({}) {
                         );
                       })}
                     </WaveForm>
-                    <div id="timeline" />
+                    <div
+                      id="timeline"
+                      className="dark:bg-audino-deep-space dark:text-audino-storm-gray"
+                    />
                   </WaveSurfer>
                   {getAllLoading() ? (
                     <div className="p-2 mt-8">
                       {[...Array(5).keys()].map((val) => (
                         <div
                           key={`annotButton-${val}`}
-                          className="h-16 bg-gray-200 rounded-md w-full mb-2.5 pt-4 animate-pulse"
+                          className="h-16 bg-gray-200 dark:bg-audino-deep-space rounded-md w-full mb-2.5 pt-4 animate-pulse"
                         ></div>
                       ))}{" "}
                     </div>
@@ -1305,7 +1360,7 @@ export default function AnnotatePage({}) {
                 </div>
 
                 {regions[currentAnnotationIndex]?.data?.label ? (
-                  <div className="w-1/2 mx-auto">
+                  <div className="xl:w-1/2 px-4 xl:px-0 w-full mx-auto">
                     <EditableFields
                       inputTextRef={inputTextRef}
                       totalDuration={totalDuration}
@@ -1319,11 +1374,11 @@ export default function AnnotatePage({}) {
                     />
 
                     {/* Action buttons */}
-                    <div className="flex-shrink-0 border-t border-gray-200 my-8 py-4">
+                    <div className="flex-shrink-0 border-t dark:border-audino-neutral-gray border-gray-200 my-8 py-4">
                       <div className="flex justify-end space-x-3">
                         <button
                           type="button"
-                          className="rounded-md bg-white px-3 py-2 text-sm font-medium text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
+                          className="rounded-md bg-white dark:bg-transparent px-3 py-2 text-sm font-medium text-red-900 dark:text-[#C65A5A] shadow-sm ring-1 ring-inset ring-red-300 dark:ring-[#C65A5A] hover:bg-red-50 dark:hover:bg-red-200"
                           onClick={() => setDeleteModal(true)}
                           disabled={removeAnnotationMutation.isLoading}
                           ref={deleteButtonRef}
@@ -1334,7 +1389,7 @@ export default function AnnotatePage({}) {
                     </div>
                   </div>
                 ) : (
-                  <p className="mt-4 text-sm text-gray-400 text-center">
+                  <p className="mt-4 pb-4 px-4 sm:p-0 text-sm text-gray-400 text-center">
                     Drag over audio wave to create a region or Select a region
                     to annotate
                   </p>
@@ -1343,34 +1398,14 @@ export default function AnnotatePage({}) {
             }
           </div>
         </div>
-        <div className="pb-12 col-span-3 ">
+        <div className="pb-12 col-span-12 xl:col-span-3  ">
           <div
-            className={`bg-white shadow rounded-lg px-4 pt-0 ${
+            className={`bg-white dark:bg-audino-navy shadow rounded-lg px-4 pt-0 ${
               isScrolled ? "sticky top-[5rem] z-10 " : ""
-            }`}
+            } w-full `}
           >
-            <div className="sm:hidden">
-              <label htmlFor="tabs" className="sr-only">
-                Select a tab
-              </label>
-              {/* Use an "onChange" listener to redirect the user to the selected tab URL. */}
-              <select
-                id="tabs"
-                name="tabs"
-                onChange={(e) => setCurrentTab(e.target.value)}
-                className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                defaultValue={tabs[currentTab]?.name}
-              >
-                {tabs.map((tab, index) => (
-                  <option key={tab.name} value={index}>
-                    {tab.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="hidden sm:block">
-              <div className="border-b border-gray-200">
+            <div>
+              <div className="border-b border-gray-200 dark:border-audino-neutral-gray">
                 <nav className="-mb-px flex pt-4 " aria-label="Tabs">
                   {tabs.map((tab, index) => (
                     <p
@@ -1378,8 +1413,8 @@ export default function AnnotatePage({}) {
                       onClick={() => setCurrentTab(index)}
                       className={classNames(
                         currentTab === index
-                          ? "border-[#70CBA2] text-[#70CBA2]"
-                          : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                          ? "border-audino-primary text-audino-primary"
+                          : "border-transparent text-gray-500 dark:text-audino-light-silver hover:border-gray-300 hover:text-gray-700",
                         "w-1/4 cursor-pointer border-b-2 px-1 pb-2  text-center text-sm font-medium"
                       )}
                       aria-current={currentTab === index ? "page" : undefined}
@@ -1388,7 +1423,7 @@ export default function AnnotatePage({}) {
                     </p>
                   ))}
 
-                  <div className="ml-auto ">
+                  <div className="ml-auto">
                     <AudinoPopover
                       content={
                         currentTab === 0 ? (
@@ -1420,7 +1455,6 @@ export default function AnnotatePage({}) {
                     />
                   </div>
                 </nav>
-          
               </div>
             </div>
 

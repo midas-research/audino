@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AppBar from "../../components/AppBar/AppBar";
 import { useNavigate, useParams, useLocation } from "react-router";
-import PrimaryButton from "../../components/PrimaryButton/PrimaryButton";
+import PrimaryButton from "../../components/PrimaryButton/PrimaryIconButton";
 import CustomSelect from "../../components/CustomInput/CustomSelect";
 import CustomInput from "../../components/CustomInput/CustomInput";
 import useSingleFieldValidation from "../../utils/inputDebounce";
@@ -35,7 +35,12 @@ import { useAddTaskMutation } from "../../services/Task/useMutations";
 import DragInput from "./components/DragInput";
 import CustomCheckbox from "../../components/CustomInput/CustomCheckbox";
 import { DATASET_MAPING, OPTIONS_TASK_TYPE } from "../../constants/constants";
-
+import CustomButton from "../../components/CustomButton/CustomButton";
+import { useGetCloud } from "../../services/CloudStorages/useQueries";
+import { cloudStorageContentApi } from "../../services/cloudstorages.services";
+import CustomSearch from "../../components/CustomInput/CustomSearch";
+import NoContentMessage from "./components/NoContentMessage";
+import { ALLOWED_FORMATS } from "../../constants/cloudStatus";
 
 const initialData = {
   name: "",
@@ -44,6 +49,8 @@ const initialData = {
   project: "",
   subset: "",
   files: null,
+  cloud_storage_id: "",
+  server_files: [],
   segment_duration: 0,
   start_frame: 0,
   stop_frame: 0,
@@ -63,11 +70,12 @@ export default function AddTaskPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const prevIdsRef = useRef([]);
+  const prevPrefixRef = useRef("/");
   const searchParams = new URLSearchParams(location.search);
   const isMulti = searchParams.get("multi");
 
   const { id: taskId } = useParams();
-
   const [formValue, setFormValue] = useState(initialData);
   const [formError, setFormError] = useState({
     name: null,
@@ -90,6 +98,12 @@ export default function AddTaskPage() {
 
   const [highlighted, setHighlighted] = useState({});
   const [selectedTaskTypes, setSelectedTaskTypes] = useState({});
+  const [activeOption, setActiveOption] = useState("myComputer");
+  const [contents, setContents] = useState([]);
+  const [displayedContent, setDisplayedContent] = useState([]);
+  const [showSpinner, setShowSpinner] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [prefix, setPrefix] = useState("/");
 
   const { debouncedValidation: debouncedAddValidation } =
     useSingleFieldValidation(
@@ -153,13 +167,19 @@ export default function AddTaskPage() {
     }
     if (name === "segment_duration") {
       if (value > audioDuration?.[0] && !isMulti) {
-        toast.error("Segment duration cannot be greater than audio duration");
-        setFormValue((prev) => ({
-          ...prev,
-          [name]: Math.trunc(audioDuration[0]),
-        }));
+        if (audioDuration?.[0] > threshold) {
+          setFormValue((prev) => ({ ...prev, [name]: threshold }));
+        } else {
+          toast.error("Segment duration cannot be greater than audio duration");
+          setFormValue((prev) => ({
+            ...prev,
+            [name]: Math.trunc(audioDuration[0]),
+          }));
+        }
         return;
-      } else if (value > threshold) {
+      }
+
+      if (value > threshold) {
         toast.error(
           `Segment duration cannot be greater than ${threshold} milliseconds`
         );
@@ -216,7 +236,6 @@ export default function AddTaskPage() {
   };
 
   const handleSave = async () => {
-
     const hasTrueValue = Object.values(formValue.flags).includes(true);
     if (!hasTrueValue) {
       toast.error("At least one dataset must be selected");
@@ -246,32 +265,83 @@ export default function AddTaskPage() {
       const { isValid, error } = taskAddAllValidation(formValue);
       if (isValid) {
         const taskPromises = [];
+        const totalFiles =
+          formValue.files?.length || formValue.server_files?.length;
         setTaskStatus(() => ({
-          totalTasks: formValue.files.length,
-          pendingTasks: formValue.files.length,
+          totalTasks: totalFiles,
+          pendingTasks: totalFiles,
           successfulTasks: 0,
           failedTasks: 0,
           saveClicked: true,
         }));
 
-        for (let i = 0; i < formValue.files.length; i++) {
-          const currentFile = formValue.files[i];
-          let currentTaskName = formValue.name;
-          currentTaskName = currentTaskName
-            .replace(/{{index}}/g, i)
-            .replace(/{{file_name}}/g, currentFile.name);
-
-          // Update the form value with the current file and task name
+        let file_length = 0;
+        if (formValue.files) {
+          file_length = formValue.files.length;
+        } else if (formValue.server_files) {
+          file_length = formValue.server_files.length;
+        }
+        for (let i = 0; i < file_length; i++) {
           const updatedFormValue = {
             ...formValue,
-            name: currentTaskName,
-            files: [currentFile],
+          };
+          const tempTaskDataSpec = {
+            image_quality: 70,
+            sorting_method: "lexicographical",
           };
 
-          if (audioDuration[i] > threshold) {
-            updatedFormValue.segment_duration = threshold;
-          } else {
-            updatedFormValue.segment_duration = Math.trunc(audioDuration[i]);
+          if (formValue.files || formValue.server_files) {
+            if (formValue.server_files) {
+              const unsupportedFormats = formValue.server_files
+                .map((file) => file.split(".").pop().toLowerCase())
+                .filter((ext) => !ALLOWED_FORMATS.includes(ext));
+
+              if (unsupportedFormats.length > 0) {
+                const uniqueFormats = [...new Set(unsupportedFormats)];
+                toast.error(
+                  `Unsupported file formats ${uniqueFormats.join(
+                    ", "
+                  )} this platform support  ${ALLOWED_FORMATS} formats`
+                );
+                return;
+              }
+            }
+
+            const isFiles = formValue.files && formValue.files[i];
+            const isServerFiles =
+              formValue.server_files && formValue.server_files[i];
+            const currentFile = isFiles
+              ? formValue.files[i]
+              : isServerFiles
+              ? formValue.server_files[i]
+              : null;
+
+            if (currentFile) {
+              let currentTaskName = formValue.name;
+              currentTaskName = currentTaskName
+                .replace(/{{index}}/g, i)
+                .replace(/{{file_name}}/g, currentFile.name || currentFile);
+
+              updatedFormValue.name = currentTaskName;
+
+              if (isFiles) {
+                updatedFormValue.files = [currentFile];
+                tempTaskDataSpec.client_files = updatedFormValue.files;
+
+                if (updatedFormValue.segment_duration === 0) {
+                  updatedFormValue.segment_duration = Math.trunc(
+                    audioDuration[i]
+                  );
+                }
+              } else if (isServerFiles) {
+                updatedFormValue.server_files = [currentFile];
+                tempTaskDataSpec.server_files = updatedFormValue.server_files;
+                tempTaskDataSpec.cloud_storage_id =
+                  updatedFormValue.cloud_storage_id;
+
+                if (!isMulti && i > 0) break;
+              }
+            }
           }
 
           const taskPromise = addTaskMutation
@@ -286,9 +356,7 @@ export default function AddTaskPage() {
                 flags: updatedFormValue.flags,
               },
               taskDataSpec: {
-                image_quality: 70,
-                sorting_method: "lexicographical",
-                client_files: updatedFormValue.files,
+                ...tempTaskDataSpec,
               },
               onUpdate: (msg, status) => setResponseMsg({ msg, status }),
             })
@@ -326,6 +394,59 @@ export default function AddTaskPage() {
     }
   };
 
+  const handleSelection = useCallback(
+    (item, isChecked = false, click = false, index) => {
+      const updatedContent = displayedContent.map((content, i) =>
+        i === index ? { ...content, isSelected: isChecked } : content
+      );
+      if (item.type === "DIR") {
+        if (click) {
+          setPrefix((prevPrefix) => {
+            const basePrefix = prefix === "/" ? "" : prevPrefix;
+            return `datasets/${basePrefix}`;
+          });
+        }
+      } else {
+        setDisplayedContent(updatedContent);
+      }
+      setFormValue((prevFormValue) => {
+        const updatedServerFiles = isChecked
+          ? [...prevFormValue.server_files, item.name]
+          : prevFormValue.server_files.filter(
+              (fileName) => fileName !== item.name
+            );
+
+        const updatedForm = {
+          ...prevFormValue,
+          server_files: updatedServerFiles,
+        };
+        return updatedForm;
+      });
+    },
+    [displayedContent, contents, setDisplayedContent, setFormValue, prefix]
+  );
+
+  const handleRefresh = () => {
+    setShowSpinner(true);
+    setTimeout(() => {
+      const refreshedContent = displayedContent.map((item) => ({
+        ...item,
+        isSelected: false,
+      }));
+      setDisplayedContent(refreshedContent);
+      setShowSpinner(false);
+    }, 1000);
+  };
+
+  const filteredContent = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return displayedContent;
+    }
+    return displayedContent.filter((item) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [displayedContent, searchTerm]);
+
   const addTaskMutation = useAddTaskMutation({});
 
   const getProjectsQuery = useProjects({
@@ -340,6 +461,63 @@ export default function AddTaskPage() {
       onSuccess: (data) => console.log(data),
     },
   });
+
+  const getCloudQuery = useGetCloud({
+    queryConfig: {
+      queryKey: [],
+      apiParams: {
+        page_size: 15,
+        page: 1,
+      },
+      enabled: false,
+      staleTime: Infinity,
+      onSuccess: (data) => console.log(data),
+    },
+  });
+
+  const ids = useMemo(
+    () => (getCloudQuery?.data?.results || []).map((val) => val.id),
+    [getCloudQuery]
+  );
+
+  useEffect(() => {
+    const idsChanged =
+      ids.length !== prevIdsRef.current.length ||
+      ids.some((id, index) => id !== prevIdsRef.current[index]);
+
+    const prefixChanged = prefix !== prevPrefixRef.current;
+
+    if (idsChanged || (prefixChanged && ids.length > 0 && prefix)) {
+      const dataPromises = ids.map((id) =>
+        cloudStorageContentApi({ id, prefix }).then((response) => ({
+          id,
+          content: response.content,
+        }))
+      );
+
+      Promise.allSettled(dataPromises)
+        .then((results) => {
+          const successes = results
+            .filter((result) => result.status === "fulfilled")
+            .map((result) => result.value);
+          const errors = results
+            .filter((result) => result.status === "rejected")
+            .map((result) => result.reason);
+
+          console.log("Fetched contents:", successes);
+          if (errors.length) {
+            console.error("Some requests failed:", errors);
+          }
+          setContents(successes);
+        })
+        .catch((err) => {
+          console.error("Error fetching data:", err.message);
+        });
+
+      prevIdsRef.current = ids;
+      prevPrefixRef.current = prefix;
+    }
+  }, [ids, prefix]);
 
   //  fetch users
   const getUsersQuery = useUserQuery({
@@ -371,49 +549,49 @@ export default function AddTaskPage() {
             subset: data.subset ?? "",
             assign_to: data.assignee?.id ?? "",
             flags: data.flags ?? initialData.flags,
-
           };
         });
         if (data.flags) {
           const highlighted = {};
           const newSelectedTaskTypes = {};
 
-
           Object.keys(data.flags).forEach((key) => {
             if (data.flags[key]) {
               DATASET_MAPING[key].split(", ").forEach((field) => {
                 highlighted[field] = true;
-
               });
-
 
               OPTIONS_TASK_TYPE.forEach((taskType) => {
                 if (taskType.datasets.includes(key)) {
                   newSelectedTaskTypes[taskType.name] = true;
                 }
-
-
-
               });
             }
-
-          })
-
-
+          });
 
           setSelectedTaskTypes(newSelectedTaskTypes);
           setHighlighted(highlighted);
-
         }
-
       },
     },
   });
 
+  useEffect(() => {
+    setShowSpinner(true);
+
+    setTimeout(() => {
+      const directoryContent = contents.find(
+        (item) => item.id === formValue.cloud_storage_id
+      );
+      setDisplayedContent(directoryContent ? directoryContent.content : []);
+      setShowSpinner(false);
+    }, 2000);
+  }, [contents, prefix]);
 
   useEffect(() => {
     // Manually execute the query when the component mounts
     getProjectsQuery.refetch();
+    getCloudQuery.refetch();
     getUsersQuery.refetch();
   }, []);
 
@@ -491,13 +669,14 @@ export default function AddTaskPage() {
         {isTaskLoading ? (
           <AddTaskPageLoader />
         ) : (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full ">
+          <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full ">
             <div className="mb-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
-                Task name <span className="text-red-600">*</span>
+                Task name{" "}
+                <span className="text-red-600 dark:text-audino-primary">*</span>
               </label>
               <CustomInput
                 type="text"
@@ -534,12 +713,13 @@ export default function AddTaskPage() {
             <div className="mb-4">
               <label
                 htmlFor="project"
-                className="block text-sm font-medium leading-6 text-gray-900"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
               >
-                Project <span className="text-red-600">*</span>
+                Project{" "}
+                <span className="text-red-600 dark:text-audino-primary">*</span>
               </label>
               {getProjectsQuery.isLoading ? (
-                <div className="h-8 bg-gray-200 rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
+                <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
               ) : (
                 <CustomSelect
                   id="project"
@@ -557,7 +737,7 @@ export default function AddTaskPage() {
             <div className="mb-4">
               <label
                 htmlFor="subset"
-                className="block text-sm font-medium leading-6 text-gray-900"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
               >
                 Subset
               </label>
@@ -578,12 +758,12 @@ export default function AddTaskPage() {
             <div className="mb-4">
               <label
                 htmlFor="assign_to"
-                className="block text-sm font-medium leading-6 text-gray-900"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
               >
                 Assigned to
               </label>
               {getUsersQuery.isLoading ? (
-                <div className="h-8 bg-gray-200 rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
+                <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
               ) : (
                 <CustomSelect
                   id="assign_to"
@@ -601,7 +781,7 @@ export default function AddTaskPage() {
             </div>
             <div className="mb-4">
               <div className="">
-                <p className="text-sm font-medium leading-6 text-gray-900 mb-2">
+                <p className="text-sm font-medium leading-6 text-gray-900 mb-2 dark:text-white">
                   Task Types
                 </p>
 
@@ -610,24 +790,25 @@ export default function AddTaskPage() {
                     <CustomCheckbox
                       key={index}
                       name={taskType.name}
-                      id={index}
+                      id={taskType.name}
                       formError={formError}
                       label={taskType.name}
                       value={selectedTaskTypes[taskType.name] || false}
-                      onChange={(e) => handleTaskTypeChange(taskType.name, e.target.checked)}
+                      onChange={(e) =>
+                        handleTaskTypeChange(taskType.name, e.target.checked)
+                      }
                     />
                   ))}
                 </div>
-
               </div>
             </div>
-
-
-
             <div className="mb-4">
               <div className="">
-                <p className="text-sm font-medium leading-6 text-gray-900 mb-2">
-                  Select Datasets <span className="text-red-600">*</span>
+                <p className="text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2">
+                  Select Datasets{" "}
+                  <span className="text-red-600 dark:text-audino-primary">
+                    *
+                  </span>
                 </p>
                 <fieldset>
                   <legend className="sr-only">Datasets</legend>
@@ -739,14 +920,15 @@ export default function AddTaskPage() {
                   </div>
                 </fieldset>
               </div>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {uniqueFields.map((field) => (
                   <span
                     className={`inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium ring-1 ring-inset 
-                    ${highlighted && highlighted[field]
-                        ? "bg-green-50 text-green-700 ring-green-600/20"
-                        : "ring-gray-500/10 bg-gray-50 text-gray-600"
-                      }`}
+                    ${
+                      highlighted && highlighted[field]
+                        ? "bg-green-50 dark:bg-transparent   text-green-700 ring-green-600/20"
+                        : "ring-gray-500/10 dark:ring-audino-charcoal dark:bg-audino-light-navy dark:text-audino-neutral-gray bg-gray-50 text-gray-600"
+                    }`}
                   >
                     {field}
                   </span>
@@ -756,31 +938,157 @@ export default function AddTaskPage() {
 
             {!taskId && (
               <div className="mb-4">
-                <label className="block text-sm font-medium leading-6 text-gray-900">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">
                   Select {isMulti ? "files" : "file"}{" "}
-                  <span className="text-red-600">*</span>
+                  <span className="text-red-600 dark:text-audino-primary">
+                    *
+                  </span>
                 </label>
-                <DragInput
-                  handleInputChange={handleInputChange}
-                  isMultiple={isMulti}
-                />
+                <div className="flex gap-2 border-b dark:border-audino-charcoal border-gray-300">
+                  <CustomButton
+                    type
+                    label="My Computer"
+                    onClick={() => setActiveOption("myComputer")}
+                    className={
+                      activeOption === "myComputer"
+                        ? "text-gray-500 font-medium dark:text-audino-primary dark:border-audino-primary"
+                        : "text-gray-500 bg-gray-50 dark:bg-transparent"
+                    }
+                  />
+                  <CustomButton
+                    type
+                    label="Cloud Storage"
+                    onClick={() => setActiveOption("cloudStorage")}
+                    className={
+                      activeOption === "cloudStorage"
+                        ? "text-gray-500 font-medium dark:text-audino-primary dark:border-audino-primary"
+                        : "text-gray-500 bg-gray-50 dark:bg-transparent"
+                    }
+                  />
+                </div>
+                {activeOption === "myComputer" && (
+                  <>
+                    <DragInput
+                      handleInputChange={handleInputChange}
+                      isMultiple={isMulti}
+                    />
+                    {audioPreview.length > 0 &&
+                      audioPreview.map((url, index) => (
+                        <audio
+                          controls
+                          className="mt-2 w-full sm:w-[20rem] rounded-md border-2 border-gray-300 border-dashed dark:border-audino-charcoal"
+                          src={url}
+                          onLoadedMetadata={onloadedmetadata}
+                          key={index}
+                        >
+                          Your browser does not support the audio element.
+                        </audio>
+                      ))}
+                    {formError?.files && (
+                      <p className="mt-2 text-sm text-red-600" id="files-error">
+                        {formError.files[0]}
+                      </p>
+                    )}
+                  </>
+                )}
 
-                {audioPreview.length >= 0
-                  ? audioPreview.map((url, index) => (
-                    <audio
-                      controls
-                      className="mt-2 rounded-md border-2 border-gray-300 border-dashed"
-                      src={url}
-                      onLoadedMetadata={onloadedmetadata}
-                    >
-                      Your browser does not support the audio element.
-                    </audio>
-                  ))
-                  : null}
-                {formError && formError["files"] && (
-                  <p className="mt-2 text-sm text-red-600" id="files-error">
-                    {formError["files"][0]}
-                  </p>
+                {activeOption === "cloudStorage" && (
+                  <>
+                    <div className="my-4">
+                      <label
+                        htmlFor="cloud"
+                        className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+                      >
+                        Select cloud storage{" "}
+                        <span className="text-red-600 dark:text-audino-primary">
+                          *
+                        </span>
+                      </label>
+                      {getCloudQuery.isLoading ? (
+                        <div className="h-8 bg-gray-200 dark:bg-audino-light-navy rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
+                      ) : (
+                        <CustomSelect
+                          id="cloud"
+                          name="cloud"
+                          options={(getCloudQuery.data?.results ?? []).map(
+                            (val, index) => ({
+                              label: val.display_name,
+                              value: val.id,
+                            })
+                          )}
+                          formError={formError}
+                          value={formValue.cloud_storage_id}
+                          onChange={(e) => {
+                            const selectedId = parseInt(e.target.value);
+                            handleInputChange("cloud_storage_id", selectedId);
+                            const selectedContent = contents.find(
+                              (item) => item.id === selectedId
+                            );
+                            setDisplayedContent(
+                              selectedContent ? selectedContent.content : []
+                            );
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {formValue.cloud_storage_id &&
+                      displayedContent.length == 0 && <NoContentMessage />}
+
+                    {displayedContent.length > 0 && (
+                      <div className="mt-4">
+                        <ul className="list-disc lg:px-10">
+                          <div className="my-5">
+                            <CustomSearch
+                              onRefresh={handleRefresh}
+                              onSearch={setSearchTerm}
+                            />
+                          </div>
+                          {showSpinner ? (
+                            <div className="flex justify-center items-center py-5">
+                              <div className="w-6 h-6 border-4 border-t-transparent border-gray-300 rounded-full animate-spin"></div>
+                            </div>
+                          ) : filteredContent.length > 0 ? (
+                            filteredContent.map((item, index) => (
+                              <div
+                                key={index}
+                                className="grid grid-cols-1 my-1.5 items-center"
+                              >
+                                <CustomCheckbox
+                                  name={item.name}
+                                  id={index}
+                                  formError={formError}
+                                  label={item.name}
+                                  value={item.isSelected || false}
+                                  type={item.type}
+                                  onClick={(e) => {
+                                    handleSelection(item, false, true, index);
+                                  }}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    handleSelection(
+                                      item,
+                                      isChecked,
+                                      false,
+                                      index
+                                    );
+                                  }}
+                                />
+                              </div>
+                            ))
+                          ) : (
+                            <NoContentMessage />
+                          )}
+                        </ul>
+                      </div>
+                    )}
+
+                    {formError?.files && (
+                      <p className="mt-2 text-sm text-red-600" id="files-error">
+                        {formError.files[0]}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -791,15 +1099,17 @@ export default function AddTaskPage() {
                   Additional details
                 </h2>
 
-                <div className="divide-y divide-gray-200 border-y">
+                <div className="divide-y divide-gray-200 dark:border-audino-charcoal dark:divide-audino-charcoal border-y">
                   <Disclosure as="div">
                     {({ open }) => (
                       <>
                         <h3>
-                          <Disclosure.Button className="group relative flex w-full items-center justify-between py-6 px-6 text-left bg-gray-50">
+                          <Disclosure.Button className="group relative flex w-full items-center justify-between py-6 px-6 text-left bg-gray-50 dark:bg-audino-light-navy">
                             <span
                               className={classNames(
-                                open ? "text-audino-primary" : "text-gray-900",
+                                open
+                                  ? "text-audino-primary"
+                                  : "text-gray-900 dark:text-white",
                                 "text-md font-normal"
                               )}
                             >
@@ -828,7 +1138,7 @@ export default function AddTaskPage() {
                             <div className="sm:col-span-3">
                               <label
                                 htmlFor="segment_duration"
-                                className="text-sm font-medium leading-6 text-gray-900 mb-2 flex items-center justify-between"
+                                className="text-sm font-medium leading-6 text-gray-900 dark:text-audino-cloud-gray mb-2 flex items-center justify-between"
                               >
                                 <p>
                                   Segment duration{" "}
@@ -837,7 +1147,7 @@ export default function AddTaskPage() {
                                   </span>
                                 </p>
                                 <Tooltip message="Define a duration for a job">
-                                  <InformationCircleIcon className="w-5 h-5" />
+                                  <InformationCircleIcon className="w-5 h-5 dark:text-audino-cloud-gray" />
                                 </Tooltip>
                               </label>
                               <CustomInput
@@ -964,11 +1274,11 @@ export default function AddTaskPage() {
             </div>
 
             {/* Action buttons */}
-            <div className="flex justify-end border-t border-gray-200 mt-8 pt-4">
+            <div className="flex justify-end border-t border-gray-200 dark:border-audino-slate-gray mt-8 pt-4">
               <div className="flex space-x-3 ">
                 <button
                   type="button"
-                  className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="rounded-md bg-white dark:bg-transparent px-3 py-2 text-sm font-medium text-gray-900 dark:text-audino-medium-gray shadow-sm ring-1 ring-inset dark:ring-audino-steel ring-gray-300 hover:bg-gray-50"
                   onClick={() => navigate(-1)}
                 >
                   Cancel

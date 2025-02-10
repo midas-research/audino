@@ -20,7 +20,7 @@ export const taskAddRule = {
   name: "required|string",
   project: "required",
   // subset: "required|string",
-  files: "required",
+  // files: "required",
 };
 export const taskEditRule = {
   name: "required|string",
@@ -44,4 +44,11 @@ export const jobAddRule = {
 export const analyticsSettingRule = {
   wer_threshold: "required",
   cer_threshold: "required|numeric",
+}
+
+export const cloudStorageRule = {
+  display_name: "required|string",
+  provider_type: "required",
+  resource: "required|string",
+  credentials_type: "required",
 }

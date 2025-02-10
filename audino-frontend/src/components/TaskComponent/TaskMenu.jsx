@@ -14,10 +14,10 @@ export default function TaskMenu({ task, isShowText, isShowEdit }) {
     <div>
       <Menu as="div" className="relative flex-none">
         <Menu.Button
-          className={`flex items-center text-gray-700 hover:text-gray-900 hover:bg-gray-100 ${
+          className={`flex items-center text-gray-700 dark:text-white hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-audino-light-navy ${
             isShowText
-              ? "rounded-md border border-white text-white px-2.5 py-1 text-sm font-semibold "
-              : "rounded-full p-2.5"
+              ? "rounded-md border border-white  text-white px-2.5 py-1 text-sm font-semibold "
+              : "rounded-full p-2.5 dark:text-gray-500"
           } `}
         >
           {isShowText ? <span className="pr-2">Actions </span> : null}
@@ -32,15 +32,15 @@ export default function TaskMenu({ task, isShowText, isShowEdit }) {
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md dark:bg-audino-light-navy bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
             {isShowEdit && (
               <Menu.Item>
                 {({ active }) => (
                   <button
                     onClick={() => navigate(`/tasks/${task.id}?page=1`)}
                     className={classNames(
-                      active ? "bg-gray-50" : "",
-                      "block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left"
+                      active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",
+                      "block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 w-full text-left"
                     )}
                   >
                     Edit
@@ -61,8 +61,8 @@ export default function TaskMenu({ task, isShowText, isShowEdit }) {
                     });
                   }}
                   className={classNames(
-                    active ? "bg-gray-50" : "",
-                    "block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left"
+                    active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",
+                    "block px-3 py-1 text-sm leading-6 text-gray-900 dark:text-gray-100 w-full text-left"
                   )}
                 >
                   Export annotation
@@ -77,8 +77,8 @@ export default function TaskMenu({ task, isShowText, isShowEdit }) {
                     navigate(`/tasks/${task.id}/analytics`);
                   }}
                   className={classNames(
-                    active ? "bg-gray-50" : "",
-                    "block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left"
+                    active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",
+                    "block px-3 py-1 text-sm leading-6 dark:text-gray-100 text-gray-900 w-full text-left"
                   )}
                 >
                   View Analytics
@@ -89,7 +89,7 @@ export default function TaskMenu({ task, isShowText, isShowEdit }) {
               {({ active }) => (
                 <button
                   className={classNames(
-                    active ? "bg-red-50" : "",
+                    active ? "bg-red-50 dark:bg-red-100" : "",
                     "block px-3 py-1 text-sm leading-6 text-red-900 w-full text-left"
                   )}
                   onClick={(e) => {

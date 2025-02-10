@@ -14,6 +14,8 @@ import AddOrganizationPage from "../pages/AddOrganizationPage/AddOrganizationPag
 import InvitationPage from "../pages/InvitationPage/InvitationPage";
 import AddJobPage from "../pages/AddJobPage/AddJobPage";
 import AnalyticsPage from "../pages/AnalyticsPage/AnalyticsPage";
+import CloudStoragePage from "../pages/CloudStoragePage/CoudStoragePage";
+import AddCloudStoragePage from "../pages/AddCloudStoragePage/AddCloudStoragePage";
 
 export default function Root() {
   const loginState = useSelector((state) => state.loginReducer);
@@ -23,7 +25,7 @@ export default function Root() {
   };
 
   return checkAuthentication() ? (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen dark:bg-audino-deep-navy">
       <Routes>
         <Route
           path="/"
@@ -115,14 +117,14 @@ export default function Root() {
             </Suspense>
           }
         />
-         <Route
-        path="/tasks/:id/analytics"
-        element={
-          <Suspense fallback={<>Loading...</>}>
-            <AnalyticsPage />
-          </Suspense>
-        }
-      />
+        <Route
+          path="/tasks/:id/analytics"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+              <AnalyticsPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/tasks/:id/jobs/create"
           element={
@@ -140,6 +142,31 @@ export default function Root() {
           }
         />
         <Route
+          path="/cloud-storages"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+              <CloudStoragePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/cloud-storages/create"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+              <AddCloudStoragePage />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/cloud-storages/:id"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+            <AddCloudStoragePage />
+            </Suspense>
+          }
+        />
+        <Route
           path="/invitations"
           element={
             <Suspense fallback={<>Loading...</>}>
@@ -147,7 +174,7 @@ export default function Root() {
             </Suspense>
           }
         />
-       
+
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>

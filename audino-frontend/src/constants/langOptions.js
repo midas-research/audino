@@ -4,6 +4,7 @@ const langOptions = [
     value: "en",
   },
   { label: "Hindi", value: "hi" },
+  { label: "Kruti", value: "kd010" },
   // {
   //   label: "Spanish",
   //   value: "es",

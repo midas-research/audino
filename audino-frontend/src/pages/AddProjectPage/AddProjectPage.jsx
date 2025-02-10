@@ -22,7 +22,7 @@ import TaskPage from "../TaskPage/TaskPage";
 import CustomSelect from "../../components/CustomInput/CustomSelect";
 import { SketchPicker } from "react-color";
 import toast from "react-hot-toast";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon,TrashIcon,PlusCircleIcon } from "@heroicons/react/24/outline";
 import { useLabelsQuery } from '../../services/Labels/useQueries';
 import useDeleteLabelMutation from '../../services/Labels/useMutation';
 import { useUserQuery } from "../../services/User/useQueries";
@@ -280,13 +280,13 @@ export default function AddProjectPage() {
         {isProjectLoading ? (
           <AddProjectPageLoader />
         ) : (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full ">
+          <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full ">
             <div className="mb-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
-                Project name <span className="text-red-600">*</span>
+                Project name <span className="text-red-600 dark:text-audino-primary">*</span>
               </label>
               <CustomInput
                 type="text"
@@ -323,12 +323,12 @@ export default function AddProjectPage() {
             <div className="mb-4">
               <label
                 htmlFor="assign_to"
-                className="block text-sm font-medium leading-6 text-gray-900"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
               >
                 Assigned to
               </label>
               {getUsersQuery.isLoading ? (
-                <div className="h-8 bg-gray-200 rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
+                <div className="h-8 bg-gray-200 dark:bg-audino-light-navy  rounded-md w-full mb-2.5 mt-2 animate-pulse"></div>
               ) : (
                 <CustomSelect
                   id="assign_to"
@@ -346,7 +346,7 @@ export default function AddProjectPage() {
             </div>
 
             <div className="flex justify-between">
-              <label className="block text-sm font-medium leading-6 text-gray-900">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">
                 Labels
               </label>
               <PrimaryIconButton onClick={() => handleAddLabel()}>
@@ -355,26 +355,26 @@ export default function AddProjectPage() {
             </div>
 
             {labels_obj.results.length > 0 ? (
-              <div className="-mx-4 mt-3 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
+              <div className=" mt-3 ring-1 ring-gray-300 dark:ring-audino-charcoal sm:mx-0 sm:rounded-lg">
+                <table className="min-w-full divide-y divide-gray-300 dark:divide-audino-charcoal">
                   <thead>
                     <tr>
                       <th
                         scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-gray-900 sm:pl-6"
+                        className="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-gray-900 dark:text-audino-light-gray sm:pl-6"
                       >
                         Name
                       </th>
                       <th
                         scope="col"
-                        className="px-3 py-3.5 text-center text-sm font-medium text-gray-900"
+                        className="px-3 py-3.5 text-center text-sm font-medium text-gray-900 dark:text-audino-light-gray"
                       >
                         Color
                       </th>
 
                       <th
                         scope="col"
-                        className="hidden px-3 py-3.5 text-center text-sm font-medium text-gray-900 lg:table-cell"
+                        className="hidden px-3 py-3.5 text-center text-sm font-medium text-gray-900 lg:table-cell dark:text-audino-light-gray"
                       >
                         Attribute Names
                       </th>
@@ -393,7 +393,7 @@ export default function AddProjectPage() {
                         <td
                           className={classNames(
                             labelIdx === 0 ? "" : "border-t border-transparent",
-                            "relative py-4 pl-4 pr-3 text-sm sm:pl-6"
+                            "relative py-3 pl-4 pr-3 text-sm sm:pl-6"
                           )}
                         >
                           <div className="font-medium text-gray-900">
@@ -408,23 +408,23 @@ export default function AddProjectPage() {
                               }
                               placeholder="Label name"
                               isColorPicker={true}
-                              error={formError?.[`labels.${labelIdx+1}.name`]?.[0]}
+                              error={formError?.[`labels.${labelIdx + 1}.name`]?.[0]}
                             />
                           </div>
 
                           {labelIdx !== 0 ? (
-                            <div className="absolute -top-px left-6 right-0 h-px bg-gray-200" />
+                            <div className="absolute -top-px left-6 right-0 h-px dark:bg-audino-charcoal bg-gray-200" />
                           ) : null}
                         </td>
                         <td
                           className={classNames(
-                            labelIdx === 0 ? "" : "border-t border-gray-200",
+                            labelIdx === 0 ? "" : "border-t dark:border-audino-charcoal border-gray-200",
                             " px-3 py-3.5 text-sm text-gray-500 text-center"
                           )}
                         >
                           <div
                             className={
-                              "bg-white rounded cursor-pointer flex justify-center"
+                              "bg-white dark:bg-audino-navy rounded cursor-pointer flex justify-center"
                             }
                             onClick={() =>
                               setShowColorList((prev) =>
@@ -443,7 +443,7 @@ export default function AddProjectPage() {
                           </div>
                           {showColorList[labelIdx] && (
                             <div
-                              className={`absolute z-10 ${!showColorList[labelIdx] ? "hidden" : ""
+                              className={`fixed z-10 inset-0 flex items-center justify-center ${!showColorList[labelIdx] ? "hidden" : ""
                                 }`}
                             >
                               <div
@@ -473,7 +473,7 @@ export default function AddProjectPage() {
                         </td>
                         <td
                           className={classNames(
-                            labelIdx === 0 ? "" : "border-t border-gray-200",
+                            labelIdx === 0 ? "" : "border-t dark:border-audino-charcoal border-gray-200",
                             "hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell text-center"
                           )}
                         >
@@ -486,12 +486,41 @@ export default function AddProjectPage() {
                         <td
                           className={classNames(
                             labelIdx === 0 ? "" : "border-t border-transparent",
-                            "relative py-3.5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
+                            "relative py-5 flex  items-center md:block  pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
                           )}
                         >
                           <button
                             type="button"
-                            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white"
+                            className={classNames(
+                              "inline-flex items-center rounded-md bg-white dark:bg-audino-teal-blue px-0.5  py-1 text-sm font-medium text-gray-900 dark:text-audino-primary shadow-sm  hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white ",
+                              "md:hidden"
+                            )}
+                            onClick={() => {
+                              setOpen(true);
+                              setCurrentLabelIndex(labelIdx + 1);
+                            }}
+                            disabled={!label.name}
+                          >
+                            <PlusCircleIcon className="h-5 w-5 text-gray-900 dark:disabled:text-white dark:text-audino-primary" />
+                            <span className="sr-only">, {label.name}</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={classNames(
+                              "inline-flex items-center rounded-md bg-white dark:bg-red-200 px-0.5 py-1 text-sm font-medium text-red-900 shadow-sm  hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white",
+                              "md:hidden ml-2"
+                            )}
+                            onClick={() =>
+                              handleDeleteLabel(label?.id, labelIdx + 1)
+                            }
+                          >
+                            <TrashIcon className="h-5 w-5 text-red-900" />
+                            <span className="sr-only">, {label.name}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="hidden md:inline-flex items-center rounded-md bg-white dark:bg-transparent px-2.5 py-1 text-sm font-medium text-gray-900 dark:text-audino-primary shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-primary hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white dark:disabled:text-white dark:disabled:bg-audino-teal-blue"
                             onClick={() => {
                               setOpen(true);
                               setCurrentLabelIndex(labelIdx + 1);
@@ -504,7 +533,7 @@ export default function AddProjectPage() {
                           </button>
                           <button
                             type="button"
-                            className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-sm font-medium text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white ml-2"
+                            className="hidden md:inline-flex items-center rounded-md bg-white dark:bg-red-200 px-2.5 py-1 text-sm font-medium text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white ml-2"
                             onClick={() =>
                               handleDeleteLabel(label?.id, labelIdx + 1)
                             }
@@ -534,7 +563,7 @@ export default function AddProjectPage() {
                             <span className="sr-only">, {label.name}</span>
                           </button>
                           {labelIdx !== 0 ? (
-                            <div className="absolute -top-px left-0 right-6 h-px bg-gray-200" />
+                            <div className="absolute -top-px left-0 right-6 h-px dark:bg-audino-charcoal bg-gray-200" />
                           ) : null}
                         </td>
                       </tr>
@@ -545,7 +574,7 @@ export default function AddProjectPage() {
             ) : null}
 
             {/* Action buttons */}
-            <div className="flex justify-between items-center flex-shrink-0 border-t border-gray-200 mt-8 pt-4">
+            <div className="flex justify-between items-center flex-shrink-0 border-t dark:border-audino-slate-gray border-gray-200 mt-8 pt-4">
               <p className="text-sm font-normal leading-6 text-gray-500 ">
                 {projectId
                   ? `Project #${project?.id} created by ${project?.owner?.username
@@ -553,9 +582,9 @@ export default function AddProjectPage() {
                   : null}
               </p>
               <div className="flex justify-end space-x-3">
-                <button
+              <button
                   type="button"
-                  className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="rounded-md bg-white dark:bg-transparent  px-3 py-2 text-sm font-medium text-gray-900 dark:text-audino-medium-gray shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-medium-gray hover:bg-gray-50"
                   onClick={() => navigate(-1)}
                 >
                   Cancel
@@ -566,6 +595,7 @@ export default function AddProjectPage() {
                 >
                   Save
                 </PrimaryButton>
+              
               </div>
             </div>
           </div>

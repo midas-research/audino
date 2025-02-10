@@ -19,7 +19,8 @@ import { useFetchOrganization } from "../../services/Organization/useQueries";
 import { useCreateInvitationMutation } from "../../services/Invitations/useMutations";
 import { useGetAllInvitation } from "../../services/Invitations/useQueries";
 import { useGetAllMembership } from "../../services/Membership/useQueries";
-
+import {ReactComponent as InviteMembers} from '../../assets/svgs/inviteMembers.svg';
+ 
 const initialData = {
   slug: "",
   name: "",
@@ -250,7 +251,7 @@ export default function AddOrganizationPage() {
             membershipsLoading ? (
               [...Array(2).keys()].map((load) => (
                 <li
-                  className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white cursor-pointer py-8 sm:py-0"
+                  className="col-span-1 divide-y divide-gray-200 dark:divide-audino-charcoal rounded-lg dark:bg-audino-navy bg-white cursor-pointer py-8 sm:py-0"
                   onClick={() => navigate("create")}
                   key={`CardLoader-${load}`}
                 >
@@ -258,28 +259,29 @@ export default function AddOrganizationPage() {
                 </li>
               ))
             ) : (
-              <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
-                <div className="bg-white">
+              <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
+                <div className="bg-white dark:bg-audino-navy">
                   <button
                     type="button"
-                    className="flex items-center gap-x-2 ml-auto rounded-md bg-audino-primary px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm cursor-pointer"
+                    className="flex items-center gap-x-2 ml-auto rounded-md bg-audino-primary dark:bg-audino-gradient px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm cursor-pointer"
                     onClick={handleInviteClick}
                   >
-                    Invite Members
-                    <PlusIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" />
+                    {/* Invite Members
+                    <PlusIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" /> */}
+                    <InviteMembers className="h-5 w-5"/>
                   </button>
 
                   {/* header */}
                   <div
-                    className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-11 gap-4 px-4 md:px-5 items-center justify-between my-2 border-b-2 border-gray-100 pb-2 font-semibold`}
+                    className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-11 gap-4 px-4 md:px-5 items-center justify-between my-2 border-b-2 dark:border-audino-charcoal border-gray-100 pb-2 font-semibold`}
                   >
                     <div className="col-span-1 sm:col-span-1 md:col-span-2 ">
-                      <p className="text-sm font-medium text-gray-600 overflow-ellipsis overflow-clip">
+                      <p className="text-sm font-medium dark:text-audino-light-gray text-gray-600 overflow-ellipsis overflow-clip">
                         Username
                       </p>
                     </div>
                     <div className="col-span-1 sm:col-span-1 md:col-span-2 ">
-                      <p className="text-sm font-medium text-gray-600 overflow-ellipsis overflow-clip">
+                      <p className="text-sm font-medium dark:text-audino-light-gray text-gray-600 overflow-ellipsis overflow-clip">
                         Full name
                       </p>
                     </div>
@@ -299,14 +301,14 @@ export default function AddOrganizationPage() {
         </ul>
 
         {/* Form fileds */}
-        <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full mt-4">
+        <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full mt-4">
           <div>
             <div className="mb-4">
               <label
                 htmlFor="slug"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
-                Short Name <span className="text-red-600">*</span>
+                Short Name <span className="text-red-600 dark:text-audino-primary">*</span>
               </label>
               <CustomInput
                 type="text"
@@ -322,7 +324,7 @@ export default function AddOrganizationPage() {
             <div className="mb-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
                 Full Name
               </label>
@@ -340,7 +342,7 @@ export default function AddOrganizationPage() {
             <div className="mb-4">
               <label
                 htmlFor="description"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
                 Description
               </label>
@@ -361,7 +363,7 @@ export default function AddOrganizationPage() {
             <div className="mb-4">
               <label
                 htmlFor="email"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
                 Email
               </label>
@@ -381,7 +383,7 @@ export default function AddOrganizationPage() {
             <div className="mb-4">
               <label
                 htmlFor="mobileNumber"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
                 Mobile Number
               </label>
@@ -402,7 +404,7 @@ export default function AddOrganizationPage() {
             <div className="mb-4">
               <label
                 htmlFor="Location"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white mb-2"
               >
                 Location
               </label>
@@ -423,11 +425,11 @@ export default function AddOrganizationPage() {
             {false ? (
               <AddOrganizationLoader />
             ) : (
-              <div className="flex-shrink-0 border-t border-gray-200 mt-8 pt-4">
+              <div className="flex-shrink-0 border-t border-gray-200 dark:border-audino-slate-gray mt-8 pt-4">
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
-                    className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="rounded-md bg-white dark:bg-transparent px-3 py-2 text-sm font-medium text-gray-900 dark:text-audino-medium-gray shadow-sm ring-1 ring-inset dark:ring-audino-steel ring-gray-300 hover:bg-gray-50"
                     onClick={() => navigate(-1)}
                   >
                     Cancel

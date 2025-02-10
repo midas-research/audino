@@ -8,6 +8,7 @@ import {
   projectRule,
   taskAddRule,
   taskEditRule,
+  cloudStorageRule,
 } from "./rule";
 
 export const projectSingleFieldValidation = ({ key, value }) => {
@@ -120,6 +121,21 @@ export const analyticsSettingSingleFieldValidation = ({ key, value }) => {
     const validation = new Validator(
       { [key]: value },
       { [key]: analyticsSettingRule[key] }
+    );
+    validationResponse.isValid = validation.passes();
+    if (!validationResponse.isValid) {
+      validationResponse.errors = validation.errors.all();
+    }
+  }
+  return validationResponse;
+}
+
+export const cloudStorageSingleFieldValidation = ({ key, value }) => {
+  const validationResponse = { isValid: true };
+  if (cloudStorageRule[key]) {
+    const validation = new Validator(
+      { [key]: value },
+      { [key]: cloudStorageRule[key] }
     );
     validationResponse.isValid = validation.passes();
     if (!validationResponse.isValid) {

@@ -11,13 +11,13 @@ export default function PrimaryIconButton({
     <button
       onClick={onClick}
       type="button"
-      className={`inline-flex items-center rounded-md bg-white px-3 py-0.5 text-sm font-medium leading-6 text-audino-primary-dark shadow-sm ring-1 ring-inset ring-audino-primary hover:bg-gray-50 ${className}`}
+      className={`inline-flex items-center rounded-md bg-white dark:bg-audino-gradient px-3 py-0.5 text-sm font-medium leading-6 text-audino-primary-dark dark:text-white shadow-sm ring-1 ring-inset ring-audino-primary hover:bg-gray-50 ${className}`}
     >
       {icon ? (
         icon
       ) : (
         <PlusIcon
-          className="-ml-0.5 mr-1.5 h-5 w-5 text-audino-primary"
+          className="lg:-ml-0.5 lg:mr-1.5 h-5 w-5 text-audino-primary dark:text-white"
           aria-hidden="true"
         />
       )}

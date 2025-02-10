@@ -10,6 +10,7 @@ import {
   exportAnnotationRule,
   jobAddRule,
   analyticsSettingRule,
+  cloudStorageRule,
 } from "./rule";
 
 export const loginAllValidation = (data) => {
@@ -94,6 +95,15 @@ export const createJobAllValidation = (data) => {
 
 export const analyticsSettingAllValidation = (data) => {
   const validation = new Validator(data, analyticsSettingRule);
+  const validationResponse = { isValid: validation.passes() };
+  if (!validationResponse.isValid) {
+    validationResponse.error = validation.errors.all();
+  }
+  return validationResponse;
+}
+
+export const cloudStorageAllValidation = (data) => {
+  const validation = new Validator(data, cloudStorageRule);
   const validationResponse = { isValid: validation.passes() };
   if (!validationResponse.isValid) {
     validationResponse.error = validation.errors.all();

@@ -116,14 +116,14 @@ export default function ProjectPage() {
       <AppBar>
         <header className="py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl font-bold tracking-tight text-white dark:text-gray-100">
               Projects
             </h1>
           </div>
         </header>
       </AppBar>
       <main className=" -mt-32 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+        <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
           <TopBar
             filters={filters}
             onFilter={filterHandler}
@@ -134,7 +134,7 @@ export default function ProjectPage() {
           <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-6">
             {/* new project  */}
             <li
-              className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow cursor-pointer py-8 sm:py-0"
+              className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white dark:bg-audino-midnight shadow cursor-pointer py-8 sm:py-0 dark:border dark:border-dashed border-audino-gray"
               onClick={() => navigate("create")}
             >
               <div className="text-center flex justify-center items-center flex-col h-full p-6">
@@ -162,7 +162,7 @@ export default function ProjectPage() {
             {getProjectsQuery.isLoading || getProjectsQuery.isRefetching
               ? [...Array(5).keys()].map((load) => (
                 <li
-                  className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow cursor-pointer py-8 sm:py-0"
+                  className="col-span-1 divide-y divide-gray-200 dark:divide-audino-gray rounded-lg bg-white dark:bg-audino-midnight  shadow cursor-pointer py-8 sm:py-0"
                   onClick={() => navigate("create")}
                   key={`CardLoader-${load}`}
                 >
@@ -172,22 +172,22 @@ export default function ProjectPage() {
               : projects_obj.results.map((project) => (
                 <li
                   key={project.id}
-                  className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow"
+                  className="col-span-1 divide-y divide-gray-200 dark:border dark:border-audino-gray dark:divide-audino-gray rounded-lg bg-white  dark:bg-audino-midnight shadow"
                 >
                   <div className="flex w-full items-center justify-between space-x-6 p-6">
                     <div className="flex-1 truncate">
                       <div className="flex items-center space-x-3">
-                        <h3 className="truncate text-md font-medium text-gray-900">
+                        <h3 className="truncate text-md font-medium text-gray-900 dark:text-white">
                           {project.name}
                         </h3>
-                        <span className="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                        <span className="inline-flex flex-shrink-0 items-center rounded-full bg-green-50 dark:bg-audino-green-translucent px-1.5 py-0.5 text-xs font-medium text-green-700 dark:text-audino-primary  ring-1 ring-inset ring-green-600/20 dark:ring-audino-primary">
                           {project.status}
                         </span>
                       </div>
-                      <p className="mt-2 truncate text-sm text-gray-500">
-                        Created by {project.owner?.username}
+                      <p className="mt-2 truncate text-sm text-gray-500 dark:text-white">
+                        Created by <span className="dark:text-audino-primary">{project.owner?.username}</span>
                       </p>
-                      <p className="mt-0.5 truncate text-sm text-gray-500">
+                      <p className="mt-0.5 truncate text-sm text-gray-500 dark:text-white">
                         Last updated {dayjs(project.updated_date).fromNow()}
                       </p>
                     </div>
@@ -197,7 +197,7 @@ export default function ProjectPage() {
                     alt=""
                   /> */}
                   </div>
-                  <div className="-mt-px flex divide-x divide-gray-200">
+                  <div className="-mt-px flex divide-x divide-gray-200 dark:divide-audino-gray">
                     {/* <div className="flex w-0 flex-1 items-center justify-center py-4 cursor-pointer  text-gray-400 hover:text-gray-700">
                         <ArrowDownTrayIcon
                           className="h-5 w-5"
@@ -205,13 +205,13 @@ export default function ProjectPage() {
                         />
                       </div> */}
                     <div
-                      className="flex w-0 flex-1 items-center justify-center py-4 cursor-pointer  text-gray-400 hover:text-gray-700"
+                      className="flex w-0 flex-1 items-center justify-center py-4 cursor-pointer  text-gray-400 dark:text-white hover:text-gray-700 dark:hover:bg-audino-primary dark:hover:text-gray-100"
                       onClick={() => navigate(`${project.id}?page=1`)}
                     >
                       <EyeIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div
-                      className="flex w-0 flex-1 items-center justify-center py-4 cursor-pointer  text-gray-400 hover:text-gray-700"
+                      className="flex w-0 flex-1 items-center justify-center py-4 cursor-pointer  text-gray-400 dark:text-white dark:hover:bg-audino-primary hover:text-gray-700 dark:hover:text-gray-100"
                       onClick={() => {
                         setDeleteModal(true);
                         setCurrentProjectId(project.id);

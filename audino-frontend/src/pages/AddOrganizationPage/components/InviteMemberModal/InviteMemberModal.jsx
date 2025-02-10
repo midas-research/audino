@@ -64,9 +64,9 @@ export default function InviteMemberModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <div className="inline-block my-auto align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div className="bg-white p-6">
-                  <h3 className="text-lg font-medium text-gray-900">
+              <div className="inline-block my-auto align-bottom dark:bg-audino-navy bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white dark:bg-audino-navy p-6">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-audino-light-gray">
                     Invite Members
                   </h3>
                   <p className="mt-2 text-sm text-gray-500">
@@ -78,7 +78,7 @@ export default function InviteMemberModal({
                       <input
                         type="email"
                         id="email"
-                        className="p-2 border border-gray-300 focus:border-audino-primary block w-full rounded-md focus:ring-audino-primary"
+                        className="p-2 border dark:bg-audino-light-navy dark:text-audino-cloud-gray dark:placeholder:text-audino-cloud-gray dark:border-audino-charcoal border-gray-300 focus:border-audino-primary block w-full rounded-md focus:ring-audino-primary"
                         value={email}
                         required
                         placeholder="Enter email"
@@ -89,7 +89,7 @@ export default function InviteMemberModal({
                     <div className="flex items-center w-1/2">
                       <select
                         id="role"
-                        className="border border-gray-300  focus:border-audino-primary block w-full rounded-md focus:ring-audino-primary"
+                        className="border border-gray-300 dark:border-audino-charcoal dark:text-audino-cloud-gray  dark:bg-audino-light-navy focus:border-audino-primary block w-full rounded-md focus:ring-audino-primary"
                         value={selectedRole}
                         onChange={handleRoleChange}
                       >
@@ -104,7 +104,7 @@ export default function InviteMemberModal({
                     <div className=" flex justify-end">
                       <button
                         type="button"
-                        className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-600"
+                        className="rounded-md bg-gray-100 dark:bg-transparent px-3 py-2 text-sm font-medium text-gray-800 dark:text-audino-cloud-gray  hover:bg-gray-200 focus:outline-none focus:ring-1 dark:ring-1 dark:ring-audino-charcoal focus:ring-gray-600"
                         onClick={handleCancel}
                       >
                         Cancel
@@ -112,7 +112,7 @@ export default function InviteMemberModal({
                       <button
                         type="button"
                         onClick={handleSubmit}
-                        className="ml-3 flex rounded-md bg-[#65B892] px-3 py-2 text-sm font-medium text-white hover:bg-[#65B892] focus:outline-none focus:ring-1 focus:ring-green-600"
+                        className="ml-3 flex rounded-md bg-[#65B892] dark:bg-audino-gradient px-3 py-2 text-sm font-medium text-white hover:bg-[#65B892] focus:outline-none focus:ring-1 focus:ring-green-600"
                         disabled={isLoading}
                       >
                         {isLoading ? (

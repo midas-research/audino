@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import toast from "react-hot-toast";
 import { useFetchOrganizations } from "../../services/Organization/useQueries";
 import { useDeleteOrganizationMutation } from "../../services/Organization/useMutations";
+import {ReactComponent as AddOrg} from '../../assets/svgs/addOrg.svg';
 
 const pageSize = 11;
 const filters = [
@@ -136,20 +137,22 @@ export default function OrganizationsPage() {
         </header>
       </AppBar>
       <main className=" -mt-32 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+        <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
           <TopBar
             filters={filters}
             onFilter={filterHandler}
             appliedFilters={appliedFilters}
             setSearchValue={setSearchValue}
+            showFilters={false}
           >
             <button
               type="button"
-              className="flex items-center gap-x-2 ml-auto rounded-md bg-audino-primary px-2.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-audino-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-audino-primary"
+              className="flex items-center  gap-x-2 ml-auto rounded-md bg-audino-primary dark:bg-audino-gradient px-2.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-audino-primary-dark dark:hover:bg-audino-gradient focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-audino-primary"
               onClick={() => navigate("create")}
             >
-              Create new org
-              <PlusIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" />
+               {/* <span className="md:text-xs lg:text-sm hidden md:inline">Create new org</span>
+              <PlusIcon className="-mr-0.5 h-5 w-5" aria-hidden="true" title="Create new org" /> */}
+              <AddOrg className="h-5 w-5"/>
             </button>
           </TopBar>
 
@@ -158,7 +161,7 @@ export default function OrganizationsPage() {
             {isLoading ? (
               [...Array(5).keys()].map((load) => (
                 <li
-                  className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white  cursor-pointer py-8 sm:py-0"
+                  className="col-span-1 divide-y divide-gray-200 dark:divide-[#797A7F] rounded-lg bg-white dark:bg-audino-navy  cursor-pointer py-8 sm:py-0"
                   onClick={() => navigate("create")}
                   key={`CardLoader-${load}`}
                 >
@@ -166,14 +169,14 @@ export default function OrganizationsPage() {
                 </li>
               ))
             ) : (
-              <ul className="divide-y divide-gray-100">
-                <div className="  flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-5 sm:flex-nowrap">
+              <ul className="divide-y divide-gray-100 dark:divide-[#797A7F]">
+                <div className="  flex flex-wrap items-center justify-start md:justify-between gap-x-6 gap-y-2 py-5 pr-5 ">
                   <div
                     className="rounded-lg flex justify-start py-2 items-center gap-10 w-full cursor-pointer"
                     onClick={handleRemoveOrgClick}
                   >
                     <div className="">
-                      <p className="text-sm  flex gap-4 items-center font-semibold leading-6 text-gray-900">
+                      <p className="text-sm  flex gap-4 items-center font-semibold leading-6 text-gray-900 dark:text-[#E5E7EB]">
                         Personal Workspace
                         {!currentOrg && (
                           <span className="inline-flex flex-shrink-0 items-center rounded-full h-5 bg-yellow-50 px-1.5 py-0.5 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
@@ -181,7 +184,7 @@ export default function OrganizationsPage() {
                           </span>
                         )}
                       </p>
-                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 dark:text-[#A8A4A4] text-gray-500">
                         <p>{audinoUserData.username}</p>
                       </div>
                     </div>
@@ -190,14 +193,14 @@ export default function OrganizationsPage() {
                 {organizations.results.map((organization) => (
                   <li
                     key={organization.id}
-                    className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 py-5 sm:flex-nowrap "
+                    className="flex  items-center justify-between gap-x-6 gap-y-4 py-5  "
                   >
                     <div
                       className="flex justify-start items-center gap-10 w-full cursor-pointer"
                       onClick={() => handleOrgClick(organization.slug)}
                     >
                       <div>
-                        <p className="text-sm flex items-center font-medium leading-6 text-gray-900">
+                        <p className="text-sm flex items-center font-medium leading-6 dark:text-audino-light-gray text-gray-900">
                           <span className="font-semibold mr-1">
                             {organization.slug}
                           </span>
@@ -208,7 +211,7 @@ export default function OrganizationsPage() {
                             </span>
                           )}
                         </p>
-                        <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                        <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 dark:text-[#9B9B9B] text-gray-500">
                           <p>
                             Created by {organization.owner?.username} on{" "}
                             {dayjs(organization.created_date).format(
@@ -216,7 +219,7 @@ export default function OrganizationsPage() {
                             )}
                           </p>
                         </div>
-                        <div className="flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                        <div className="flex items-center gap-x-2 text-xs leading-5 dark:text-[#9B9B9B] text-gray-500">
                           <p>
                             Last updated{" "}
                             <time dateTime={organization.updated_date}>
@@ -226,7 +229,7 @@ export default function OrganizationsPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex w-full flex-none items-center justify-between gap-x-7 sm:w-auto">
+                    <div className="flex flex-none items-center justify-between gap-x-6 sm:w-auto">
                       {/* Settings icon */}
                       {currentOrg === organization.slug ? (
                         <div
@@ -242,7 +245,7 @@ export default function OrganizationsPage() {
                       {/* action buttons */}
                       <div className="flex w-full flex-none justify-between gap-x-8 sm:w-auto">
                         <Menu as="div" className="relative flex-none">
-                          <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-gray-900">
+                          <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 dark:hover:text-white hover:text-gray-900">
                             <span className="sr-only">Open options</span>
                             <EllipsisVerticalIcon
                               className="h-5 w-5"
@@ -258,13 +261,13 @@ export default function OrganizationsPage() {
                             leaveFrom="transform opacity-100 scale-100"
                             leaveTo="transform opacity-0 scale-95"
                           >
-                            <Menu.Items className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                            <Menu.Items className="absolute  right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white dark:bg-audino-light-navy py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
                               <Menu.Item>
                                 {({ active }) => (
                                   <button
                                     className={classNames(
-                                      active ? "bg-red-50" : "",
-                                      "block px-3 py-1 text-sm leading-6 text-red-900 w-full text-left"
+                                      active ? "bg-red-50 dark:bg-audino-teal-blue" : "",
+                                      "block px-3 py-1 text-sm leading-6 text-red-900 dark:text-red-200 w-full text-left"
                                     )}
                                     onClick={() => {
                                       setdeleteOrgId(organization.id);

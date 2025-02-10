@@ -63,25 +63,25 @@ function LoginPage({}) {
 
   return (
     <>
-      <div className="flex min-h-screen flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-primary-background bg-center bg-no-repeat bg-cover">
+      <div className="flex min-h-screen flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-primary-background dark:bg-audino-gradient bg-center bg-no-repeat bg-cover">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <img
             className="mx-auto h-14 w-auto"
             src={require("../../assets/logos/logo.png")}
             alt="Audino"
           />
-          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight dark:text-white text-gray-900">
             Sign in to your account
           </h2>
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+          <div className="bg-white dark:bg-audino-deep-navy dark:shadow-md dark:shadow-gray-500 px-6 py-12 shadow sm:rounded-lg sm:px-12">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium leading-6 text-gray-900"
+                  className="block text-sm font-medium leading-6 dark:text-white text-gray-900"
                 >
                   Email or Username
                 </label>
@@ -90,10 +90,10 @@ function LoginPage({}) {
                     type="text"
                     name="email"
                     id="email"
-                    className={`block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset ${
+                    className={`block w-full rounded-md dark:bg-audino-midnight border-0 py-1.5 pr-10 ring-1 ring-inset ${
                       formError && formError["email"]
                         ? "ring-red-300 placeholder:text-red-300 focus:ring-red-500 text-red-900"
-                        : "ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
+                        : "ring-gray-300  dark:ring-audino-charcoal placeholder:text-gray-300 dark:placeholder:text-audino-silver-gray focus:ring-audino-primary text-gray-900  dark:text-audino-silver-gray"
                     }  focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none`}
                     aria-invalid="true"
                     aria-describedby="email-error"
@@ -117,7 +117,7 @@ function LoginPage({}) {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium leading-6 text-gray-900"
+                  className="block text-sm font-medium leading-6 dark:text-white text-gray-900"
                 >
                   Password
                 </label>
@@ -128,7 +128,7 @@ function LoginPage({}) {
                     type={seePassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    className="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-audino-primary !outline-none sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md dark:bg-audino-midnight border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-charcoal dark:placeholder:text-audino-silver-gray placeholder:text-gray-400 dark:text-audino-silver-gray focus:ring-2 focus:ring-inset focus:ring-audino-primary !outline-none sm:text-sm sm:leading-6"
                   />
 
                   {seePassword ? (
@@ -140,12 +140,10 @@ function LoginPage({}) {
                     />
                   ) : (
                     <EyeIcon
-                      fill="#666666"
-                      fill-opacity="0.8"
                       onClick={() => setSeePassword(!seePassword)}
                       title="View"
                       alt="view"
-                      className="absolute w-5 h-5 right-[0.5rem] top-[0.45rem] cursor-pointer"
+                      className="absolute w-5 h-5 dark:text-audino-silver-gray right-[0.5rem] top-[0.45rem] cursor-pointer"
                     />
                   )}
                 </div>
@@ -249,11 +247,11 @@ function LoginPage({}) {
             </div> */}
           </div>
 
-          <p className="mt-10 text-center text-sm text-gray-500">
+          <p className="mt-10 text-center text-sm text-gray-500 dark:text-gray-300">
             Not a member?{" "}
             <NavLink
               to="/signup"
-              className="font-semibold leading-6 text-audino-primary hover:text-audino-primary-dark"
+              className="font-semibold leading-6 text-audino-primary dark:text-white hover:text-audino-primary-dark"
             >
               SignUp here
             </NavLink>

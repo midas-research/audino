@@ -17,8 +17,9 @@ import AlertExportTaskModal from "../../components/TaskComponent/AlertExportTask
 import { useTasks } from "../../services/Task/useQueries";
 import { Popover } from "@headlessui/react";
 import { PlusCircleIcon } from "@heroicons/react/20/solid";
+import { ReactComponent as NoTaskLogo } from "../../../src/assets/svgs/noTask.svg";
 import PrimarButton from "../../components/PrimaryButton/PrimaryButton";
-
+import { ReactComponent as TaskAdd } from "../../assets/svgs/taskAdd.svg";
 const pageSize = 10;
 
 export default function TaskPage({
@@ -106,7 +107,7 @@ export default function TaskPage({
       {isRemoveAppbar ? (
         <header className="py-5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-700">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-700 dark:text-white">
               Tasks
             </h1>
           </div>
@@ -128,7 +129,7 @@ export default function TaskPage({
           "mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8"
         )}
       >
-        <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+        <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
           <TopBar
             filters={filters}
             onFilter={filterHandler}
@@ -136,13 +137,14 @@ export default function TaskPage({
             setSearchValue={setSearchValue}
           >
             <Popover className="relative">
-              <Popover.Button className="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900">
-                <PlusCircleIcon className="h-7 w-7 text-audino-primary-dark" />
+              <Popover.Button className="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 dark:bg-audino-gradient bg-audino-primary p-2 rounded-md">
+                {/* <PlusCircleIcon className="h-7 w-7 text-audino-primary-dark dark:text-audino-gradient" /> */}
+                <TaskAdd className="h-5 w-5" />
               </Popover.Button>
 
               <Popover.Panel
                 transition
-                className="absolute bg-primary-background left-1/2 z-10  flex w-screen max-w-max -translate-x-1/2 px-4 transition data-[closed]:translate-y-1 data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-150 data-[enter]:ease-out data-[leave]:ease-in rounded-md p-2  flex-col gap-2 shadow-md"
+                className="absolute bg-white dark:bg-audino-light-navy  left-1/2 z-10  flex w-screen max-w-max xl:-translate-x-1/2 -translate-x-[130px]  px-4 transition data-[closed]:translate-y-1 data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-150 data-[enter]:ease-out data-[leave]:ease-in rounded-md p-2  flex-col gap-2 shadow-md"
               >
                 <PrimarButton
                   onClick={() =>
@@ -167,165 +169,198 @@ export default function TaskPage({
           </TopBar>
 
           {/* list of tasks */}
-          <ul className="divide-y divide-gray-100 mt-2">
-            {getTasksQuery.isLoading || getTasksQuery.isRefetching
-              ? [...Array(8).keys()].map((val) => (
-                  <div
-                    key={`taskloading-${val}`}
-                    className="h-16 bg-gray-200 rounded-md w-full mb-2.5 mt-4 animate-pulse"
-                  ></div>
-                ))
-              : tasks_obj.results.map((task, index) => (
-                  <li
-                    key={task.id}
-                    className={classNames(
-                      "grid grid-cols-12 grid-rows-1 items-center justify-between gap-2 py-5 group",
-                      isTaskEmpty(task) ? "opacity-50" : ""
-                    )}
+          <ul className="divide-y divide-gray-100 dark:divide-audino-gray mt-2">
+            {getTasksQuery.isLoading || getTasksQuery.isRefetching ? (
+              [...Array(8).keys()].map((val) => (
+                <div
+                  key={`taskloading-${val}`}
+                  className="h-16 bg-gray-200 dark:bg-audino-midnight rounded-md w-full mb-2.5 mt-4 animate-pulse"
+                ></div>
+              ))
+            ) : tasks_obj.results.length === 0 ? (
+              <div className="flex flex-col justify-center items-center my-14 text-gray-500 dark:text-white text-sm">
+                <NoTaskLogo className="h-24 text-gray-500 dark:text-white" />
+                <div className="flex flex-col justify-center items-center text-center">
+                  <h2 className="font-bold">No task found...</h2>
+                  <p className="dark:text-gray-400">To add a new task</p>
+                  <p
+                    className="text-audino-primary-dark cursor-pointer"
+                    onClick={() =>
+                      navigate("/tasks/create", {
+                        state: { projectId },
+                      })
+                    }
                   >
-                    <div
-                      className="hover:cursor-pointer md:col-span-6 lg:col-span-8 col-span-12"
-                      onClick={() => navigate(`/tasks/${task.id}?page=1`)}
-                    >
-                      <div className="flex items-start gap-x-3">
-                        <p className="text-sm font-medium leading-6 text-gray-900 group-hover:underline">
-                          {/* <NavLink
-                            to={`/annotate/${task.id}`}
-                            className="hover:underline"
-                          > */}
-                          <span className="text-gray-500">#{task.id}:</span>{" "}
-                          {task.name}
-                          {/* </NavLink> */}
+                    add new task
+                  </p>
+                  <p
+                    className="text-audino-primary-dark cursor-pointer"
+                    onClick={() =>
+                      navigate("/tasks/create?multi=true", {
+                        state: { projectId },
+                      })
+                    }
+                  >
+                    add multiple task
+                  </p>
+                </div>
+              </div>
+            ) : (
+              tasks_obj.results.map((task, index) => (
+                <li
+                  key={task.id}
+                  className={classNames(
+                    "grid grid-cols-12 grid-rows-1 items-center justify-between gap-2 py-5 group",
+                    isTaskEmpty(task) ? "opacity-50" : ""
+                  )}
+                >
+                  <div
+                    className="hover:cursor-pointer md:col-span-6 lg:col-span-8 col-span-12"
+                    onClick={() => navigate(`/tasks/${task.id}?page=1`)}
+                  >
+                    <div className="flex items-start gap-x-3">
+                      <p className="text-sm font-medium leading-6 text-gray-900 dark:text-white group-hover:underline">
+                        {/* <NavLink
+                          to={`/annotate/${task.id}`}
+                          className="hover:underline"
+                        > */}
+                        <span className="text-gray-500 dark:text-white">
+                          #{task.id}:
+                        </span>{" "}
+                        {task.name}
+                        {/* </NavLink> */}
+                      </p>
+                      {task.subset && (
+                        <p
+                          className={classNames(
+                            statuses[task.subset],
+                            "rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                          )}
+                        >
+                          {task.subset}
                         </p>
-                        {task.subset && (
-                          <p
-                            className={classNames(
-                              statuses[task.subset],
-                              "rounded-md whitespace-nowrap mt-0.5 px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset"
-                            )}
-                          >
-                            {task.subset}
-                          </p>
-                        )}
-                        {isTaskEmpty(task) ? (
-                          <p
-                            className={classNames(
-                              "mt-0.5 px-1.5 py-0.5 text-xs font-normal text-red-500 "
-                            )}
-                          >
-                            Task are not fully created yet
-                          </p>
-                        ) : null}
-                      </div>
-
-                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
-                        <p>
-                          Created by {task.owner?.username} on{" "}
-                          {dayjs(task.created_date).format("Do MMMM YYYY")}
+                      )}
+                      {isTaskEmpty(task) ? (
+                        <p
+                          className={classNames(
+                            "mt-0.5 px-1.5 py-0.5 text-xs font-normal text-red-500 "
+                          )}
+                        >
+                          Task are not fully created yet
                         </p>
-                      </div>
-                      <div className="flex items-center gap-x-2 text-xs leading-5 text-gray-500">
-                        <p>
-                          Last updated{" "}
-                          <time dateTime={task.updated_date}>
-                            {dayjs(task.updated_date).fromNow()}
-                          </time>
-                        </p>
-                      </div>
+                      ) : null}
                     </div>
-                    <dl className="flex w-full justify-between gap-x-8 sm:w-auto md:col-span-6 lg:col-span-4 col-span-12">
-                      <div className="w-full">
-                        <>
-                          {" "}
-                          <div className="flex items-center gap-x-1.5">
-                            {task.jobs.completed ? (
-                              <>
-                                <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                </div>
-                                <p className="text-xs leading-5 text-gray-500">
-                                  {/* {getProgressText(task.jobs)} {task.jobs.completed}{" "}
-                              of {task.jobs.count} */}
-                                  {/* {task.jobs.completed ? task.jobs.completed + " done": ""}  */}
-                                  {task.jobs.completed + " done"}
-                                </p>
-                              </>
-                            ) : null}
 
-                            {task.jobs.validation ? (
-                              <>
-                                <div className="flex-none rounded-full bg-yellow-500/20 p-1">
-                                  <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-                                </div>
-                                <p className="text-xs leading-5 text-gray-500">
-                                  {task.jobs.validation + " in review"}
-                                </p>
-                              </>
-                            ) : null}
-                            <div className="flex-none rounded-full bg-gray-400/20 p-1">
-                              <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                            </div>
-                            <p className="text-xs leading-5 text-gray-500">
-                              {task.jobs.count -
-                                (task.jobs.completed + task.jobs.validation) +
-                                " annotating"}
-                            </p>
+                    <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                      <p>
+                        Created by {task.owner?.username} on{" "}
+                        {dayjs(task.created_date).format("Do MMMM YYYY")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-x-2 text-xs leading-5 text-gray-500">
+                      <p>
+                        Last updated{" "}
+                        <time dateTime={task.updated_date}>
+                          {dayjs(task.updated_date).fromNow()}
+                        </time>
+                      </p>
+                    </div>
+                  </div>
+                  <dl className="flex w-full justify-between gap-x-8 sm:w-auto md:col-span-6 lg:col-span-4 col-span-12">
+                    <div className="w-full">
+                      <>
+                        {" "}
+                        <div className="flex items-center gap-x-1.5">
+                          {task.jobs.completed ? (
+                            <>
+                              <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                              </div>
+                              <p className="text-xs leading-5 text-gray-500">
+                                {/* {getProgressText(task.jobs)} {task.jobs.completed}{" "}
+                            of {task.jobs.count} */}
+                                {/* {task.jobs.completed ? task.jobs.completed + " done": ""}  */}
+                                {task.jobs.completed + " done"}
+                              </p>
+                            </>
+                          ) : null}
 
-                            <p className="text-xs leading-5 text-gray-500">
-                              {"out of " + task.jobs.count}
-                            </p>
+                          {task.jobs.validation ? (
+                            <>
+                              <div className="flex-none rounded-full bg-yellow-500/20 p-1">
+                                <div className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
+                              </div>
+                              <p className="text-xs leading-5 text-gray-500">
+                                {task.jobs.validation + " in review"}
+                              </p>
+                            </>
+                          ) : null}
+                          <div className="flex-none rounded-full bg-gray-400/20 p-1">
+                            <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
                           </div>
-                        </>
-                        <ProgressIndicator
-                          done={task.jobs.completed}
-                          inReview={task.jobs.validation}
-                          annotating={
-                            task.jobs.count -
-                            (task.jobs.completed + task.jobs.validation)
-                          }
-                          total={task.jobs.count}
-                        />
-                      </div>
-                      {/* <div className="flex -space-x-0.5">
-                        <dt className="sr-only">Commenters</dt>
-                        {discussions[0].commenters.map((commenter) => (
-                          <dd key={commenter.id}>
-                            <img
-                              className="h-6 w-6 rounded-full bg-gray-50 ring-2 ring-white"
-                              src={commenter.imageUrl}
-                              alt={commenter.name}
-                            />
-                          </dd>
-                        ))}
-                      </div>
-                      <div className="flex gap-x-2.5">
-                        <dt>
-                          <span className="sr-only">Total comments</span>
-                          <ChatBubbleLeftIcon
-                            className="h-6 w-6 text-gray-400"
-                            aria-hidden="true"
-                          />
-                        </dt>
-                        <dd className="text-sm leading-6 text-gray-900">
-                          {discussions[0].totalComments}
-                        </dd>
-                      </div> */}
-                      <TaskMenu
-                        task={task}
-                        isShowText={false}
-                        isShowEdit={true}
-                      />
-                    </dl>
-                  </li>
-                ))}
-          </ul>
+                          <p className="text-xs leading-5 text-gray-500">
+                            {task.jobs.count -
+                              (task.jobs.completed + task.jobs.validation) +
+                              " annotating"}
+                          </p>
 
+                          <p className="text-xs leading-5 text-gray-500">
+                            {"out of " + task.jobs.count}
+                          </p>
+                        </div>
+                      </>
+                      <ProgressIndicator
+                        done={task.jobs.completed}
+                        inReview={task.jobs.validation}
+                        annotating={
+                          task.jobs.count -
+                          (task.jobs.completed + task.jobs.validation)
+                        }
+                        total={task.jobs.count}
+                      />
+                    </div>
+                    {/* <div className="flex -space-x-0.5">
+                      <dt className="sr-only">Commenters</dt>
+                      {discussions[0].commenters.map((commenter) => (
+                        <dd key={commenter.id}>
+                          <img
+                            className="h-6 w-6 rounded-full bg-gray-50 ring-2 ring-white"
+                            src={commenter.imageUrl}
+                            alt={commenter.name}
+                          />
+                        </dd>
+                      ))}
+                    </div>
+                    <div className="flex gap-x-2.5">
+                      <dt>
+                        <span className="sr-only">Total comments</span>
+                        <ChatBubbleLeftIcon
+                          className="h-6 w-6 text-gray-400"
+                          aria-hidden="true"
+                        />
+                      </dt>
+                      <dd className="text-sm leading-6 text-gray-900">
+                        {discussions[0].totalComments}
+                      </dd>
+                    </div> */}
+                    <TaskMenu
+                      task={task}
+                      isShowText={false}
+                      isShowEdit={true}
+                    />
+                  </dl>
+                </li>
+              ))
+            )}
+          </ul>
           {/* pagination */}
-          <Pagination
-            resultObj={tasks_obj}
-            pageSize={pageSize}
-            currentPage={currentPage}
-          />
+          {tasks_obj?.results?.length > 0 && (
+            <Pagination
+              resultObj={tasks_obj}
+              pageSize={pageSize}
+              currentPage={currentPage}
+            />
+          )}
         </div>
       </main>
       {/* confirmation modal */}

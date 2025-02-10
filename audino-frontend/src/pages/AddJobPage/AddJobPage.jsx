@@ -127,13 +127,13 @@ export default function AddJobPage() {
         {isTaskLoading ? (
           <AddTaskPageLoader />
         ) : (
-          <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full ">
+          <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full ">
             <div className="mb-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 dark:text-white text-gray-900 mb-2"
               >
-                Job type <span className="text-red-600">*</span>
+                Job type <span className="text-red-600 dark:text-audino-primary">*</span>
               </label>
 
               <CustomSelect
@@ -148,9 +148,9 @@ export default function AddJobPage() {
             <div className="mb-4">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                className="block text-sm font-medium leading-6 dark:text-white text-gray-900 mb-2"
               >
-                Frame selection method <span className="text-red-600">*</span>
+                Frame selection method <span className="text-red-600 dark:text-audino-primary">*</span>
               </label>
               <CustomSelect
                 id="frame_selection_method"
@@ -168,9 +168,9 @@ export default function AddJobPage() {
                 <div className="flex justify-between items-center">
                   <label
                     htmlFor="mobileNumber"
-                    className="block text-sm font-medium leading-6 text-gray-900 mb-2"
+                    className="block text-sm font-medium leading-6 dark:text-white text-gray-900 mb-2"
                   >
-                    Quantity (%)<span className="text-red-600">*</span>
+                    Quantity (%)<span className="text-red-600 dark:text-audino-primary">*</span>
                   </label>
                   <AudinoPopover
                     content={
@@ -213,11 +213,11 @@ export default function AddJobPage() {
               </div> */}
             </div>
             {/* Action buttons */}
-            <div className="flex  justify-end border-t border-gray-200 mt-8 pt-4">
+            <div className="flex  justify-end border-t dark:border-audino-charcoal border-gray-200 mt-8 pt-4">
               <div className="flex space-x-3">
                 <button
                   type="button"
-                  className="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="rounded-md bg-white dark:bg-transparent px-3 py-2 text-sm font-medium text-gray-900 dark:text-audino-light-gray shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-audino-charcoal hover:bg-gray-50"
                   onClick={() => navigate(-1)}
                 >
                   Cancel

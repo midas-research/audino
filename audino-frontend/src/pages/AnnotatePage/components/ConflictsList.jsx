@@ -134,7 +134,7 @@ export default function ConflictsList({
                       onClick={(e) => {
                         handleRegionClick(getAnnotationId(conflict), e);
                       }}
-                      className={`flex  border-l-4 flex-col py-2 my-2 justify-center shadow rounded p-2 
+                      className={`flex  border-l-4 flex-col dark:bg-audino-light-navy py-2 my-2 justify-center shadow rounded p-2 
                       ${
                         currentAnnotationIndex >= 0 &&
                         regions[currentAnnotationIndex]?.id ===
@@ -142,13 +142,13 @@ export default function ConflictsList({
                           ? conflict?.severity === "error"
                             ? "border-l-red-700"
                             : "border-l-yellow-800"
-                          : "border-l-white"
+                          : "border-l-white dark:border-l-audino-light-navy"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <dt className="text-sm inline-flex items-center gap-2  font-medium leading-6 text-gray-900">
+                        <dt className="text-sm inline-flex items-center gap-2  font-medium leading-6 text-gray-900 dark:text-audino-light-silver">
                           #{conflict?.id}{" "}
-                          <div className="p-[3px] bg-black rounded-full"></div>{" "}
+                          <div className="p-[3px] bg-black dark:bg-gray-500 rounded-full"></div>{" "}
                           Conflict
                         </dt>
 
@@ -163,7 +163,7 @@ export default function ConflictsList({
                         </span>
                       </div>
                       <div className="flex   gap-2">
-                        <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                        <dd className="mt-1 text-sm leading-6 dark:text-gray-400 text-gray-700 sm:col-span-2 sm:mt-0">
                           {conflict?.type
                             .replace(/_/g, " ")
                             .replace(/\b\w/g, (char) =>

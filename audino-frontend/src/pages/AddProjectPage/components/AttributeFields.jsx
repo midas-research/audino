@@ -57,7 +57,7 @@ export default function AttributeFields({ index, onRemoveValue, onRemoveAttribut
         <div className="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
             <label
                 htmlFor="label-name"
-                className="block text-sm font-medium leading-6 text-gray-900 sm:mt-1.5"
+                className="block text-sm font-medium leading-6 dark:text-audino-light-gray text-gray-900 sm:mt-1.5"
             >
                 Name
             </label>
@@ -98,7 +98,7 @@ export default function AttributeFields({ index, onRemoveValue, onRemoveAttribut
         {/* Values */}
         <fieldset className="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
             <legend className="sr-only">Attribute values</legend>
-            <div className="text-sm font-medium leading-6 text-gray-900" aria-hidden="true">
+            <div className="text-sm font-medium leading-6 dark:text-audino-light-gray text-gray-900" aria-hidden="true">
                 Attribute values
             </div>
             <div className="space-y-1 sm:col-span-2">
@@ -120,7 +120,7 @@ export default function AttributeFields({ index, onRemoveValue, onRemoveAttribut
                 </div> : null}
                 <button
                     type="button"
-                    className="group !mt-0 flex items-center rounded-md bg-white p-1 focus:outline-none focus:ring-2 focus:ring-audino-primary-dark"
+                    className="group !mt-0 flex items-center rounded-md dark:bg-transparent bg-white p-1 focus:outline-none focus:ring-2 focus:ring-audino-primary-dark"
                     onClick={handleAddValue}
                 >
                     <span className="flex h-6 w-6 items-center justify-center rounded-full text-audino-primary">

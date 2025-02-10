@@ -30,6 +30,15 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="alert-modal"></div>
     <div id="root"></div>
+    <script>
+      // Immediately apply dark mode based on localStorage
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

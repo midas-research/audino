@@ -37,24 +37,24 @@ function ChangePasswordPage() {
   };
   return (
     <>
-      <div className="flex min-h-screen flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-primary-background bg-center bg-no-repeat bg-cover">
+      <div className="flex min-h-screen flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-primary-background dark:bg-audino-gradient bg-center bg-no-repeat bg-cover">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <img
             className="mx-auto h-14 w-auto"
             src={require("../../assets/logos/logo.png")}
             alt="Audino"
           />
-          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-white">
           Let's create a new one
           </h2>
 
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-            <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+            <div className="bg-white dark:bg-audino-deep-navy px-6 py-12 shadow sm:rounded-lg sm:px-12">
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label
                     htmlFor="password"
-                    className="block text-sm font-medium leading-6 text-gray-900"
+                    className="block text-sm font-medium leading-6 dark:text-white text-gray-900"
                   >
                     New Password
                   </label>
@@ -65,7 +65,7 @@ function ChangePasswordPage() {
                       type={seePassword ? "text" : "password"}
                       autoComplete="current-password"
                       required
-                      className={`block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset   focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900`}
+                      className={`block w-full dark:bg-audino-midnight rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset   focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none ring-gray-300 dark:ring-audino-charcoal placeholder:text-gray-300 dark:placeholder:text-audino-silver-gray focus:ring-audino-primary dark:text-audino-silver-gray text-gray-900`}
                       aria-invalid="true"
                       aria-describedby="password-error"
                     />
@@ -92,7 +92,7 @@ function ChangePasswordPage() {
                 <div>
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-sm font-medium leading-6 text-gray-900"
+                    className="block text-sm font-medium leading-6 dark:text-white text-gray-900"
                   >
                     Confirm New Password
                   </label>
@@ -103,7 +103,7 @@ function ChangePasswordPage() {
                       type={seeConfirmPassword ? "text" : "password"}
                       autoComplete="current-password"
                       required
-                      className={`block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none ring-gray-300 placeholder:text-gray-300 focus:ring-audino-primary text-gray-900`}
+                      className={`block w-full dark:bg-audino-midnight rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none ring-gray-300 dark:ring-audino-charcoal placeholder:text-gray-300 dark:placeholder:text-audino-silver-gray focus:ring-audino-primary text-gray-900 dark:text-audino-silver-gray`}
                       aria-invalid="true"
                       aria-describedby="confirmPassword-error"
                     />
@@ -139,11 +139,11 @@ function ChangePasswordPage() {
             </div>
           </div>
         </div>
-        <p className="mt-10 text-center text-sm text-gray-500">
+        <p className="mt-10 text-center text-sm text-gray-500 dark:text-gray-300">
            Back to login?{" "}
             <NavLink
               to="/login"
-              className="font-semibold leading-6 text-audino-primary hover:text-audino-primary-dark"
+              className="font-semibold leading-6 dark:text-white text-audino-primary hover:text-audino-primary-dark"
             >
               Click here
             </NavLink>
