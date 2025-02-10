@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/midas-research/audino/add-docs/docs/assets/banner.png?token=ABLJAWWDYM2BYPISPC4DRXS63IB7Y" width="600px" />
+  <img src="https://raw.githubusercontent.com/midas-research/audino/add-docs/docs/assets/banner.png" width="600px" />
 </h1>
 
 
