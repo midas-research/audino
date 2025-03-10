@@ -58,6 +58,17 @@ $ git submodule update --init --recursive
 You can either run the project on [default configuration](./docker-compose.yml) or modify them to your need.
 **Note**: Before proceeding further, you might need to give docker `sudo` access or run the commands listed below as `sudo`.
 
+**Set the host address if you want to use it from a different machine:**
+```sh
+# audino/.env
+CVAT_HOST=<FQDN>
+```
+```sh
+# audino/audino-frontend/.env
+REACT_APP_BACKEND_FILE_URL="http://<FQDN>:8080"
+REACT_APP_BACKEND_URL="http://<FQDN>:8080/api"
+```
+
 **To bring up the services, run:**
 
 ```sh
