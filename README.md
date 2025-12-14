@@ -50,7 +50,6 @@ Please install the following dependencies to run `audino` on your system:
 $ git clone https://github.com/midas-research/audino.git
 $ cd audino
 $ git checkout main
-$ git submodule update --init --recursive
 ```
 
 ## Installation Guide
@@ -116,6 +115,7 @@ $ docker compose -f docker-compose.yml down
     $ pip install -r cvat/requirements/development.txt
     ```
 
+
 4. Install Docker Engine and Docker Compose
 
 5. Start service dependencies:
@@ -141,6 +141,8 @@ $ docker compose -f docker-compose.yml down
 8. Inside VScode, Open CVAT root dir
 9. Select `server: debug` configuration and run it (F5) to run REST server and its workers
 10. Make sure that Uncaught Exceptions option under breakpoints section is unchecked
+
+For more information about CVAT server setup, refer to [Cvat docs](https://docs.cvat.ai/docs/administration/community/basics/installation/)
 
 ### Frontend Setup
 

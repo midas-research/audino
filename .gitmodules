@@ -1,3 +1,0 @@
-[submodule "cvat"]
-	path = cvat
-	url = https://github.com/midas-research/cvat.git
