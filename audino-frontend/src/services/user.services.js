@@ -23,8 +23,7 @@ export const fetchUsersApi = async (data) => {
   try {
     const res = await axios.get(BASE_URL + "/users", {
       params: {
-        limit: data?.limit,
-        is_active: data?.is_active,
+        ...data,
         ...globalParams()
       },
       headers: { ...authHeader() },

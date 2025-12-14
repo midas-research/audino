@@ -25,8 +25,8 @@ export default function InvitationPage() {
       apiParams: {
         params: {
           page: 1,
-          page_size: 11,
-          // filter: `{"and":[{"==":[{"var":"user_id"},${audinoUserData.id}]},{"==":[{"var":"accepted"},false]}]}`,
+          page_size: 20,
+          filter: `{"and":[{"==":[{"var":"user_id"},${audinoUserData.id}]},{"==":[{"var":"accepted"},false]}]}`,
         },
       },
       enabled: true,
@@ -68,16 +68,20 @@ export default function InvitationPage() {
         </header>
       </AppBar>
       <main className=" -mt-32 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="rounded-lg bg-white px-5 py-6 shadow sm:px-6 min-h-full">
+        <div className="rounded-lg bg-white dark:bg-audino-navy px-5 py-6 shadow sm:px-6 min-h-full">
           {getAllInviations.isLoading ? (
             [...Array(8).keys()].map((val) => (
               <div
                 key={`inivationsLoading-${val}`}
-                className="h-16 bg-gray-200 rounded-md w-full my-4 animate-pulse"
+                className="h-16 bg-gray-200 dark:bg-audino-deep-space  rounded-md w-full my-4 animate-pulse"
               ></div>
             ))
+          ) : invitations_obj.results && invitations_obj.results.length === 0 ? (
+            <div className="text-center text-gray-500 dark:text-audino-light-silver py-10">
+              You do not have active invitations.
+            </div>
           ) : (
-            <ul role="list" className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100">
               {invitations_obj.results.map((invitation) => (
                 <li
                   key={invitation.key}
@@ -91,7 +95,7 @@ export default function InvitationPage() {
                       has invited you to join the
                       <span className="font-semibold">
                         {" "}
-                        {invitation.organization}{" "}
+                        {invitation.organization_info.slug}{" "}
                       </span>
                       organization{" "}
                     </p>

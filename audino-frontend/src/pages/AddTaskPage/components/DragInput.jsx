@@ -28,9 +28,9 @@ export default function DragInput({ handleInputChange, isMultiple }) {
       let audioFiles = Array.from(event.dataTransfer.files).filter(file =>
         file.type.startsWith('audio/')
       );
-      if (!isMultiple && audioFiles.length > 1) {
-        audioFiles = [audioFiles[0]]; // Restrict to a single file if isMulti is false
-      }
+      // if (!isMultiple && audioFiles.length > 1) {
+      //   audioFiles = [audioFiles[0]]; // Restrict to a single file if isMulti is false
+      // }
       if (audioFiles.length > 0) {
         handleInputChange("files", audioFiles);
       }
@@ -74,7 +74,7 @@ export default function DragInput({ handleInputChange, isMultiple }) {
         <input
           id="dropzone-file"
           type="file"
-          multiple={isMultiple}
+          multiple={true}
           className="hidden"
           accept=".mp3,audio/*"
           onChange={(e) => handleInputChange("files", e.target.files)}

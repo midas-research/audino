@@ -2,7 +2,7 @@ import axios from "axios";
 import authHeader from "./auth-header";
 import globalParams from "./global-params";
 import { handleDjangoErrors } from "../utils/errorHandler";
-import './axios-config'
+import "./axios-config";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -73,6 +73,24 @@ export const fetchAnnotationConflicts = async (id) => {
     return res.data;
   } catch (e) {
     handleDjangoErrors(e);
+    throw Error(e.response?.data ?? "Something went wrong");
+  }
+};
+
+export const fetchJobQualityReportApi = async ({ jobId }) => {
+  try {
+    const res = await axios.post(
+      BASE_URL + `/quality/reports/immediate-reports`,
+      {
+        job_id: jobId,
+      },
+      {
+        headers: { ...authHeader() },
+      }
+    );
+    return res.data;
+  } catch (e) {
+    // handleDjangoErrors(e);
     throw Error(e.response?.data ?? "Something went wrong");
   }
 };

@@ -174,11 +174,11 @@ export default function AnalyticsPage() {
                     </p>
                     <p>
                       Accuracy:&nbsp;
-                      {qualitySummary?.accuracy}
+                      {qualitySummary?.accuracy ? Math.trunc(qualitySummary?.accuracy, 2) : 0}
                     </p>
                     <p>
                       Precision:&nbsp;
-                      {qualitySummary?.precision}
+                      {qualitySummary?.precision ? Math.trunc(qualitySummary?.precision, 2) : 0}
                     </p>
                     <p>
                       Recall:&nbsp;
@@ -189,10 +189,10 @@ export default function AnalyticsPage() {
                 bottomElement={
                   <>
                     <dt className="text-gray-500 dark:text-gray-300">
-                      Character Error Rate: {qualitySummary?.cer}
+                      Character Error Rate: {Math.trunc(qualitySummary?.cer, 2)}
                     </dt>
                     <dd className="text-gray-700 dark:text-gray-400">
-                      Word Error Rate: {qualitySummary?.wer}
+                      Word Error Rate: {Math.trunc(qualitySummary?.wer, 2)}
                     </dd>
                   </>
                 }

@@ -33,6 +33,7 @@ export default function JobPage({
   const [searchValue, setSearchValue] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [currentJobId, setCurrentJobId] = useState(null);
+  const [isGtJob, setIsGtJob] = useState(false);
   const [isAutoAnnoteModalOpen, setIsAutoAnnoteModalOpen] = useState(false);
 
   const jobs_obj = useJobStore((state) => state.jobs_obj);
@@ -92,6 +93,7 @@ export default function JobPage({
   useEffect(() => {
     if (!isExportModalOpen) {
       setCurrentJobId(null);
+      setIsGtJob(false);
     }
   }, [isExportModalOpen]);
 
@@ -100,9 +102,14 @@ export default function JobPage({
     setIsAutoAnnoteModalOpen(true);
   };
 
-  const handleExportAnnotationClick = (jobId) => {
+  const handleExportAnnotationClick = (jobId, type='') => {
     setCurrentJobId(jobId);
     setIsExportModalOpen(true);
+    if (type === "ground_truth") {
+      setIsGtJob(true);
+    }else {
+      setIsGtJob(false);
+    }
   };
 
   return (
@@ -153,7 +160,6 @@ export default function JobPage({
               </button>
             ) : null}
           </TopBar>
-
           {/* list of tasks */}
           <ul className="divide-y divide-gray-100 dark:divide-[#434558] mt-2">
             {getJobsQuery.isLoading || getJobsQuery.isRefetching ? (
@@ -203,6 +209,7 @@ export default function JobPage({
             setOpen={setIsExportModalOpen}
             currentId={currentJobId}
             type="jobs"
+            isGtJob={isGtJob}
           />
 
           {/* Autot annotation modal */}

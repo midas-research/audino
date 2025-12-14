@@ -17,7 +17,7 @@ const CustomCheckbox = ({
 }) => {
   const customTextColor = type === 'DIR' ? "text-audino-primary" : "text-gray-900 dark:text-audino-cloud-gray";
   return (
-    <div  onClick={onClick} className="relative flex items-start ring-gray-300 ring-1 dark:ring-audino-charcoal p-2 dark:bg-audino-light-navy rounded-md">
+    <div  onClick={onClick} className="relative flex  items-center ring-gray-300 ring-1 dark:ring-audino-charcoal p-2 dark:bg-audino-light-navy rounded-md">
       <div className="flex h-6 items-center">
         <input
           id={id}

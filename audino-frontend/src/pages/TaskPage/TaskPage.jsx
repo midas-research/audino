@@ -155,7 +155,7 @@ export default function TaskPage({
                 >
                   Add new task
                 </PrimarButton>
-                <PrimarButton
+                {/* <PrimarButton
                   onClick={() =>
                     navigate("/tasks/create?multi=true", {
                       state: { projectId },
@@ -163,7 +163,7 @@ export default function TaskPage({
                   }
                 >
                   Add multiple task
-                </PrimarButton>
+                </PrimarButton> */}
               </Popover.Panel>
             </Popover>
           </TopBar>
@@ -193,7 +193,7 @@ export default function TaskPage({
                   >
                     add new task
                   </p>
-                  <p
+                  {/* <p
                     className="text-audino-primary-dark cursor-pointer"
                     onClick={() =>
                       navigate("/tasks/create?multi=true", {
@@ -202,7 +202,7 @@ export default function TaskPage({
                     }
                   >
                     add multiple task
-                  </p>
+                  </p> */}
                 </div>
               </div>
             ) : (

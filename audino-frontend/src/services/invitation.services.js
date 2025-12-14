@@ -22,7 +22,7 @@ export const getInvitationApi = async ({key}) => {
 export const getAllInvitationApi = async (data) => {
   try {
     const response = await axios.get(BASE_URL + `/invitations`, {
-      params: { ...data.params, ...globalParams() },
+      params: { ...data.params, },
       headers: { ...authHeader() },
     });
     return response.data;
@@ -56,7 +56,6 @@ export const changeInviationStatusApi = async ({ key, type }) => {
       BASE_URL + `/invitations/${key}/${type}`,
       {},
       {
-        params: { ...globalParams() },
         headers: { ...authHeader() },
       }
     );

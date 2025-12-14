@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import { SunIcon,MoonIcon } from '@heroicons/react/24/outline'
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import LoginPage from "./pages/LoginPage/LoginPage";
 import ErrorBoundary from "./routes/error-page";
 import Root from "./routes/root";
@@ -14,6 +14,21 @@ import AcceptInvitationPage from "./pages/AcceptInvitationPage/AcceptInvitationP
 import ScrollToTop from "./functions/scrollToUp";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ChangePasswordPage from "./pages/ForgotPasswordPage/ChangePasswordPage";
+import { AUDINO_ORG } from "./constants/constants";
+
+function OrgHandler() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const orgSlug = searchParams.get('org');
+    if (orgSlug) {
+      localStorage.setItem(AUDINO_ORG, orgSlug);
+    }
+  }, [location.search]);
+
+  return null;
+}
 
 function App() {
   const [isDarkMode,setIsDarkMode] = useState(localStorage.getItem('theme') === 'dark');
@@ -34,6 +49,7 @@ function App() {
   return (
     <div className=''>
     <BrowserRouter>
+      <OrgHandler />
       <ScrollToTop />
       {CustomToast()}
       <Routes>

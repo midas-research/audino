@@ -162,7 +162,7 @@ export default function OrganizationsPage() {
               [...Array(5).keys()].map((load) => (
                 <li
                   className="col-span-1 divide-y divide-gray-200 dark:divide-[#797A7F] rounded-lg bg-white dark:bg-audino-navy  cursor-pointer py-8 sm:py-0"
-                  onClick={() => navigate("create")}
+                  // onClick={() => navigate("create")}
                   key={`CardLoader-${load}`}
                 >
                   <CardLoader />

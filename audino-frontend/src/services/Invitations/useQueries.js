@@ -23,8 +23,8 @@ export const useGetInvitation = ({ queryConfig }) => {
 
 export const useGetAllInvitation = ({ queryConfig }) => {
   const { queryKey, apiParams, ...restConfig } = queryConfig;
-  const OrgSlug = localStorage.getItem(AUDINO_ORG);
-  apiParams.org = OrgSlug;
+  // const OrgSlug = localStorage.getItem(AUDINO_ORG);
+  // apiParams.org = OrgSlug;
 
   return useQuery({
     queryKey: [INVITATIONS_KEY,  ...queryKey],

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteLabelApi } from "../project.services";
+import { deleteLabelApi, updateLabelApi } from "../project.services";
 import { LABEL_KEY } from "./useQueries";
 
 const useDeleteLabelMutation = (mutationConfig) => {
@@ -17,4 +17,13 @@ const useDeleteLabelMutation = (mutationConfig) => {
   });
 };
 
-export default useDeleteLabelMutation;
+const useUpdateLabelMutation = ({mutationConfig}) => {
+  const { ...restConfig } = mutationConfig || {};
+  
+  return useMutation({
+    mutationFn: updateLabelApi,
+    ...restConfig,
+  });
+};
+
+export { useDeleteLabelMutation, useUpdateLabelMutation };

@@ -24,7 +24,7 @@ import { SketchPicker } from "react-color";
 import toast from "react-hot-toast";
 import { ChevronLeftIcon,TrashIcon,PlusCircleIcon } from "@heroicons/react/24/outline";
 import { useLabelsQuery } from '../../services/Labels/useQueries';
-import useDeleteLabelMutation from '../../services/Labels/useMutation';
+import { useDeleteLabelMutation } from '../../services/Labels/useMutation';
 import { useUserQuery } from "../../services/User/useQueries";
 
 function classNames(...classes) {
@@ -98,7 +98,7 @@ export default function AddProjectPage() {
         dispatch(
           updateProjectRequest({
             payload: { ...payload, params: { ...payload.params, projectId } },
-            callback: () => toast.success("Project updated successfully"),
+            callback: () => window.location.reload(),
           })
         );
       else
@@ -148,9 +148,9 @@ export default function AddProjectPage() {
   };
 
   const handleValueChange = (val, index, key) => {
-    console.log(index);
+    // console.log(index);
     const updatedLabels = [...labels_obj.results];
-    console.log(updatedLabels);
+    // console.log(updatedLabels);
     updatedLabels[index][key] = val;
     setLabels({ ...labels_obj, results: updatedLabels });
   };
@@ -227,7 +227,8 @@ export default function AddProjectPage() {
     queryConfig: {
       queryKey: [],
       apiParams: {
-        limit: 10,
+        page_size: 50,
+        page: 1,
         is_active: true,
       },
       enabled: true,
@@ -479,7 +480,7 @@ export default function AddProjectPage() {
                         >
                           {label.attributes.length
                             ? label.attributes.map(
-                              (attrib) => attrib.name + " "
+                              (attrib) => attrib.name + " ,"
                             )
                             : ""}
                         </td>
@@ -608,6 +609,7 @@ export default function AddProjectPage() {
         setOpen={setOpen}
         currentLabelIndex={currentLabelIndex}
         setCurrentLabelIndex={setCurrentLabelIndex}
+        projectId={projectId}
       />
 
       {projectId && (

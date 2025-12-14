@@ -65,12 +65,20 @@ export default function JobCard({
     failed: "Failed",
   };
 
+  const aiLangMapping = {
+    "ENG": "English",
+    "ARA": "Arabic",
+    "HIN": "Hindi",
+    "UNKNOWN": "General"
+  }
+
 
   const getUsersQuery = useUserQuery({
     queryConfig: {
       queryKey: [],
       apiParams: {
-        limit: 10,
+        page_size: 50,
+        page: 1,
         is_active: true,
       },
     },
@@ -187,7 +195,7 @@ export default function JobCard({
               )}
             >
               {aiStatusMapping[job.ai_audio_annotation_status]}
-            </span>
+            </span>{job.ai_audio_annotation_lang && <>in <span className={getAiStatus(job.ai_audio_annotation_status)}>{aiLangMapping[job.ai_audio_annotation_lang]}</span></>}
           </p>
         </div>
         <div className="flex items-center gap-x-2 text-xs leading-5 text-gray-500">
@@ -362,7 +370,7 @@ export default function JobCard({
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    handleExportAnnotationClick(job.id);
+                    handleExportAnnotationClick(job.id, job.type);
                   }}
                   className={classNames(
                     active ? "bg-gray-50 dark:bg-audino-teal-blue" : "",

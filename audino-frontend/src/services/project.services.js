@@ -113,3 +113,16 @@ export const deleteLabelApi = async ({ id }) => {
     throw Error(e.response?.data ?? "Something went wrong");
   }
 };
+
+export const updateLabelApi = async ({ id, data }) => {
+  try {
+    const res = await axios.patch(BASE_URL + `/labels/${id}`, data, {
+      params: { ...globalParams() },
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (e) {
+    handleDjangoErrors(e);
+    throw Error(e.response?.data ?? "Something went wrong");
+  }
+};

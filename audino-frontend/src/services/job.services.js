@@ -76,6 +76,22 @@ export const fetchAnnotationDataApi = async (data) => {
   }
 };
 
+export const fetchAudioDataPeakApi = async (data) => {
+  try {
+    const res = await axios.get(BASE_URL + "/jobs/" + data.id + "/peaks_data", {
+      params: {
+        org: data?.org,
+        ...globalParams(),
+      },
+      headers: { ...authHeader() },
+    });
+    return res.data;
+  } catch (e) {
+    // handleDjangoErrors(e);
+    throw Error(e.response?.data?.msg ?? "Something went wrong");
+  }
+};
+
 export const fetchAllAnnotationApi = async (data) => {
   try {
     const res = await axios.get(

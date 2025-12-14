@@ -13,6 +13,7 @@ import { jobAddSingleFieldValidation } from "../../validation/singleValidation";
 import AudinoPopover from "../../components/Popover/Popover";
 import { useTask } from '../../services/Task/useQueries';
 import { useCreateJobMutation } from "../../services/Jobs/useMutations";
+import toast from "react-hot-toast";
 
 const initialData = {
   type: "ground_truth",
@@ -60,7 +61,6 @@ export default function AddJobPage() {
     setFormValue((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const getTaskQuery = useTask({
     queryConfig: {
       queryKey: [taskId],
@@ -88,12 +88,16 @@ export default function AddJobPage() {
     }
   };
 
-
-
   const createJobMutation = useCreateJobMutation({
     mutationConfig: {
       onSuccess: (data) => {
+        console.log(data);
+        toast.success("Please wait while we process your job");
         navigate(-1);
+      },
+      onError: (error) => {
+        console.log(error);
+        toast.error("Not able to create Ground Truth Job");
       },
     },
   })
@@ -145,7 +149,7 @@ export default function AddJobPage() {
                 onChange={(e) => handleInputChange("type", e.target.value)}
               />
             </div>
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium leading-6 dark:text-white text-gray-900 mb-2"
@@ -162,7 +166,7 @@ export default function AddJobPage() {
                   handleInputChange("frame_selection_method", e.target.value)
                 }
               />
-            </div>
+            </div> */}
             <div className="grid grid-cols-12 gap-x-3">
               <div className="mb-4 col-span-12">
                 <div className="flex justify-between items-center">
@@ -170,11 +174,13 @@ export default function AddJobPage() {
                     htmlFor="mobileNumber"
                     className="block text-sm font-medium leading-6 dark:text-white text-gray-900 mb-2"
                   >
-                    Quantity (%)<span className="text-red-600 dark:text-audino-primary">*</span>
+                    Quantity <span className="text-red-600 dark:text-audino-primary">*</span>  <span className="font-normal text-xs">
+                                    (% of each job duration)
+                                  </span>
                   </label>
                   <AudinoPopover
                     content={
-                      "5-15% of the total frames are recommended for the job."
+                      "5-15% of the total audio duration is recommended for the gt job."
                     }
                   />
                 </div>

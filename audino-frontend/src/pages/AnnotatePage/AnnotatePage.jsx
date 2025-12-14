@@ -9,11 +9,11 @@ import { WaveSurfer, WaveForm, Region, Marker } from "wavesurfer-react";
 
 import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min";
-
+import MarkersPlugin from "wavesurfer.js/src/plugin/markers";
 import { useParams } from "react-router-dom";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchAnnotationDataApi } from "../../services/job.services";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchAudioDataPeakApi } from "../../services/job.services";
 import {
   usePostAnnotationMutation,
   usePutAnnotationMutation,
@@ -26,7 +26,7 @@ import {
 import { useLabelsQuery } from "../../services/Labels/useQueries";
 import { toast } from "react-hot-toast";
 import { v4 as uuid } from "uuid";
-import audioBufferToWav from "audiobuffer-to-wav";
+// import audioBufferToWav from "audiobuffer-to-wav";
 
 import formatTime from "../../utils/formatTime";
 import TopBar from "./components/TopBar";
@@ -50,9 +50,13 @@ import AlertModal from "../../components/Alert/AlertModal";
 
 import { Transition } from "@headlessui/react";
 import Spinner from "../../components/loader/spinner";
+import { useGetGuide } from "../../services/guides/useQueries";
+import MarkdownModal from "./components/MarkdownModal";
+import { useGetJobQualityReport } from "../../services/Qulaity/useMutations";
+import ResultModal from "./components/ResultModal";
 
-export default function AnnotatePage({}) {
-  const { id: jobId } = useParams();
+export default function AnnotatePage() {
+  const { id: jobId, taskId } = useParams();
 
   const [timelineVis, setTimelineVis] = useState(true);
   const [horizontalZoom, setHorizontalZoom] = useState(1);
@@ -74,11 +78,15 @@ export default function AnnotatePage({}) {
           container: "#timeline",
         },
       },
+      {
+        plugin: MarkersPlugin,
+      },
     ].filter(Boolean);
   }, []);
 
   const [regions, setRegions] = useState([]);
-  const [isWaveformLoading, setIsWaveformLoading] = useState(false);
+  const [markers, setMarkers] = useState([]);
+  // const [isWaveformLoading, setIsWaveformLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [conflicts, setConflicts] = useState([]);
@@ -97,6 +105,12 @@ export default function AnnotatePage({}) {
     successMutation: 0,
   });
   const [gtAnnotations, setGtAnnotations] = useState([]);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [qualityResult, setQualityResult] = useState({
+    score: 0,
+    expected_score: 0,
+  });
 
   // use regions ref to pass it inside useCallback
   // so it will use always the most fresh version of regions list
@@ -211,8 +225,8 @@ export default function AnnotatePage({}) {
         ...prev,
         {
           id: region.id,
-          start: region.start.toFixed(2),
-          end: region.end.toFixed(2),
+          start: region.start.toFixed(3),
+          end: region.end.toFixed(3),
           color: region.color,
           attributes: {
             label: "new",
@@ -243,10 +257,24 @@ export default function AnnotatePage({}) {
       );
 
       if (regionIndex >= 0) {
+        // Adjust the region so it does not cross the marker
+        wavesurferRef.current.markers.markers.forEach((marker) => {
+          if (region.start < marker.time && region.end > marker.time) {
+            if (
+              Math.abs(region.start - marker.time) <
+              Math.abs(region.end - marker.time)
+            ) {
+              region.update({ start: marker.time });
+            } else {
+              region.update({ end: marker.time });
+            }
+          }
+        });
+
         // region created using drag selection
         if (!updatedRegions[regionIndex].data.hasOwnProperty("label")) {
-          updatedRegions[regionIndex].start = region.start.toFixed(2);
-          updatedRegions[regionIndex].end = region.end.toFixed(2);
+          updatedRegions[regionIndex].start = region.start.toFixed(3);
+          updatedRegions[regionIndex].end = region.end.toFixed(3);
           updatedRegions[regionIndex].color =
             getLabelsQuery.data[0].color + "80";
           updatedRegions[regionIndex].attributes.label =
@@ -263,8 +291,8 @@ export default function AnnotatePage({}) {
           redoStackRef.current = [];
 
           // update the region start time and end time only
-          updatedRegions[regionIndex].start = region.start.toFixed(2);
-          updatedRegions[regionIndex].end = region.end.toFixed(2);
+          updatedRegions[regionIndex].start = region.start.toFixed(3);
+          updatedRegions[regionIndex].end = region.end.toFixed(3);
         }
         // updatedRegions[regionIndex].data.isSaved = false;
         setRegions(updatedRegions);
@@ -276,7 +304,7 @@ export default function AnnotatePage({}) {
 
   const handleWSMount = useCallback(
     (waveSurfer) => {
-      setIsWaveformLoading(true);
+      // setIsWaveformLoading(true);
       if (waveSurfer.markers) {
         waveSurfer.clearMarkers();
       }
@@ -295,7 +323,7 @@ export default function AnnotatePage({}) {
 
           wavesurferRef.current.params.scrollParent = true;
           wavesurferRef.current.zoom(horizontalZoom);
-          wavesurferRef.current.barHeight(initialVerticalZoom);
+          wavesurferRef.current.params.barHeight = initialVerticalZoom;
           wavesurferRef.current.setHeight(initialVerticalHeight);
           wavesurferRef.current.setVolume(volume / 100);
           wavesurferRef.current.drawBuffer();
@@ -307,9 +335,9 @@ export default function AnnotatePage({}) {
 
         wavesurferRef.current.on("loading", (data) => {
           // console.log("loading --> ", data);
-          if (data === 100) {
-            setIsWaveformLoading(false);
-          }
+          // if (data === 100) {
+          //   setIsWaveformLoading(false);
+          // }
         });
 
         wavesurferRef.current.on("region-click", (r, e) => {
@@ -346,8 +374,8 @@ export default function AnnotatePage({}) {
     const region = wavesurferRef.current.regions.list[id];
     if (event) event.stopPropagation();
     if (region.drag) {
-      setIsPlaying(true);
       region.play();
+      setIsPlaying(true);
     }
 
     // need to check id in regionsRef.current bcoz this function is being called in wavesurfer event
@@ -358,13 +386,16 @@ export default function AnnotatePage({}) {
   const updateTimeUi = () => {
     let currentTime = wavesurferRef.current.getCurrentTime();
 
-    document.getElementById("currentTime").innerText = formatTime(currentTime);
+    if (document.getElementById("currentTime")) {
+      document.getElementById("currentTime").innerText =
+        formatTime(currentTime);
 
-    // Calculate the percentage of progress
-    const progressPercentage =
-      (currentTime / wavesurferRef.current.getDuration()) * 100;
-    // Set the width of the progress bar
-    progressBarRef.current.style.width = `${progressPercentage}%`;
+      // Calculate the percentage of progress
+      const progressPercentage =
+        (currentTime / wavesurferRef.current.getDuration()) * 100;
+      // Set the width of the progress bar
+      progressBarRef.current.style.width = `${progressPercentage}%`;
+    }
   };
 
   const removeCurrentRegion = () => {
@@ -389,11 +420,11 @@ export default function AnnotatePage({}) {
   }, [isPlaying]);
 
   const handleForward = () => {
-    wavesurferRef.current.skipForward(10);
+    wavesurferRef.current.skipForward(2);
   };
 
   const handleBackward = () => {
-    wavesurferRef.current.skipBackward(10);
+    wavesurferRef.current.skipBackward(2);
   };
 
   const getAllLoading = () => {
@@ -406,8 +437,9 @@ export default function AnnotatePage({}) {
     return (
       getJobDetailQuery.isLoading ||
       getLabelsQuery.isLoading ||
-      getAnnotationDataQuery.isFetching ||
-      isWaveformLoading
+      getAnnotationDataQuery.isFetching
+      // ||
+      // isWaveformLoading
     );
   };
 
@@ -452,255 +484,19 @@ export default function AnnotatePage({}) {
     },
   });
 
-  const computeAudioData = async (
-    start,
-    end,
-    jobId,
-    combinedBuffer,
-    offset,
-    audioUrls,
-    urlIndex,
-    noOfChunks
-  ) => {
-    // Audio context creation
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
-
-    // Function to fetch and decode audio
-    async function fetchAndDecodeAudio(index) {
-      try {
-        const arrayBuffer = await fetchAnnotationDataApi({
-          id: jobId,
-          quality: "compressed",
-          number: index,
-        });
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        return audioBuffer;
-      } catch (error) {
-        console.error("Error fetching or decoding audio from:", error);
-        return null;
-      }
-    }
-
-    // Loop through the specified range
-    for (let index = start; index <= end; index++) {
-      const audioBuffer = await fetchAndDecodeAudio(index);
-      if (!audioBuffer) continue; // Skip if fetching or decoding failed
-
-      // Calculate total audio length
-      let audioLength = audioBuffer.length * noOfChunks;
-
-      // Create the combined buffer if it doesn't exist
-      if (!combinedBuffer) {
-        combinedBuffer = audioContext.createBuffer(
-          audioBuffer.numberOfChannels,
-          audioLength,
-          audioBuffer.sampleRate
-        );
-      }
-
-      // Copy the audioBuffer into the combinedBuffer
-      let copyLength = Math.min(
-        audioBuffer.length,
-        combinedBuffer.length - offset
-      );
-      if (copyLength > 0) {
-        for (
-          let channel = 0;
-          channel < audioBuffer.numberOfChannels;
-          channel++
-        ) {
-          combinedBuffer
-            .getChannelData(channel)
-            .set(
-              audioBuffer.getChannelData(channel).subarray(0, copyLength),
-              offset
-            );
-        }
-        offset += copyLength;
-      } else {
-        console.warn(
-          `Offset ${offset} exceeds combinedBuffer length, skipping copy.`
-        );
-      }
-
-      // Create a Blob and URL for each combined chunk
-      const blob = new Blob([audioBufferToWav(combinedBuffer)], {
-        type: "audio/wav",
-      });
-      const url = URL.createObjectURL(blob);
-      audioUrls.push(url);
-
-      if (urlIndex % 5 === 0) {
-        wavesurferRef.current.load(audioUrls[urlIndex]);
-      }
-      urlIndex += 1;
-    }
-
-    // Load the last audio URL into wavesurfer
-    if (audioUrls.length > 0) {
-      wavesurferRef.current.load(audioUrls[audioUrls.length - 1]);
-    }
-
-    return { combinedBuffer, offset, urlIndex };
-  };
-
-  const fetchAudioDataRecursive = async (
-    startNo,
-    endNo,
-    jobId,
-    included_frames,
-    segment_size,
-    overlap
-  ) => {
-    console.log({ startNo, endNo });
-
-    let combinedBuffer = null;
-    let offset = 0;
-    const audioUrls = [];
-    let noOfChunks = endNo + 1 - startNo;
-    let urlIndex = 0;
-    let start = startNo;
-    let end = endNo;
-    // if (start <= 0) start = 1;
-
-    // ground truth job
-    if (included_frames) {
-      let start_frame = included_frames[0];
-      let jobs = [];
-
-      function generateJobs(included_frames, segment_size, overlap) {
-        if (!included_frames.length) return [];
-
-        const jobs = [];
-        let start_frame = included_frames[0];
-
-        while (
-          start_frame + segment_size <=
-          included_frames[included_frames.length - 1]
-        ) {
-          let end_frame = start_frame + segment_size - 1;
-
-          // Check if BOTH start_frame AND end_frame exist in included_frames
-          const startExists = included_frames.includes(start_frame);
-          const endExists = included_frames.includes(end_frame);
-
-          if (startExists && endExists) {
-            jobs.push({
-              start_frame,
-              endFrame: end_frame,
-            });
-          }
-
-          // Move start_frame back by the overlap for the next job
-          start_frame = end_frame - overlap + 1;
-
-          // Find the next valid start frame
-          while (
-            !included_frames.includes(start_frame) &&
-            start_frame <= included_frames[included_frames.length - 1]
-          ) {
-            start_frame++;
-          }
-
-          // Break if we can't find a valid next start frame
-          if (!included_frames.includes(start_frame)) {
-            break;
-          }
-        }
-
-        // Handle the last section if necessary
-        const last_start = start_frame;
-        if (
-          included_frames.includes(last_start) &&
-          last_start < included_frames[included_frames.length - 1]
-        ) {
-          jobs.push({
-            start_frame: last_start,
-            endFrame: included_frames[included_frames.length - 1],
-          });
-        }
-
-        return jobs;
-      }
-
-      jobs = generateJobs(included_frames, segment_size, overlap);
-      // noOfChunks = jobs.reduce(
-      //   (acc, job) =>
-      //     acc +
-      //     Math.trunc(job.endFrame / getJobMetaDataQuery.data.chunk_size) -
-      //     Math.trunc(job.start_frame / getJobMetaDataQuery.data.chunk_size) +
-      //     1,
-      //   0
-      // );
-
-      for (let i = 0; i < jobs.length; i++) {
-        start = Math.trunc(
-          jobs[i].start_frame /
-            (getJobMetaDataQuery.data.chunk_size -
-              getJobDetailQuery.data.overlap)
-        );
-        end = Math.trunc(
-          jobs[i].start_frame /
-            (getJobMetaDataQuery.data.chunk_size -
-              getJobDetailQuery.data.overlap)
-        );
-
-        const result = await computeAudioData(
-          start,
-          end,
-          jobId,
-          combinedBuffer,
-          offset,
-          audioUrls,
-          urlIndex,
-          jobs.length
-        );
-
-        combinedBuffer = result.combinedBuffer;
-        offset = result.offset;
-        urlIndex = result.urlIndex;
-      }
-    } else {
-      const result = await computeAudioData(
-        start,
-        end,
-        jobId,
-        combinedBuffer,
-        offset,
-        audioUrls,
-        urlIndex,
-        noOfChunks
-      );
-    }
-
-    return combinedBuffer;
-  };
-
   const getAnnotationDataQuery = useQuery({
     queryKey: ["annotation-data"],
     enabled: false,
+    retry: false,
     staleTime: Infinity,
-    queryFn: () =>
-      fetchAudioDataRecursive(
-        Math.trunc(
-          getJobMetaDataQuery.data.start_frame /
-            (getJobMetaDataQuery.data.chunk_size -
-              getJobDetailQuery.data.overlap)
-        ),
-        Math.trunc(
-          getJobMetaDataQuery.data.start_frame /
-            (getJobMetaDataQuery.data.chunk_size -
-              getJobDetailQuery.data.overlap)
-        ),
-        jobId,
-        getJobMetaDataQuery.data.included_frames,
-        getJobMetaDataQuery.data.chunk_size,
-        getJobDetailQuery.data.overlap
-      ),
-    onSuccess: (arrayBuffer) => {
-      // console.log(arrayBuffer);
-      // wavesurferRef.current.load(require("../../assets/audio/audio.wav"));
+    queryFn: () => fetchAudioDataPeakApi({ id: jobId }),
+    onSettled: (peakResponse) => {
+      wavesurferRef.current.load(
+        `${
+          process.env.REACT_APP_BACKEND_URL
+        }/jobs/${jobId}/data?org=&type=chunk&quality=compressed&number=${0}`,
+        peakResponse?.data
+      );
     },
   });
 
@@ -720,6 +516,7 @@ export default function AnnotatePage({}) {
           labelMapping[label.id] = {
             color: label.color + "80",
             name: label.name,
+            attributes: label.attributes,
           };
         });
 
@@ -748,6 +545,9 @@ export default function AnnotatePage({}) {
                 attributes: item.attributes.map((a) => {
                   return {
                     id: a.spec_id,
+                    name: labelMapping[item.label_id].attributes.filter(
+                      (curr) => curr.id === a.spec_id
+                    )[0].name,
                     values: [a.value],
                   };
                 }),
@@ -756,8 +556,55 @@ export default function AnnotatePage({}) {
           };
         });
 
+        const markers = [];
+        const numbers = getJobMetaDataQuery.data.time_stamps;
+
+        if (numbers && numbers.length > 0) {
+          const prefixSum = new Array(numbers.length);
+          prefixSum[0] = numbers[0];
+
+          // Compute prefix sum array
+          for (let i = 1; i < numbers.length; i++) {
+            prefixSum[i] = prefixSum[i - 1] + numbers[i];
+          }
+
+          let lastTime = null; // To avoid consecutive duplicates
+
+          // Create markers only for odd indices
+          for (let i = 1; i < prefixSum.length; i += 2) {
+            const timeInSeconds = prefixSum[i] / 1000.0;
+
+            if (timeInSeconds !== lastTime) {
+              // Avoid consecutive duplicates
+              markers.push({
+                time: timeInSeconds,
+                color: "#ff990a",
+                drag: false,
+                resize: false,
+              });
+
+              lastTime = timeInSeconds; // Update last recorded time
+            }
+          }
+        }
+
         setRegions(updatedData);
-        console.log("all annotations", data);
+        setMarkers(markers);
+      },
+    },
+  });
+
+  const getGuideQuery = useGetGuide({
+    queryConfig: {
+      queryKey: [getJobDetailQuery.data?.guide_id],
+      enabled: false,
+      apiParams: {
+        id: getJobDetailQuery.data?.guide_id,
+      },
+      onSuccess: (data) => {
+        if (data?.markdown) {
+          setIsGuideModalOpen(true);
+        }
       },
     },
   });
@@ -773,7 +620,10 @@ export default function AnnotatePage({}) {
     if (getJobDetailQuery.data?.task_id) {
       getLabelsQuery.refetch();
     }
-  }, [getJobDetailQuery.data?.task_id]);
+    if (getJobDetailQuery.data?.guide_id) {
+      getGuideQuery.refetch();
+    }
+  }, [getJobDetailQuery.data?.task_id, getJobDetailQuery.data?.guide_id]);
 
   useEffect(() => {
     if (getJobMetaDataQuery.data?.size && getJobDetailQuery.data?.id) {
@@ -782,7 +632,7 @@ export default function AnnotatePage({}) {
   }, [getJobMetaDataQuery.data?.size, getJobDetailQuery.data?.id]);
 
   const generateMissingRegionsFromGroundTruth = () => {
-    console.log("final data", conflicts, gtAnnotations);
+    // console.log("final data", conflicts, gtAnnotations);
     const missing_regions = [];
     const missing_annotations = conflicts.reduce((acc, conflict) => {
       if (conflict.type === "missing_annotation") {
@@ -816,8 +666,8 @@ export default function AnnotatePage({}) {
       } = groundtruth_annotation;
       const tempRegion = {
         id,
-        start: parseFloat(points[0].toFixed(2)),
-        end: parseFloat(points[2].toFixed(2)),
+        start: parseFloat(points[0].toFixed(3)),
+        end: parseFloat(points[2].toFixed(3)),
         color: `rgba(255, 0, 0, 0.5)`,
         attributes: {
           label: "#" + id + " (Missing)",
@@ -1131,6 +981,10 @@ export default function AnnotatePage({}) {
         [name]: value,
       },
     });
+
+    if (name === "state" && value === "completed") {
+      showJobReport();
+    }
   };
 
   const getScrollPercent = () => {
@@ -1255,18 +1109,44 @@ export default function AnnotatePage({}) {
     }
   }, [currentTab, conflicts, gtAnnotations]);
 
+  const showJobReport = () => {
+    getJobQualityQuery.mutate({
+      jobId: jobId,
+    });
+  };
+
+  const getJobQualityQuery = useGetJobQualityReport({
+    mutationConfig: {
+      onSuccess: (data) => {
+        // console.log(data);
+        setIsResultModalOpen(true);
+        setQualityResult({
+          score: data.score.toFixed(2),
+          expected_score: data.expected_score.toFixed(2),
+        });
+      },
+      onError: (error) => {
+        // toast.error("Failed to fetch job quality report. Please try again.");
+        console.error("Error fetching job quality report:", error);
+        setIsResultModalOpen(false);
+      },
+    },
+  });
+
   return (
     <>
       <TopBar
         getJobDetailQuery={getJobDetailQuery}
-        jobUpdateMutation={jobUpdateMutation}
+        isStateLoading={
+          jobUpdateMutation.isLoading || getJobQualityQuery.isLoading
+        }
         handleStateChange={handleStateChange}
         isScrolled={isScrolled}
         jobId={jobId}
         onSave={handleSave}
         saveLoading={isSaveLoading()}
+        setIsGuideModalOpen={setIsGuideModalOpen}
       />
-
       <main className=" -mt-32 grid grid-cols-12 gap-0  xl:gap-4 px-2 sm:px-8">
         <div className="pb-12 col-span-12  xl:col-span-9 ">
           <div className="bg-white dark:bg-audino-navy shadow min-h-full rounded-lg">
@@ -1291,6 +1171,7 @@ export default function AnnotatePage({}) {
                       cursorColor="transparent"
                       waveColor="#65B892"
                       className="w-full"
+                      backend="MediaElement"
                     >
                       {regions.map((regionProps, regionIdx) => {
                         const tempRegion = { ...regionProps };
@@ -1317,6 +1198,9 @@ export default function AnnotatePage({}) {
                           />
                         );
                       })}
+                      {markers.map((markerProp) => (
+                        <Marker {...markerProp} />
+                      ))}
                     </WaveForm>
                     <div
                       id="timeline"
@@ -1526,6 +1410,17 @@ export default function AnnotatePage({}) {
           </Transition>
         </div>
       )}
+
+      <MarkdownModal
+        open={isGuideModalOpen}
+        setOpen={setIsGuideModalOpen}
+        markdown={getGuideQuery.data?.markdown}
+      />
+      <ResultModal
+        open={isResultModalOpen}
+        setOpen={setIsResultModalOpen}
+        result={qualityResult}
+      />
     </>
   );
 }

@@ -11,6 +11,7 @@ export default function ExportAnnotationModal({
   setOpen,
   currentId,
   type,
+  isGtJob = false, // show only audino format for gts
 }) {
   const cancelButtonRef = useRef(null);
   const [formValue, setFormValue] = useState({
@@ -127,15 +128,20 @@ export default function ExportAnnotationModal({
                       <CustomSelect
                         id="format"
                         name="format"
-                        options={[
-                          { label: "Common Voice", value: "Common Voice" },
-                          { label: "Librispeech", value: "Librispeech" },
-                          { label: "VoxPopuli", value: "VoxPopuli" },
-                          { label: "Ted-Lium", value: "Ted-Lium" },
-                          { label: "VoxCeleb", value: "VoxCeleb" },
-                          { label: "VCTK Corpus", value: "VCTK_Corpus" },
-                          { label: "LibriVox", value: "LibriVox" },
-                        ]}
+                        options={
+                          isGtJob
+                            ? [{ label: "Audino Format", value: "Audino Format" }]
+                            : [
+                              { label: "Audino Format", value: "Audino Format" },
+                              { label: "Common Voice", value: "Common Voice" },
+                              { label: "Librispeech", value: "Librispeech" },
+                              { label: "VoxPopuli", value: "VoxPopuli" },
+                              { label: "Ted-Lium", value: "Ted-Lium" },
+                              { label: "VoxCeleb", value: "VoxCeleb" },
+                              { label: "VCTK Corpus", value: "VCTK_Corpus" },
+                              { label: "LibriVox", value: "LibriVox" },
+                            ]
+                        }
                         formError={formError}
                         value={formValue.format}
                         onChange={(e) =>

@@ -16,6 +16,7 @@ import AddJobPage from "../pages/AddJobPage/AddJobPage";
 import AnalyticsPage from "../pages/AnalyticsPage/AnalyticsPage";
 import CloudStoragePage from "../pages/CloudStoragePage/CoudStoragePage";
 import AddCloudStoragePage from "../pages/AddCloudStoragePage/AddCloudStoragePage";
+import ProfilePage from "../pages/ProfilePage/ProfilePage";
 
 export default function Root() {
   const loginState = useSelector((state) => state.loginReducer);
@@ -171,6 +172,14 @@ export default function Root() {
           element={
             <Suspense fallback={<>Loading...</>}>
               <InvitationPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Suspense fallback={<>Loading...</>}>
+              <ProfilePage />
             </Suspense>
           }
         />

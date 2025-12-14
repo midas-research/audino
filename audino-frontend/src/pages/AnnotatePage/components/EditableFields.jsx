@@ -125,26 +125,14 @@ export default function EditableFields({
     setRegions(updatedRegion);
   };
 
-  const showGender = useShouldShowField(
-    getJobDetailQuery.data?.task_flags ?? {},
-    "Gender"
-  );
-  const showLang = useShouldShowField(
-    getJobDetailQuery.data?.task_flags ?? {},
-    "Language/Locale"
-  );
-  const showAccent = useShouldShowField(
-    getJobDetailQuery.data?.task_flags ?? {},
-    "Accent"
-  );
-  const showEmotion = useShouldShowField(
-    getJobDetailQuery.data?.task_flags ?? {},
-    "Emotion"
-  );
-  const showAge = useShouldShowField(
-    getJobDetailQuery.data?.task_flags ?? {},
-    "Age"
-  );
+  const showGender = getJobDetailQuery.data?.task_flags?.is_gender ?? false;
+  const showLang = getJobDetailQuery.data?.task_flags?.is_locale ?? false;
+  const showAccent = getJobDetailQuery.data?.task_flags?.is_accent ?? false;
+  const showAge = getJobDetailQuery.data?.task_flags?.is_age ?? false;
+  const showEmotion =
+    getJobDetailQuery.data?.task_flags?.is_emotion ?? false;
+  const showTranscription =
+    getJobDetailQuery.data?.task_flags?.is_transcription ?? false;
 
   return (
     <>
@@ -323,52 +311,67 @@ export default function EditableFields({
         </dl>
       </div>
 
-      <div className="pt-4 border-t border-gray-100 dark:border-audino-neutral-gray">
-        <div className="flex justify-between mb-2">
-          <label
-            htmlFor="transcription"
-            className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
-          >
-            Segment transcription
-          </label>
+      {showTranscription && (
+        <div className="pt-4 border-t border-gray-100 dark:border-audino-neutral-gray">
+          <div className="flex justify-between mb-2">
+            <label
+              htmlFor="transcription"
+              className="block text-sm font-medium leading-6 text-gray-900 dark:text-audino-light-silver"
+            >
+              Segment transcription
+            </label>
 
-          <CustomSelect
-            id={"language"}
-            options={langOptions}
-            value={lang}
-            onChange={(e) => setLang(e.target.value)}
-            className={"!text-xs w-min !mt-0"}
-          />
+            <CustomSelect
+              id={"language"}
+              options={langOptions}
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              className={"!text-xs w-min !mt-0"}
+            />
+          </div>
+          {lang === "kd010" ? (
+            <CustomInput
+              type="text"
+              inputType="textarea"
+              refs={inputTextRef}
+              name="transcription"
+              id="transcription"
+              // formError={formError}
+              value={getInputValue("transcription")}
+              onChange={(e) => {
+                handleValueChange("transcription", e.target.value);
+              }}
+              style={{ fontFamily: "Kruti Dev", fontSize: "1.2rem" }}
+            />
+          ) : lang === "en" ? (
+            <CustomInput
+              type="text"
+              inputType="textarea"
+              refs={inputTextRef}
+              name="transcription"
+              id="transcription"
+              // formError={formError}
+              value={getInputValue("transcription")}
+              onChange={(e) => {
+                handleValueChange("transcription", e.target.value);
+              }}
+            />
+          ) : (
+            <ReactTransliterate
+              value={getInputValue("transcription")}
+              onChangeText={(text) => {
+                handleValueChange("transcription", text);
+              }}
+              lang={lang}
+              className="block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none dark:bg-audino-light-navy dark:text-audino-cloud-gray ring-gray-300 dark:ring-audino-charcoal placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
+              renderComponent={(props) => {
+                inputTextRef.current = props.ref.current;
+                return <textarea {...props} />;
+              }}
+            />
+          )}
         </div>
-        {lang == "kd010" ? (
-          <CustomInput
-            type="text"
-            inputType="textarea"
-            refs={inputTextRef}
-            name="transcription"
-            id="transcription"
-            // formError={formError}
-            value={getInputValue("transcription")}
-            onChange={(e) => {
-              handleValueChange("transcription", e.target.value);
-            }}
-            style={{ fontFamily: "Kruti Dev", fontSize: "1.2rem" }}
-          />
-        ) : (
-          <ReactTransliterate
-            value={getInputValue("transcription")}
-            onChangeText={(text) => {
-              handleValueChange("transcription", text);
-            }}
-            lang={lang}
-            className="block w-full rounded-md border-0 py-1.5 pr-10 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 !outline-none dark:bg-audino-light-navy dark:text-audino-cloud-gray ring-gray-300 dark:ring-audino-charcoal placeholder:text-gray-300 focus:ring-audino-primary text-gray-900 "
-            renderComponent={(props) => {
-              inputTextRef.current = props.ref.current;
-              return <textarea {...props} />;
-            }}
-          />
-        )}
-      </div>
+      )}
 
       {showGender && (
         <div className="pt-4">
@@ -513,16 +516,4 @@ export default function EditableFields({
       )}
     </>
   );
-}
-
-function useShouldShowField(flags, fieldName) {
-  return useMemo(() => {
-    return Object.entries(flags).some(([key, value]) => {
-      if (value === true) {
-        const activeFields = DATASET_MAPING[key].split(", ");
-        return activeFields.includes(fieldName);
-      }
-      return false;
-    });
-  }, [flags, fieldName]);
 }

@@ -7,10 +7,10 @@ import './axios-config'
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-export const getAllMembershipsApi = async () => {
+export const getAllMembershipsApi = async (params) => {
   try {
     const response = await axios.get(BASE_URL + `/memberships`, {
-      params: { ...globalParams() },
+      params: { ...globalParams(), ...params },
       headers: { ...authHeader() },
     });
 

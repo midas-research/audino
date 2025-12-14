@@ -176,12 +176,12 @@ const Notification = () => {
         </h2>
         <button
           onClick={handleMarkAllAsRead}
-          className={`px-4 py-2 text-sm text-white dark:text-gray-100 bg-audino-primary rounded-md font-semibold ${
+          className={`px-4 py-2 text-xs text-white dark:text-gray-100 bg-audino-primary rounded-md font-semibold ${
             allNotificationsRead ? "opacity-50 cursor-not-allowed" : ""
           }`}
           disabled={allNotificationsRead}
         >
-          Mark All As Read
+          Mark all as read
         </button>
       </div>
 
@@ -192,7 +192,7 @@ const Notification = () => {
         ) : (
           <>
             {notifications_obj?.results?.length === 0 ? (
-              <p className="text-gray-300 dark:text-gray-100">
+              <p className="text-gray-300 text-center dark:text-gray-100">
                 No new notifications
               </p>
             ) : (

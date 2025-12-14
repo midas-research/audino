@@ -132,6 +132,7 @@ export default function AutoAnnotateModal({ open, setOpen, currentId }) {
                           { label: "English", value: "ENG" },
                           { label: "Hindi", value: "HIN" },
                           { label: "Arabic", value: "ARA" },
+                          { label: "General", value: "UNKNOWN"}
                         ]}
                         formError={formError}
                         value={formValue.lang}

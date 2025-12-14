@@ -196,7 +196,9 @@ export default function AddOrganizationPage() {
     useGetAllMembership({
       queryConfig: {
         queryKey: [orgId],
-        apiParams: {},
+        apiParams: {
+          page_size: 50
+        },
         enabled: false,
         onSuccess: (data) => setMemberships(data),
       }

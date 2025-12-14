@@ -22,9 +22,9 @@ const navigation = [
   // { name: "Reports", href: "/reports" },
 ];
 const userNavigation = [
-  // { name: "Your Profile", href: "/profile" },
+  { name: "Your Profile", href: "/profile" },
   { name: "Organizations", href: "/organizations?page=1" },
-  // { name: "Settings", href: "/setting" },
+  { name: "Invitations", href: "/invitations" },
   { name: "Sign out", href: "/login" },
 ];
 
@@ -94,12 +94,15 @@ export default function AppBar({ children }) {
                 </div>
 
                 {/* right part */}
-                <div className="hidden md:ml-6 md:flex md:items-center">
+                <div className="hidden md:ml-6 md:flex md:items-center relative">
                   <button
                     type="button"
-                    className="relative bg-transparent  text-gray-400 dark:text-gray-300  focus:outline-none mx-2"
+                    className={`relative bg-transparent focus:outline-none mx-4
+                      ${isNotificationOpen ? 'text-audino-primary' : 'text-gray-500 dark:text-gray-300 dark:hover:text-gray-100 hover:border-gray-300 hover:text-gray-700'}
+                      `}
                     onClick={handleNotification}
                   >
+                    <span className="sr-only">View notifications</span>
                     <BellIcon className="h-6 w-6 focus:text-audino-primary" />
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
@@ -114,14 +117,13 @@ export default function AppBar({ children }) {
                   )}
                   <button
                     type="button"
-                    className="rounded-full bg-transparent  text-gray-400 dark:bg-gray-300 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-audino-primary dark:focus:ring-audino-primary "
+                    className="rounded-full bg-transparent"
                     onClick={routeChange}
                   >
-                    <span className="sr-only">View notifications</span>
                     <svg
                       viewBox="0 0 24 24"
                       aria-hidden="true"
-                      className="h-6 w-6 fill-slate-900"
+                      className="h-6 w-6 fill-slate-900 dark:fill-white"
                     >
                       <path
                         fillRule="evenodd"
@@ -266,7 +268,7 @@ export default function AppBar({ children }) {
                         <div className="text-base font-medium dark:text-gray-300 text-gray-800">
                           {username ? username : "User"}
                         </div>
-                        <div className="text-sm font-medium dark:text-gray-400 text-gray-100 ">
+                        <div className="text-sm font-medium dark:text-gray-400 text-gray-500 ">
                           {CURRENT_ORG}
                         </div>
                       </div>

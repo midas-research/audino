@@ -2,17 +2,19 @@ import {
   ArrowPathIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
+  BackwardIcon,
   ChevronUpDownIcon,
   CodeBracketSquareIcon,
   EllipsisVerticalIcon,
+  ForwardIcon,
   MagnifyingGlassMinusIcon,
   PauseIcon,
   PlayIcon,
   SpeakerWaveIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { ReactComponent as BackIcon } from "../../../assets/svgs/back.svg";
-import { ReactComponent as ForwardIcon } from "../../../assets/svgs/forward.svg";
+// import { ReactComponent as BackIcon } from "../../../assets/svgs/back.svg";
+// import { ReactComponent as ForwardIcon } from "../../../assets/svgs/forward.svg";
 import { ReactComponent as KeyboardIcon } from "../../../assets/svgs/keyboard.svg";
 import Tooltip from "../../../components/Tooltip/Tooltip";
 import { useEffect, useRef, useState } from "react";
@@ -167,7 +169,7 @@ export default function WaveButtons({
   return (
     <>
       <p className="truncate dark:text-white text-center text-sm font-bold leading-6 my-2">
-        <span id="currentTime"></span> - {formatTime(totalDuration) || "00:00"}
+        <span id="currentTime">00:00</span> - {formatTime(totalDuration) || "00:00"}
       </p>
       <div className="relative w-full">
         <div className="bg-slate-100 dark:bg-audino-midnight h-1.5 w-full rounded-lg"></div>
@@ -228,7 +230,7 @@ export default function WaveButtons({
             onClick={handleBackward}
           >
             <span className="sr-only">Backward</span>
-            <BackIcon className="h-4 w-4 md:h-6 md:w-6 stroke-slate-500 dark:stroke-white group-hover:stroke-slate-700 dark:group-hover:stoke-white" />
+            <BackwardIcon className="h-4 w-4 md:h-6 md:w-6 stroke-slate-500 dark:stroke-white group-hover:stroke-slate-700 dark:group-hover:stoke-white" />
           </button>
           <button
             type="button"
