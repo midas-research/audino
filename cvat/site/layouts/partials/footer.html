@@ -1,0 +1,46 @@
+{{ $links := .Site.Params.links -}}
+<footer class="bg-dark py-5 row d-print-none" style="min-height: 0">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col text-center">
+        {{ with $links }}
+        {{ with index . "user" }}
+        {{ template "footer-links-block"  . }}
+        {{ end }}
+        {{ end }}
+      </div>
+      <div class="col-4 text-center">
+        <div class="row">
+          {{ with .Site.Params.cvat_ai_privacy_notice }}<a href="{{ . }}">{{ T "footer_cvat_ai_privacy_notice" }}</a>{{ end }}
+        </div>
+        <div class="row">
+          {{ with .Site.Params.cvat_ai_terms_of_use }}<a href="{{ . }}">{{ T "footer_cvat_ai_terms_of_use" }}</a>{{ end }}
+        </div>
+        <div class="row">
+          {{ if not .Site.Params.ui.footer_about_disable }}
+            {{ with .Site.GetPage "about" }}<p><a href="{{ .RelPermalink }}">{{ .Title }}</a></p>{{ end }}
+          {{ end }}
+        </div>
+      </div>
+      <div class="col text-right text-center">
+        {{ with $links }}
+        {{ with index . "developer" }}
+        {{ template "footer-links-block"  . }}
+        {{ end }}
+        {{ end }}
+      </div>
+    </div>
+  </div>
+</footer>
+
+{{ define "footer-links-block" }}
+<ul class="list-inline mb-0">
+  {{ range . }}
+  <li class="list-inline-item mx-2 h3" data-bs-toggle="tooltip" data-placement="top" title="{{ .name }}" aria-label="{{ .name }}">
+    <a class="text-white" rel="noopener noreferrer" href="{{ .url }}">
+      <i class="{{ .icon }}"></i>
+    </a>
+  </li>
+  {{ end }}
+</ul>
+{{ end }}

@@ -1,0 +1,8 @@
+{% load i18n %}
+{% autoescape off %}
+{% if "cvat" in site_name|lower %}
+    {% blocktrans %}You're invited to join {{ organization_name }} organization in CVAT!{% endblocktrans %}
+{% else %}
+    {% blocktrans %}You're invited to join {{ organization_name }} organization in Audino!{% endblocktrans %}
+{% endif %}
+{% endautoescape %}

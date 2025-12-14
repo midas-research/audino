@@ -1,0 +1,25 @@
+{
+  "name": "cvat-data",
+  "type": "module",
+  "version": "2.1.0",
+  "description": "",
+  "main": "src/ts/cvat-data.ts",
+  "scripts": {
+    "build": "webpack --config ./webpack.config.cjs",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "yarn run type-check --watch"
+  },
+  "author": "CVAT.ai",
+  "license": "MIT",
+  "browserslist": [
+    "Chrome >= 63",
+    "Firefox > 102",
+    "not IE 11",
+    "> 2%"
+  ],
+  "devDependencies": {},
+  "dependencies": {
+    "async-mutex": "^0.4.0",
+    "jszip": "3.10.1"
+  }
+}

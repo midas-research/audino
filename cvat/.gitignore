@@ -1,0 +1,72 @@
+# Project Specific
+/data/
+/models/
+/share/
+/static/
+/db.sqlite3
+/.*env*
+/keys
+/logs
+/profiles
+/ssh/*
+!/ssh/README.md
+/Mask_RCNN/
+/letsencrypt-webroot/
+
+# Ignore temporary files
+docker-compose.override.yml
+__pycache__
+*.pyc
+._*
+.coverage
+.husky/
+.python-version
+
+# Ignore npm logs file
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.DS_Store
+
+#Ignore Cypress tests temp files
+/tests/cypress/fixtures
+/tests/cypress/screenshots
+.idea/
+
+#Ignore helm-related files
+/helm-chart/Chart.lock
+/helm-chart/values.*.yaml
+/helm-chart/*.values.yaml
+/helm-chart/charts/*
+
+#Ignore website temp files
+/site/public/
+/site/resources/
+/site/node_modules/
+/site/tech-doc-hugo
+/site/.hugo_build.lock
+
+# Ignore all the installed packages
+node_modules
+
+# Ignore all js dists
+cvat-data/dist
+cvat-core/dist
+cvat-canvas/dist
+cvat-canvas3d/dist
+cvat-ui/dist
+
+# produced by npm run docs in cvat-core
+cvat-core/docs
+# produced by npm run test in cvat-core
+cvat-core/reports
+# produced by prepare in the root package.json script
+.husky
+
+# produced by cvat/apps/iam/rules/tests/generate_tests.py
+/cvat/apps/*/rules/*_test.gen.rego
+
+# Custom
+rsa
+rsa.pub

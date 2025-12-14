@@ -1,0 +1,78 @@
+// Copyright (C) 2023-2024 CVAT.ai Corporation
+//
+// SPDX-License-Identifier: MIT
+
+@import 'base';
+
+.cvat-job-item {
+    border: 1px solid $border-color-1;
+    border-radius: $border-radius-base;
+    margin-bottom: $grid-unit-size;
+    background: $background-color-1;
+
+    .cvat-job-item-issues-summary-icon {
+        margin-left: $grid-unit-size;
+    }
+
+    &:hover {
+        transition: box-shadow $box-shadow-transition;
+        box-shadow: $box-shadow-base;
+    }
+
+    .cvat-job-item-icon {
+        .anticon svg {
+            fill: #fc3;
+        }
+    }
+
+    .ant-card-body {
+        padding: $grid-unit-size * 2;
+        min-height: $grid-unit-size * 9;
+    }
+
+    .cvat-job-item-selects {
+        .cvat-job-item-select {
+            width: $grid-unit-size * 16;
+
+            > :first-child {
+                margin-bottom: $grid-unit-size;
+            }
+
+            .ant-select {
+                width: 100%;
+            }
+        }
+
+        .cvat-job-item-select:not(:last-child) {
+            margin-right: $grid-unit-size;
+        }
+    }
+
+    .cvat-job-item-details {
+        .ant-row {
+            margin-top: $grid-unit-size;
+        }
+
+        .anticon {
+            margin-right: $grid-unit-size;
+        }
+    }
+
+    .cvat-job-item-more-button {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-100%);
+        font-size: 16px;
+        margin-top: $grid-unit-size;
+        padding: 0 $grid-unit-size * 2;
+    }
+
+    .cvat-job-item-dates-info {
+        margin-top: $grid-unit-size;
+    }
+}
+
+.ant-menu.cvat-job-item-menu {
+    box-shadow: $box-shadow-base;
+}
